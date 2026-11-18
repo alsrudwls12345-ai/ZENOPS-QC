@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>ZENOPS | 품질팀 통합 업무 이력관리 시스템</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .modal-backdrop { background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(2px); }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade { animation: fadeIn 0.2s ease-out forwards; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- PIN 잠금 오버레이 (기본 비활성화, 설정에서 활성화 가능) -->
+  <div id="pinLockOverlay" class="hidden fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-7 text-center">
+      <div class="w-12 h-12 rounded-xl bg-purple-800 text-white font-extrabold text-xl flex items-center justify-center mx-auto mb-3 shadow">품</div>
+      <div class="text-xs font-bold tracking-widest text-slate-400 uppercase">ZENOPS QUALITY</div>
+      <h2 class="text-xl font-bold text-slate-900 mt-1">품질팀 통합 업무 이력관리</h2>
+      <p class="text-xs text-slate-500 mt-1 mb-5">사내 전용 시스템입니다. 접속 PIN 번호를 입력하세요.</p>
+      <input type="password" id="pinInput" maxlength="8" inputmode="numeric" placeholder="PIN 입력 (기본: 0000)"
+        class="w-full text-center text-lg tracking-widest font-bold border border-slate-300 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-purple-700"
+        onkeydown="if(event.key==='Enter') verifyPin()" />
+      <p id="pinError" class="text-xs text-rose-600 font-medium mt-2 hidden">PIN 번호가 일치하지 않습니다.</p>
+      <button onclick="verifyPin()" class="w-full mt-4 bg-purple-800 hover:bg-purple-900 text-white font-bold py-3 rounded-xl shadow transition">
+        시스템 접속하기
+      </button>
+    </div>
+  </div>
+
+  <!-- 상단 헤더 (ZENOPS 브랜드 스타일) -->
+  <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-lg bg-purple-700 flex items-center justify-center font-extrabold text-base shrink-0 shadow-inner">품</div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold tracking-wider text-base sm:text-lg">ZENOPS</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-purple-800/80 text-purple-200 font-semibold">품질팀</span>
+          </div>
+          <p class="text-[11px] text-slate-400 truncate">광학 품질팀 통합 업무 이력관리 시스템</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <button onclick="openSettingsModal()" id="syncStatusBtn"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">
+          <span id="syncDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span id="syncLabel" class="hidden sm:inline">로컬 모드</span>
+          <span class="text-slate-400">⚙</span>
+        </button>
+
+        <button onclick="lockScreenNow()" id="headerLockBtn" class="hidden px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300" title="화면 잠금">
+          🔒
+        </button>
+
+        <button onclick="exportCSV()" class="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition">
+          📥 엑셀(CSV)
+        </button>
+
+        <button onclick="openFormModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs sm:text-sm font-bold shadow transition">
+          <span>＋</span>
+          <span>업무 등록</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 메인 컨테이너 -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 space-y-5">
+
+    <!-- 상단 KPI 요약 카드 (원클릭 필터 연동) -->
+    <section class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3">
+      <button onclick="quickFilter('ALL')" id="kpi-ALL" class="kpi-card text-left bg-white p-3.5 sm:p-4 rounded-xl border-2 border-purple-700 shadow-sm transition hover:shadow">
+        <div class="text-xs font-medium text-slate-500">전체 업무 이력</div>
+        <div id="statTotal" class="text-2xl font-extrabold text-slate-900 mt-1">0</div>
+      </button>
+      <button onclick="quickFilter('TODAY')" id="kpi-TODAY" class="kpi-card text-left bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm transition hover:shadow">
+        <div class="text-xs font-medium text-indigo-600">오늘의 업무</div>
+        <div id="statToday" class="text-2xl font-extrabold text-indigo-700 mt-1">0</div>
+      </button>
+      <button onclick="quickFilter('진행 중')" id="kpi-진행 중" class="kpi-card text-left bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm transition hover:shadow">
+        <div class="text-xs font-medium text-amber-600">진행 중 업무</div>
+        <div id="statProgress" class="text-2xl font-extrabold text-amber-600 mt-1">0</div>
+      </button>
+      <button onclick="quickFilter('완료')" id="kpi-완료" class="kpi-card text-left bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm transition hover:shadow">
+        <div class="text-xs font-medium text-emerald-600">완료 업무</div>
+        <div id="statDone" class="text-2xl font-extrabold text-emerald-600 mt-1">0</div>
+      </button>
+      <button onclick="quickFilter('보류')" id="kpi-보류" class="kpi-card col-span-2 sm:col-span-1 text-left bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm transition hover:shadow">
+        <div class="text-xs font-medium text-rose-600">보류 / 이슈 대기</div>
+        <div id="statHold" class="text-2xl font-extrabold text-rose-600 mt-1">0</div>
+      </button>
+    </section>
+
+    <!-- 뷰 전환 네비게이션 탭 -->
+    <nav class="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm flex gap-1 overflow-x-auto scrollbar-hide">
+      <button onclick="switchTab('list')" id="tab-list" class="tab-btn flex-1 min-w-[110px] py-2 px-3 rounded-lg text-xs sm:text-sm font-bold bg-slate-900 text-white transition">
+        📋 업무 이력 조회
+      </button>
+      <button onclick="switchTab('trace')" id="tab-trace" class="tab-btn flex-1 min-w-[125px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">
+        🔍 제품/품번별 이력 추적
+      </button>
+      <button onclick="switchTab('stats')" id="tab-stats" class="tab-btn flex-1 min-w-[110px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">
+        📊 월별 업무 현황
+      </button>
+    </nav>
+
+    <!-- [뷰 1] 업무 이력 조회 & 다중 필터 -->
+    <section id="view-list" class="space-y-4 animate-fade">
+      <!-- 검색 및 다중 필터 패널 -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex flex-col sm:flex-row gap-2">
+          <div class="relative flex-1">
+            <input type="text" id="filterKeyword" oninput="renderAll()"
+              placeholder="제목, 제품명, 품번(예: 111-1), 관리번호, 담당자, 고객사, 작업내용 통합검색..."
+              class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-700" />
+            <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔎</span>
+          </div>
+          <button onclick="resetFilters()" class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg shrink-0">
+            필터 초기화
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <select id="filterCategory" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700">
+            <option value="">전체 업무 분류</option>
+            <option value="입고/출고/공정검사">입고/출고/공정검사</option>
+            <option value="광학 세정/조립/수리">광학 세정/조립/수리</option>
+            <option value="Zygo 측정 및 분석">Zygo 측정 및 분석</option>
+            <option value="코팅 및 외관검사">코팅 및 외관검사</option>
+            <option value="불량 분석 및 개선조치">불량 분석 및 개선조치</option>
+            <option value="고객사 및 협력업체 대응">고객사 및 협력업체 대응</option>
+            <option value="측정기 관리 및 기타">측정기 관리 및 기타</option>
+          </select>
+
+          <select id="filterStatus" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700">
+            <option value="">전체 진행상태</option>
+            <option value="진행 중">진행 중</option>
+            <option value="완료">완료</option>
+            <option value="보류">보류</option>
+          </select>
+
+          <input type="text" id="filterWorker" oninput="renderAll()" placeholder="담당 작업자 필터"
+            class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
+
+          <input type="date" id="filterDateFrom" onchange="renderAll()" title="시작일"
+            class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
+
+          <input type="date" id="filterDateTo" onchange="renderAll()" title="종료일"
+            class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
+          <span>검색 결과 <strong id="resultCount" class="text-purple-800">0</strong>건</span>
+          <div class="flex items-center gap-2">
+            <button onclick="exportCSV()" class="sm:hidden text-purple-800 font-semibold">📥 CSV 저장</button>
+            <span id="storageModeText" class="text-[11px] text-slate-400">로컬 브라우저 저장 모드</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PC 테이블 뷰 -->
+      <div class="hidden md:block bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600">
+                <th class="py-3 px-3.5">작업일자 / 번호</th>
+                <th class="py-3 px-3.5">업무 분류</th>
+                <th class="py-3 px-3.5">업무 제목 / 요약</th>
+                <th class="py-3 px-3.5">제품명 / 품번 / 관리번호</th>
+                <th class="py-3 px-3.5">고객사/업체</th>
+                <th class="py-3 px-3.5">담당자</th>
+                <th class="py-3 px-3.5">첨부</th>
+                <th class="py-3 px-3.5">상태</th>
+              </tr>
+            </thead>
+            <tbody id="desktopTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 모바일 카드 뷰 -->
+      <div id="mobileCardList" class="md:hidden space-y-2.5"></div>
+
+      <!-- 빈 상태 안내 -->
+      <div id="emptyState" class="hidden bg-white rounded-xl border border-slate-200 p-10 text-center">
+        <div class="text-3xl mb-2">📂</div>
+        <p class="text-sm font-bold text-slate-700">조건에 일치하는 업무 이력이 없습니다.</p>
+        <p class="text-xs text-slate-400 mt-1">검색 필터를 초기화하거나 우측 상단 [＋ 업무 등록] 버튼으로 새 이력을 기록하세요.</p>
+      </div>
+    </section>
+
+    <!-- [뷰 2] 제품 / 품번별 전 공정 이력 추적 -->
+    <section id="view-trace" class="hidden space-y-4 animate-fade">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">제품 / 품번 / 관리번호별 공정 타임라인 추적</h2>
+          <p class="text-xs text-slate-500 mt-0.5">입고검사 → 세정 → 코팅 → Zygo 측정 → 출고까지 특정 품번 또는 관리번호의 전체 이력을 시간순으로 추적합니다.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input type="text" id="traceInput" oninput="renderTrace()"
+            placeholder="품번(예: 111-1), 제품명, 또는 관리번호(Lot No)를 입력하세요..."
+            class="flex-1 text-sm border border-slate-300 rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-700" />
+          <div id="traceQuickChips" class="flex flex-wrap gap-1.5 items-center"></div>
+        </div>
+      </div>
+
+      <div id="traceTimelineContainer" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"></div>
+    </section>
+
+    <!-- [뷰 3] 월별 업무 현황 대시보드 -->
+    <section id="view-stats" class="hidden space-y-4 animate-fade">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-800 mb-1">월별 품질팀 업무 등록 추이 (최근 6개월)</h3>
+          <p class="text-xs text-slate-400 mb-4">월별 전체 업무 처리 건수 비교</p>
+          <div id="monthlyChart" class="w-full h-60"></div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-800 mb-1">업무 분류별 비중</h3>
+          <p class="text-xs text-slate-400 mb-4">검사, 세정, Zygo 측정, 코팅, 불량대응 등 유형별 분포</p>
+          <div id="categoryBreakdown" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-800 mb-3">담당자별 업무 처리 현황</h3>
+        <div id="workerBreakdown" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 모바일 우측 하단 빠른 등록 플로팅 버튼 -->
+  <button onclick="openFormModal()"
+    class="md:hidden fixed bottom-5 right-5 z-30 w-14 h-14 rounded-full bg-purple-700 hover:bg-purple-800 text-white shadow-xl flex items-center justify-center text-2xl font-bold active:scale-95 transition"
+    aria-label="업무 등록">
+    ＋
+  </button>
+
+  <!-- [모달 1] 업무 등록 / 수정 모달 -->
+  <div id="formModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden animate-fade">
+      <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+        <div>
+          <h3 id="formModalTitle" class="text-base font-bold">새 품질 업무 등록</h3>
+          <p class="text-[11px] text-slate-400">제품 관련 항목은 해당되지 않는 경우 비워두셔도 됩니다.</p>
+        </div>
+        <button onclick="closeFormModal()" class="text-slate-400 hover:text-white text-xl px-2">✕</button>
+      </div>
+
+      <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-5 overflow-y-auto space-y-4 text-sm">
+        <input type="hidden" id="editRecordId" />
+
+        <!-- 1. 기본 정보 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">작업일자 <span class="text-rose-600">*</span></label>
+            <input type="date" id="fWorkDate" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">업무 고유번호</label>
+            <input type="text" id="fWorkNo" readonly class="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-slate-500 font-mono text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">진행상태 <span class="text-rose-600">*</span></label>
+            <select id="fStatus" required class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white font-semibold focus:ring-2 focus:ring-purple-700 focus:outline-none">
+              <option value="진행 중">🟡 진행 중</option>
+              <option value="완료">🟢 완료</option>
+              <option value="보류">🔴 보류</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">업무 분류 <span class="text-rose-600">*</span></label>
+            <select id="fCategory" required class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-purple-700 focus:outline-none">
+              <option value="입고/출고/공정검사">입고/출고/공정검사</option>
+              <option value="광학 세정/조립/수리">광학 세정/조립/수리</option>
+              <option value="Zygo 측정 및 분석">Zygo 측정 및 분석</option>
+              <option value="코팅 및 외관검사">코팅 및 외관검사</option>
+              <option value="불량 분석 및 개선조치">불량 분석 및 개선조치</option>
+              <option value="고객사 및 협력업체 대응">고객사 및 협력업체 대응</option>
+              <option value="측정기 관리 및 기타">측정기 관리 및 기타</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">담당 작업자 <span class="text-rose-600">*</span></label>
+            <input type="text" id="fWorker" required placeholder="예: 김민준"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">업무 제목 <span class="text-rose-600">*</span></label>
+          <input type="text" id="fTitle" required placeholder="예: AR 코팅 후 Zygo 표면 형상 측정 및 외관검사"
+            class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+        </div>
+
+        <!-- 2. 제품 및 추적 정보 (선택 입력) -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+          <div class="text-xs font-bold text-slate-600">제품 및 추적 정보 (해당 시 선택 입력)</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 mb-1">제품명</label>
+              <input type="text" id="fProductName" placeholder="예: 비구면 렌즈 모듈"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 mb-1">품번 (Part No.)</label>
+              <input type="text" id="fPartNo" placeholder="예: 111-1"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 mb-1">관리번호 / Lot No.</label>
+              <input type="text" id="fLotNo" placeholder="예: S1:Mirror / LOT-261118"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 mb-1">고객사 / 협력업체명</label>
+              <input type="text" id="fClient" placeholder="예: (주)옵틱스솔루션"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 작업내용, 결과, 특이사항 -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">작업내용 <span class="text-rose-600">*</span></label>
+          <textarea id="fDescription" rows="3" required placeholder="수행한 검사, 세정, 조립, 측정 조건 및 상세 내용을 입력하세요."
+            class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">판정 결과</label>
+            <select id="fJudgment" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-purple-700 focus:outline-none">
+              <option value="해당없음">해당없음</option>
+              <option value="합격">합격 (PASS)</option>
+              <option value="조건부합격">조건부합격</option>
+              <option value="불합격">불합격 (FAIL)</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">검사 및 작업 결과 수치/요약</label>
+            <input type="text" id="fResult" placeholder="예: PV 0.082λ, RMS 0.014λ 기준 이내 양호"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모</label>
+          <input type="text" id="fRemarks" placeholder="예: 2번 지그 미세 스크래치 주의, 재세정 1회 추가 진행"
+            class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+        </div>
+
+        <!-- 4. 현장 사진 및 성적서/데이터 첨부 -->
+        <div class="bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 space-y-3">
+          <div class="text-xs font-bold text-purple-900">현장 사진 및 성적서/데이터 첨부</div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">📷 제품/현장 사진 (다중 선택 / 카메라 직촬)</label>
+              <input type="file" id="fPhotoInput" accept="image/*" multiple onchange="handlePhotoSelect(event)"
+                class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-purple-700 file:text-white hover:file:bg-purple-800 cursor-pointer" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">📎 성적서 / Zygo 데이터 / 도면 파일</label>
+              <input type="file" id="fDocInput" multiple onchange="handleDocSelect(event)"
+                class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-700 file:text-white hover:file:bg-slate-800 cursor-pointer" />
+            </div>
+          </div>
+
+          <!-- 첨부 미리보기 영역 -->
+          <div id="previewPhotos" class="flex flex-wrap gap-2"></div>
+          <div id="previewDocs" class="space-y-1"></div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
+          <button type="button" onclick="closeFormModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50">
+            취소
+          </button>
+          <button type="submit" id="submitBtn" class="px-6 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold shadow">
+            업무 이력 저장
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- [모달 2] 업무 상세 조회 모달 -->
+  <div id="detailModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade">
+      <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <span id="dWorkNo" class="text-xs font-mono bg-slate-800 px-2 py-0.5 rounded text-purple-300"></span>
+          <span id="dCategory" class="text-xs font-semibold text-slate-300 truncate"></span>
+        </div>
+        <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white text-xl px-2">✕</button>
+      </div>
+
+      <div id="detailBody" class="p-5 overflow-y-auto space-y-4 text-sm"></div>
+
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+        <button onclick="deleteCurrentRecord()" class="px-3.5 py-2 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200">
+          🗑 삭제
+        </button>
+        <div class="flex gap-2">
+          <button onclick="editCurrentRecord()" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white">
+            ✏️ 수정하기
+          </button>
+          <button onclick="closeDetailModal()" class="px-4 py-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700">
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- [모달 3] 클라우드 실시간 동기화 및 보안 설정 모달 -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade">
+      <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <h3 class="text-base font-bold">⚙ 시스템 설정 (실시간 동기화 · 보안 · 백업)</h3>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white text-xl">✕</button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-5 text-xs sm:text-sm">
+        <!-- 1. PC·모바일 실시간 클라우드 연동 -->
+        <div class="space-y-2">
+          <div class="font-bold text-slate-900 flex items-center justify-between">
+            <span>1. PC · 모바일 실시간 클라우드 연동 (Firebase)</span>
+            <span id="cloudBadge" class="text-[11px] px-2 py-0.5 rounded bg-amber-100 text-amber-800">미연결 (로컬 저장)</span>
+          </div>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            여러 팀원이 스마트폰과 PC에서 동시에 데이터를 공유하려면 무료 Firebase 프로젝트의 <code class="bg-slate-100 px-1 rounded">firebaseConfig</code> 객체를 아래에 붙여넣고 저장하세요.
+          </p>
+          <textarea id="firebaseConfigInput" rows="4"
+            placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "...", "storageBucket": "...", "messagingSenderId": "...", "appId": "..."}'
+            class="w-full font-mono text-xs border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
+          <div class="flex gap-2">
+            <button onclick="saveFirebaseConfig()" class="px-3.5 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold">
+              클라우드 연결 저장
+            </button>
+            <button onclick="clearFirebaseConfig()" class="px-3 py-2 rounded-lg border border-slate-300 text-slate-600 text-xs font-semibold hover:bg-slate-50">
+              연결 해제
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. 사내 보안 PIN 설정 -->
+        <div class="pt-4 border-t border-slate-200 space-y-2">
+          <div class="font-bold text-slate-900">2. 사내 접속 보안 PIN 잠금 (선택 사항)</div>
+          <div class="flex items-center gap-2">
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+              <input type="checkbox" id="pinEnabledCheck" class="rounded text-purple-700" />
+              접속 시 PIN 비밀번호 잠금 사용
+            </label>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="newPinInput" maxlength="8" placeholder="PIN 번호 (예: 0000)"
+              class="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-xs" />
+            <button onclick="savePinSettings()" class="px-3.5 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold">
+              PIN 저장
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. 데이터 백업 및 복원 -->
+        <div class="pt-4 border-t border-slate-200 space-y-2">
+          <div class="font-bold text-slate-900">3. 전체 데이터 백업 및 복원 (JSON)</div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="exportJSON()" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold">
+              💾 전체 데이터 백업 파일 받기
+            </button>
+            <label class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold cursor-pointer">
+              📂 백업 파일 불러오기
+              <input type="file" accept=".json" onchange="importJSON(event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사진 확대 보기 라이트박스 -->
+  <div id="lightboxModal" onclick="this.classList.add('hidden')" class="hidden fixed inset-0 z-[90] bg-black/90 flex items-center justify-center p-4 cursor-zoom-out">
+    <img id="lightboxImg" src="" alt="확대 사진" class="max-w-full max-h-full rounded-lg shadow-2xl" />
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const STORAGE_KEY = "zenops_qc_records_v2";
+    const FB_CONFIG_KEY = "zenops_qc_fb_config";
+    const PIN_CFG_KEY = "zenops_qc_pin_cfg";
+
+    let records = [];
+    let currentTab = "list";
+    let quickFilterMode = "ALL";
+    let selectedRecordId = null;
+    let tempPhotos = [];
+    let tempDocs = [];
+    let db = null;
+    let unsubscribeSnapshot = null;
+
+    // 초기 샘플 데이터 (최초 1회)
+    const SAMPLE_RECORDS = [
+      {
+        id: "rec_sample_1",
+        workNo: "Q-20261118-001",
+        workDate: new Date().toISOString().slice(0, 10),
+        category: "Zygo 측정 및 분석",
+        status: "완료",
+        worker: "김민준",
+        title: "AR 코팅 후 표면 형상(PV/RMS) Zygo 간섭계 측정",
+        productName: "비구면 광학 렌즈",
+        partNo: "111-1",
+        lotNo: "S2:AR",
+        client: "제놉스 내부공정",
+        description: "코팅 챔버 2호기 증착 완료된 S2:AR Lot 샘플 5매 Zygo 간섭계 측정 및 데이터 분석 진행.",
+        judgment: "합격",
+        result: "PV 0.078λ, RMS 0.012λ (규격 0.1λ 이하 합격)",
+        remarks: "전 수량 스펙 이내 양호, 출고검사 인계 완료",
+        photos: [],
+        files: [{ name: "111-1_S2_AR_Zygo_Report.pdf", size: "420 KB", dataUrl: "" }],
+        updatedAt: Date.now()
+      },
+      {
+        id: "rec_sample_2",
+        workNo: "Q-20261118-002",
+        workDate: new Date().toISOString().slice(0, 10),
+        category: "광학 세정/조립/수리",
+        status: "진행 중",
+        worker: "이서연",
+        title: "코팅 전 초음파 정밀 세정 및 암실 외관 전수검사",
+        productName: "비구면 광학 렌즈",
+        partNo: "111-1",
+        lotNo: "S1:Mirror",
+        client: "제놉스 내부공정",
+        description: "증착 전 초음파 4단 세정 후 집광등 하에서 이물 및 미세 스크래치 외관 전수검사.",
+        judgment: "조건부합격",
+        result: "총 50매 중 48매 양호, 2매 재세정 투입",
+        remarks: "재세정 2매 건조 후 재확인 예정",
+        photos: [],
+        files: [],
+        updatedAt: Date.now() - 3600000
+      }
+    ];
+
+    // 초기화 실행
+    async function init() {
+      checkPinLockOnLoad();
+      const savedFb = localStorage.getItem(FB_CONFIG_KEY);
+      if (savedFb) {
+        try {
+          const cfg = JSON.parse(savedFb);
+          document.getElementById("firebaseConfigInput").value = JSON.stringify(cfg, null, 2);
+          await connectFirebase(cfg);
+          return;
+        } catch (e) {
+          console.error("Firebase 연결 실패, 로컬 모드로 전환:", e);
+        }
+      }
+      loadLocalRecords();
+    }
+
+    function loadLocalRecords() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        records = [...SAMPLE_RECORDS];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      } else {
+        try {
+          records = JSON.parse(raw);
+        } catch {
+          records = [];
+        }
+      }
+      renderAll();
+    }
+
+    function saveLocalRecords() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    async function connectFirebase(cfg) {
+      const app = initializeApp(cfg);
+      db = getFirestore(app);
+      const q = query(collection(db, "zenops_quality_records"), orderBy("workDate", "desc"));
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+      unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+        records = snapshot.docs.map(d => d.data());
+        renderAll();
+      });
+
+      document.getElementById("syncDot").className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+      document.getElementById("syncLabel").textContent = "실시간 클라우드 연동";
+      document.getElementById("storageModeText").textContent = "☁️ PC · 모바일 실시간 클라우드 동기화 중";
+      document.getElementById("cloudBadge").className = "text-[11px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold";
+      document.getElementById("cloudBadge").textContent = "실시간 연결됨";
+    }
+
+    // PIN 잠금 제어
+    function getPinCfg() {
+      try {
+        return JSON.parse(localStorage.getItem(PIN_CFG_KEY)) || { enabled: false, pin: "0000" };
+      } catch {
+        return { enabled: false, pin: "0000" };
+      }
+    }
+
+    function checkPinLockOnLoad() {
+      const cfg = getPinCfg();
+      document.getElementById("pinEnabledCheck").checked = cfg.enabled;
+      document.getElementById("newPinInput").value = cfg.pin || "0000";
+      if (cfg.enabled) {
+        document.getElementById("headerLockBtn").classList.remove("hidden");
+        if (sessionStorage.getItem("zenops_unlocked") !== "true") {
+          document.getElementById("pinLockOverlay").classList.remove("hidden");
+        }
+      }
+    }
+
+    window.verifyPin = function () {
+      const cfg = getPinCfg();
+      const val = document.getElementById("pinInput").value.trim();
+      if (val === (cfg.pin || "0000")) {
+        sessionStorage.setItem("zenops_unlocked", "true");
+        document.getElementById("pinLockOverlay").classList.add("hidden");
+        document.getElementById("pinError").classList.add("hidden");
+        document.getElementById("pinInput").value = "";
+      } else {
+        document.getElementById("pinError").classList.remove("hidden");
+      }
+    };
+
+    window.lockScreenNow = function () {
+      sessionStorage.removeItem("zenops_unlocked");
+      document.getElementById("pinLockOverlay").classList.remove("hidden");
+    };
+
+    window.savePinSettings = function () {
+      const enabled = document.getElementById("pinEnabledCheck").checked;
+      const pin = document.getElementById("newPinInput").value.trim() || "0000";
+      localStorage.setItem(PIN_CFG_KEY, JSON.stringify({ enabled, pin }));
+      if (enabled) {
+        document.getElementById("headerLockBtn").classList.remove("hidden");
+      } else {
+        document.getElementById("headerLockBtn").classList.add("hidden");
+      }
+      alert("보안 설정이 저장되었습니다.");
+    };
+
+    // 필터링 로직
+    function getFilteredRecords() {
+      const kw = document.getElementById("filterKeyword").value.trim().toLowerCase();
+      const cat = document.getElementById("filterCategory").value;
+      const st = document.getElementById("filterStatus").value;
+      const wk = document.getElementById("filterWorker").value.trim().toLowerCase();
+      const dFrom = document.getElementById("filterDateFrom").value;
+      const dTo = document.getElementById("filterDateTo").value;
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      return records
+        .filter(r => {
+          if (quickFilterMode === "TODAY" && r.workDate !== todayStr) return false;
+          if (["진행 중", "완료", "보류"].includes(quickFilterMode) && r.status !== quickFilterMode) return false;
+          if (cat && r.category !== cat) return false;
+          if (st && r.status !== st) return false;
+          if (wk && !(r.worker || "").toLowerCase().includes(wk)) return false;
+          if (dFrom && r.workDate < dFrom) return false;
+          if (dTo && r.workDate > dTo) return false;
+          if (kw) {
+            const hay = [r.workNo, r.title, r.productName, r.partNo, r.lotNo, r.client, r.worker, r.description, r.result, r.remarks]
+              .join(" ").toLowerCase();
+            if (!hay.includes(kw)) return false;
+          }
+          return true;
+        })
+        .sort((a, b) => (b.workDate || "").localeCompare(a.workDate || "") || (b.updatedAt || 0) - (a.updatedAt || 0));
+    }
+
+    window.quickFilter = function (mode) {
+      quickFilterMode = mode;
+      document.querySelectorAll(".kpi-card").forEach(el => {
+        el.classList.remove("border-2", "border-purple-700");
+        el.classList.add("border", "border-slate-200");
+      });
+      const activeCard = document.getElementById(`kpi-${mode}`);
+      if (activeCard) {
+        activeCard.classList.remove("border", "border-slate-200");
+        activeCard.classList.add("border-2", "border-purple-700");
+      }
+      if (currentTab !== "list") switchTab("list");
+      renderAll();
+    };
+
+    window.resetFilters = function () {
+      quickFilterMode = "ALL";
+      document.getElementById("filterKeyword").value = "";
+      document.getElementById("filterCategory").value = "";
+      document.getElementById("filterStatus").value = "";
+      document.getElementById("filterWorker").value = "";
+      document.getElementById("filterDateFrom").value = "";
+      document.getElementById("filterDateTo").value = "";
+      quickFilter("ALL");
+    };
+
+    // 전체 렌더링
+    window.renderAll = function () {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      document.getElementById("statTotal").textContent = records.length;
+      document.getElementById("statToday").textContent = records.filter(r => r.workDate === todayStr).length;
+      document.getElementById("statProgress").textContent = records.filter(r => r.status === "진행 중").length;
+      document.getElementById("statDone").textContent = records.filter(r => r.status === "완료").length;
+      document.getElementById("statHold").textContent = records.filter(r => r.status === "보류").length;
+
+      const filtered = getFilteredRecords();
+      document.getElementById("resultCount").textContent = filtered.length;
+
+      const tbody = document.getElementById("desktopTableBody");
+      const mobileList = document.getElementById("mobileCardList");
+      const emptyEl = document.getElementById("emptyState");
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = "";
+        mobileList.innerHTML = "";
+        emptyEl.classList.remove("hidden");
+      } else {
+        emptyEl.classList.add("hidden");
+        tbody.innerHTML = filtered.map(r => `
+          <tr onclick="openDetailModal('${r.id}')" class="hover:bg-purple-50/50 cursor-pointer transition">
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              <div class="font-bold text-slate-800">${esc(r.workDate)}</div>
+              <div class="text-[11px] font-mono text-slate-400">${esc(r.workNo)}</div>
+            </td>
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              <span class="text-xs font-semibold px-2 py-1 rounded-md bg-slate-100 text-slate-700">${esc(r.category)}</span>
+            </td>
+            <td class="py-3 px-3.5 max-w-xs">
+              <div class="font-bold text-slate-900 truncate">${esc(r.title)}</div>
+              <div class="text-xs text-slate-500 truncate mt-0.5">${esc(r.result || r.description)}</div>
+            </td>
+            <td class="py-3 px-3.5 text-xs">
+              ${r.productName || r.partNo || r.lotNo
+                ? `<div class="font-semibold text-slate-800">${esc(r.productName || "-")}</div>
+                   <div class="text-slate-500">${esc(r.partNo || "")} ${r.lotNo ? `· <span class="text-purple-700 font-medium">${esc(r.lotNo)}</span>` : ""}</div>`
+                : `<span class="text-slate-400">-</span>`}
+            </td>
+            <td class="py-3 px-3.5 text-xs text-slate-600">${esc(r.client || "-")}</td>
+            <td class="py-3 px-3.5 text-xs font-bold text-slate-700 whitespace-nowrap">${esc(r.worker)}</td>
+            <td class="py-3 px-3.5 text-xs whitespace-nowrap text-slate-500">
+              ${(r.photos?.length || 0) > 0 ? `📷 ${r.photos.length} ` : ""}
+              ${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}
+              ${!(r.photos?.length || r.files?.length) ? "-" : ""}
+            </td>
+            <td class="py-3 px-3.5 whitespace-nowrap">${statusBadge(r.status)}</td>
+          </tr>
+        `).join("");
+
+        mobileList.innerHTML = filtered.map(r => `
+          <div onclick="openDetailModal('${r.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(r.category)}</span>
+              ${statusBadge(r.status)}
+            </div>
+            <div class="font-bold text-slate-900 text-sm leading-snug">${esc(r.title)}</div>
+            ${(r.productName || r.partNo || r.lotNo) ? `
+              <div class="text-xs bg-slate-50 px-2.5 py-1.5 rounded-lg text-slate-700 flex flex-wrap gap-x-2">
+                ${r.productName ? `<span>제품: <strong>${esc(r.productName)}</strong></span>` : ""}
+                ${r.partNo ? `<span>품번: <strong>${esc(r.partNo)}</strong></span>` : ""}
+                ${r.lotNo ? `<span class="text-purple-700 font-semibold">${esc(r.lotNo)}</span>` : ""}
+              </div>` : ""}
+            <p class="text-xs text-slate-500 line-clamp-2">${esc(r.result || r.description)}</p>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-100">
+              <span>${esc(r.workDate)} · 담당: <strong class="text-slate-700">${esc(r.worker)}</strong></span>
+              <span>
+                ${(r.photos?.length || 0) > 0 ? `📷 ${r.photos.length} ` : ""}
+                ${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}
+              </span>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      if (currentTab === "trace") renderTrace();
+      if (currentTab === "stats") renderStats();
+    };
+
+    function statusBadge(st) {
+      if (st === "완료") return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">완료</span>`;
+      if (st === "보류") return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">보류</span>`;
+      return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">진행 중</span>`;
+    }
+
+    // 탭 전환
+    window.switchTab = function (tab) {
+      currentTab = tab;
+      ["list", "trace", "stats"].forEach(t => {
+        document.getElementById(`view-${t}`).classList.toggle("hidden", t !== tab);
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === tab) {
+          btn.className = "tab-btn flex-1 min-w-[110px] py-2 px-3 rounded-lg text-xs sm:text-sm font-bold bg-slate-900 text-white transition";
+        } else {
+          btn.className = "tab-btn flex-1 min-w-[110px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition";
+        }
+      });
+      if (tab === "trace") renderTrace();
+      if (tab === "stats") renderStats();
+    };
+
+    // [뷰 2] 제품/품번별 이력 추적
+    window.renderTrace = function () {
+      const chipsEl = document.getElementById("traceQuickChips");
+      const uniqueParts = [...new Set(records.map(r => r.partNo).filter(Boolean))].slice(0, 6);
+      chipsEl.innerHTML = uniqueParts.map(p =>
+        `<button onclick="document.getElementById('traceInput').value='${esc(p)}'; renderTrace();"
+          class="text-xs px-2.5 py-1 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-800 font-semibold border border-purple-200">
+          #${esc(p)}
+        </button>`
+      ).join("");
+
+      const q = document.getElementById("traceInput").value.trim().toLowerCase();
+      const container = document.getElementById("traceTimelineContainer");
+      const matched = records
+        .filter(r => {
+          if (!q) return r.partNo || r.productName || r.lotNo;
+          return [r.partNo, r.productName, r.lotNo].some(v => (v || "").toLowerCase().includes(q));
+        })
+        .sort((a, b) => (a.workDate || "").localeCompare(b.workDate || "") || (a.updatedAt || 0) - (b.updatedAt || 0));
+
+      if (matched.length === 0) {
+        container.innerHTML = `<p class="text-center text-sm text-slate-400 py-8">일치하는 제품 또는 품번 이력이 없습니다.</p>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="relative border-l-2 border-purple-300 ml-3 space-y-6">
+          ${matched.map(r => `
+            <div onclick="openDetailModal('${r.id}')" class="relative pl-6 cursor-pointer group">
+              <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-purple-700 border-2 border-white shadow"></span>
+              <div class="bg-slate-50 group-hover:bg-purple-50/60 p-3.5 rounded-xl border border-slate-200 transition">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-purple-800">${esc(r.workDate)}</span>
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded bg-white border border-slate-200">${esc(r.category)}</span>
+                    ${r.lotNo ? `<span class="text-xs font-bold text-indigo-700">[${esc(r.lotNo)}]</span>` : ""}
+                  </div>
+                  ${statusBadge(r.status)}
+                </div>
+                <div class="font-bold text-slate-900 text-sm">${esc(r.title)}</div>
+                <div class="text-xs text-slate-600 mt-1">${esc(r.result || r.description)}</div>
+                <div class="text-[11px] text-slate-400 mt-1.5">품번: ${esc(r.partNo || "-")} · 제품: ${esc(r.productName || "-")} · 담당: ${esc(r.worker)}</div>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    };
+
+    // [뷰 3] 월별 업무 현황
+    window.renderStats = function () {
+      // 최근 6개월 집계
+      const months = [];
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        months.push({ ym, count: records.filter(r => (r.workDate || "").startsWith(ym)).length });
+      }
+
+      const chartEl = document.getElementById("monthlyChart");
+      chartEl.innerHTML = "";
+      const width = chartEl.clientWidth || 400;
+      const height = 220;
+      const margin = { top: 20, right: 16, bottom: 30, left: 32 };
+
+      const svg = d3.select("#monthlyChart").append("svg").attr("width", width).attr("height", height);
+      const x = d3.scaleBand().domain(months.map(d => d.ym)).range([margin.left, width - margin.right]).padding(0.35);
+      const maxVal = Math.max(5, d3.max(months, d => d.count) || 5);
+      const y = d3.scaleLinear().domain([0, maxVal]).nice().range([height - margin.bottom, margin.top]);
+
+      svg.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x).tickFormat(d => d.slice(5) + "월"))
+        .selectAll("text").style("font-size", "11px");
+
+      svg.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y).ticks(5))
+        .selectAll("text").style("font-size", "11px");
+
+      svg.selectAll(".bar")
+        .data(months)
+        .enter().append("rect")
+        .attr("x", d => x(d.ym))
+        .attr("y", d => y(d.count))
+        .attr("width", x.bandwidth())
+        .attr("height", d => height - margin.bottom - y(d.count))
+        .attr("rx", 6)
+        .attr("fill", "#6b21a8");
+
+      svg.selectAll(".label")
+        .data(months)
+        .enter().append("text")
+        .attr("x", d => x(d.ym) + x.bandwidth() / 2)
+        .attr("y", d => y(d.count) - 5)
+        .attr("text-anchor", "middle")
+        .style("font-size", "11px")
+        .style("font-weight", "bold")
+        .style("fill", "#1e293b")
+        .text(d => d.count);
+
+      // 업무 분류별 비중
+      const catCounts = {};
+      records.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
+      const total = records.length || 1;
+      const catEl = document.getElementById("categoryBreakdown");
+      catEl.innerHTML = Object.entries(catCounts).sort((a, b) => b[1] - a[1]).map(([cat, cnt]) => {
+        const pct = Math.round((cnt / total) * 100);
+        return `
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="text-slate-700">${esc(cat)}</span>
+              <span class="text-purple-800">${cnt}건 (${pct}%)</span>
+            </div>
+            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-purple-700 rounded-full" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join("") || `<p class="text-xs text-slate-400">데이터가 없습니다.</p>`;
+
+      // 담당자별 현황
+      const wkCounts = {};
+      records.forEach(r => { if (r.worker) wkCounts[r.worker] = (wkCounts[r.worker] || 0) + 1; });
+      document.getElementById("workerBreakdown").innerHTML = Object.entries(wkCounts).sort((a, b) => b[1] - a[1]).map(([w, cnt]) => `
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-800">${esc(w)}</span>
+          <span class="text-sm font-extrabold text-purple-800">${cnt}건</span>
+        </div>
+      `).join("") || `<p class="text-xs text-slate-400 col-span-4">등록된 담당자 데이터가 없습니다.</p>`;
+    };
+
+    // 업무 등록/수정 모달 제어
+    window.openFormModal = function (record = null) {
+      document.getElementById("recordForm").reset();
+      tempPhotos = [];
+      tempDocs = [];
+
+      if (record) {
+        document.getElementById("formModalTitle").textContent = "품질 업무 이력 수정";
+        document.getElementById("editRecordId").value = record.id;
+        document.getElementById("fWorkDate").value = record.workDate;
+        document.getElementById("fWorkNo").value = record.workNo;
+        document.getElementById("fStatus").value = record.status;
+        document.getElementById("fCategory").value = record.category;
+        document.getElementById("fWorker").value = record.worker;
+        document.getElementById("fTitle").value = record.title;
+        document.getElementById("fProductName").value = record.productName || "";
+        document.getElementById("fPartNo").value = record.partNo || "";
+        document.getElementById("fLotNo").value = record.lotNo || "";
+        document.getElementById("fClient").value = record.client || "";
+        document.getElementById("fDescription").value = record.description || "";
+        document.getElementById("fJudgment").value = record.judgment || "해당없음";
+        document.getElementById("fResult").value = record.result || "";
+        document.getElementById("fRemarks").value = record.remarks || "";
+        tempPhotos = [...(record.photos || [])];
+        tempDocs = [...(record.files || [])];
+      } else {
+        const today = new Date().toISOString().slice(0, 10);
+        const seq = String(records.filter(r => r.workDate === today).length + 1).padStart(3, "0");
+        document.getElementById("formModalTitle").textContent = "새 품질 업무 등록";
+        document.getElementById("editRecordId").value = "";
+        document.getElementById("fWorkDate").value = today;
+        document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`;
+        document.getElementById("fStatus").value = "진행 중";
+      }
+      renderAttachmentsPreview();
+      document.getElementById("formModal").classList.remove("hidden");
+    };
+
+    window.closeFormModal = function () {
+      document.getElementById("formModal").classList.add("hidden");
+    };
+
+    // 이미지 자동 압축 처리 (모바일 촬영 고화질 대응)
+    window.handlePhotoSelect = async function (e) {
+      const files = Array.from(e.target.files || []);
+      for (const file of files) {
+        const compressed = await compressImage(file, 1024, 0.72);
+        tempPhotos.push(compressed);
+      }
+      renderAttachmentsPreview();
+      e.target.value = "";
+    };
+
+    function compressImage(file, maxWidth, quality) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let w = img.width, h = img.height;
+            if (w > maxWidth) {
+              h = Math.round((h * maxWidth) / w);
+              w = maxWidth;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    window.handleDocSelect = async function (e) {
+      const files = Array.from(e.target.files || []);
+      for (const file of files) {
+        const sizeKB = Math.max(1, Math.round(file.size / 1024)) + " KB";
+        let dataUrl = "";
+        if (file.size <= 1.5 * 1024 * 1024) {
+          dataUrl = await new Promise(res => {
+            const r = new FileReader();
+            r.onload = ev => res(ev.target.result);
+            r.readAsDataURL(file);
+          });
+        }
+        tempDocs.push({ name: file.name, size: sizeKB, dataUrl });
+      }
+      renderAttachmentsPreview();
+      e.target.value = "";
+    };
+
+    function renderAttachmentsPreview() {
+      document.getElementById("previewPhotos").innerHTML = tempPhotos.map((src, i) => `
+        <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-300">
+          <img src="${src}" class="w-full h-full object-cover" />
+          <button type="button" onclick="removeTempPhoto(${i})" class="absolute top-0.5 right-0.5 bg-black/70 text-white text-[10px] w-4 h-4 rounded-full">✕</button>
+        </div>
+      `).join("");
+
+      document.getElementById("previewDocs").innerHTML = tempDocs.map((d, i) => `
+        <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
+          <span class="truncate">📎 ${esc(d.name)} <span class="text-slate-400">(${esc(d.size)})</span></span>
+          <button type="button" onclick="removeTempDoc(${i})" class="text-rose-600 font-bold ml-2">삭제</button>
+        </div>
+      `).join("");
+    }
+
+    window.removeTempPhoto = function (idx) { tempPhotos.splice(idx, 1); renderAttachmentsPreview(); };
+    window.removeTempDoc = function (idx) { tempDocs.splice(idx, 1); renderAttachmentsPreview(); };
+
+    // 저장 실행
+    window.handleFormSubmit = async function (e) {
+      e.preventDefault();
+      const editId = document.getElementById("editRecordId").value;
+      const id = editId || ("rec_" + Date.now());
+      const payload = {
+        id,
+        workDate: document.getElementById("fWorkDate").value,
+        workNo: document.getElementById("fWorkNo").value,
+        status: document.getElementById("fStatus").value,
+        category: document.getElementById("fCategory").value,
+        worker: document.getElementById("fWorker").value.trim(),
+        title: document.getElementById("fTitle").value.trim(),
+        productName: document.getElementById("fProductName").value.trim(),
+        partNo: document.getElementById("fPartNo").value.trim(),
+        lotNo: document.getElementById("fLotNo").value.trim(),
+        client: document.getElementById("fClient").value.trim(),
+        description: document.getElementById("fDescription").value.trim(),
+        judgment: document.getElementById("fJudgment").value,
+        result: document.getElementById("fResult").value.trim(),
+        remarks: document.getElementById("fRemarks").value.trim(),
+        photos: tempPhotos,
+        files: tempDocs,
+        updatedAt: Date.now()
+      };
+
+      if (db) {
+        try {
+          await setDoc(doc(db, "zenops_quality_records", id), payload);
+        } catch (err) {
+          alert("클라우드 저장 중 오류가 발생했습니다(사진 용량 초과 여부 확인): " + err.message);
+          return;
+        }
+      } else {
+        const idx = records.findIndex(r => r.id === id);
+        if (idx >= 0) records[idx] = payload;
+        else records.unshift(payload);
+        saveLocalRecords();
+        renderAll();
+      }
+      closeFormModal();
+    };
+
+    // 상세 모달 제어
+    window.openDetailModal = function (id) {
+      const r = records.find(item => item.id === id);
+      if (!r) return;
+      selectedRecordId = id;
+
+      document.getElementById("dWorkNo").textContent = r.workNo;
+      document.getElementById("dCategory").textContent = r.category;
+
+      const photosHtml = (r.photos && r.photos.length > 0) ? `
+        <div>
+          <div class="text-xs font-bold text-slate-700 mb-2">📷 첨부 현장 사진 (${r.photos.length}장)</div>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            ${r.photos.map(src => `<img src="${src}" onclick="openLightbox('${src}')" class="w-full h-24 object-cover rounded-lg border border-slate-200 cursor-zoom-in hover:opacity-90" />`).join("")}
+          </div>
+        </div>
+      ` : "";
+
+      const filesHtml = (r.files && r.files.length > 0) ? `
+        <div>
+          <div class="text-xs font-bold text-slate-700 mb-2">📎 연결된 성적서 / 데이터 파일 (${r.files.length}건)</div>
+          <div class="space-y-1.5">
+            ${r.files.map(f => `
+              <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-xs">
+                <span class="font-medium text-slate-800 truncate">${esc(f.name)} <span class="text-slate-400">(${esc(f.size)})</span></span>
+                ${f.dataUrl ? `<a href="${f.dataUrl}" download="${esc(f.name)}" class="text-purple-700 font-bold shrink-0 ml-2">다운로드</a>` : `<span class="text-slate-400 text-[11px]">파일명 기록됨</span>`}
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      ` : "";
+
+      document.getElementById("detailBody").innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+          <h4 class="text-lg font-extrabold text-slate-900 leading-snug">${esc(r.title)}</h4>
+          ${statusBadge(r.status)}
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
+          <div><span class="text-slate-400 block">작업일자</span><strong class="text-slate-800">${esc(r.workDate)}</strong></div>
+          <div><span class="text-slate-400 block">담당 작업자</span><strong class="text-slate-800">${esc(r.worker)}</strong></div>
+          <div><span class="text-slate-400 block">판정 결과</span><strong class="text-purple-800">${esc(r.judgment || "해당없음")}</strong></div>
+          <div><span class="text-slate-400 block">제품명</span><strong class="text-slate-800">${esc(r.productName || "-")}</strong></div>
+          <div><span class="text-slate-400 block">품번 (Part No.)</span><strong class="text-slate-800">${esc(r.partNo || "-")}</strong></div>
+          <div><span class="text-slate-400 block">관리번호 / Lot</span><strong class="text-indigo-700">${esc(r.lotNo || "-")}</strong></div>
+          <div class="col-span-2 sm:col-span-3"><span class="text-slate-400 block">고객사 / 협력업체</span><strong class="text-slate-800">${esc(r.client || "-")}</strong></div>
+        </div>
+
+        <div>
+          <div class="text-xs font-bold text-slate-700 mb-1">작업 및 검사 상세내용</div>
+          <div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-800 whitespace-pre-line leading-relaxed">${esc(r.description)}</div>
+        </div>
+
+        ${r.result ? `
+          <div>
+            <div class="text-xs font-bold text-slate-700 mb-1">검사 및 작업 결과</div>
+            <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-emerald-950 font-medium">${esc(r.result)}</div>
+          </div>` : ""}
+
+        ${r.remarks ? `
+          <div>
+            <div class="text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모</div>
+            <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-amber-950">${esc(r.remarks)}</div>
+          </div>` : ""}
+
+        ${photosHtml}
+        ${filesHtml}
+      `;
+
+      document.getElementById("detailModal").classList.remove("hidden");
+    };
+
+    window.closeDetailModal = function () { document.getElementById("detailModal").classList.add("hidden"); };
+
+    window.editCurrentRecord = function () {
+      const r = records.find(item => item.id === selectedRecordId);
+      closeDetailModal();
+      if (r) openFormModal(r);
+    };
+
+    window.deleteCurrentRecord = async function () {
+      if (!selectedRecordId || !confirm("이 업무 이력을 삭제하시겠습니까?")) return;
+      if (db) {
+        await deleteDoc(doc(db, "zenops_quality_records", selectedRecordId));
+      } else {
+        records = records.filter(r => r.id !== selectedRecordId);
+        saveLocalRecords();
+        renderAll();
+      }
+      closeDetailModal();
+    };
+
+    window.openLightbox = function (src) {
+      document.getElementById("lightboxImg").src = src;
+      document.getElementById("lightboxModal").classList.remove("hidden");
+    };
+
+    // 설정 모달 및 클라우드/백업 제어
+    window.openSettingsModal = function () { document.getElementById("settingsModal").classList.remove("hidden"); };
+    window.closeSettingsModal = function () { document.getElementById("settingsModal").classList.add("hidden"); };
+
+    window.saveFirebaseConfig = async function () {
+      const raw = document.getElementById("firebaseConfigInput").value.trim();
+      try {
+        const cfg = JSON.parse(raw);
+        if (!cfg.apiKey || !cfg.projectId) throw new Error("필수 키(apiKey, projectId) 누락");
+        localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(cfg));
+        await connectFirebase(cfg);
+        alert("클라우드 실시간 연동이 완료되었습니다!");
+        closeSettingsModal();
+      } catch (e) {
+        alert("설정 JSON 형식이 올바르지 않습니다: " + e.message);
+      }
+    };
+
+    window.clearFirebaseConfig = function () {
+      localStorage.removeItem(FB_CONFIG_KEY);
+      location.reload();
+    };
+
+    window.exportCSV = function () {
+      const headers = ["작업일자", "고유번호", "업무분류", "진행상태", "담당자", "업무제목", "제품명", "품번", "관리번호", "고객사", "작업내용", "판정", "검사결과", "특이사항"];
+      const rows = getFilteredRecords().map(r => [
+        r.workDate, r.workNo, r.category, r.status, r.worker, r.title,
+        r.productName || "", r.partNo || "", r.lotNo || "", r.client || "",
+        (r.description || "").replace(/\n/g, " "), r.judgment || "", r.result || "", r.remarks || ""
+      ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
+
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ZENOPS_품질팀_업무이력_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+    };
+
+    window.exportJSON = function () {
+      const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ZENOPS_QC_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+    };
+
+    window.importJSON = function (e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          const imported = JSON.parse(ev.target.result);
+          if (!Array.isArray(imported)) throw new Error("배열 형식이 아닙니다.");
+          if (db) {
+            for (const item of imported) {
+              await setDoc(doc(db, "zenops_quality_records", item.id), item);
+            }
+          } else {
+            records = imported;
+            saveLocalRecords();
+            renderAll();
+          }
+          alert(`총 ${imported.length}건의 이력을 복원했습니다.`);
+        } catch (err) {
+          alert("백업 파일 읽기 오류: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    function esc(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    init();
+  </script>
+</body>
+</html>
