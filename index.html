@@ -187,6 +187,7 @@
                 <th class="py-3 px-3.5">업무 분류</th>
                 <th class="py-3 px-3.5">업무 제목 / 요약</th>
                 <th class="py-3 px-3.5">제품명 / 품번 / 관리번호</th>
+                <th class="py-3 px-3.5">성적서 · 코팅데이터</th>
                 <th class="py-3 px-3.5">고객사/업체</th>
                 <th class="py-3 px-3.5">담당자</th>
                 <th class="py-3 px-3.5">첨부</th>
@@ -271,6 +272,8 @@
 
       <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-5 overflow-y-auto space-y-4 text-sm">
         <input type="hidden" id="editRecordId" />
+        <input type="hidden" id="fReportStatus" value="해당없음" />
+        <input type="hidden" id="fCoatingDataStatus" value="해당없음" />
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
@@ -315,6 +318,48 @@
           <label class="block text-xs font-bold text-slate-700 mb-1">업무 제목 <span class="text-rose-600">*</span></label>
           <input type="text" id="fTitle" required placeholder="예: AR 코팅 후 Zygo 표면 형상 측정 및 외관검사"
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+        </div>
+
+        <!-- 성적서 & 코팅데이터 유무 원터치 체크 영역 -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+          <div class="text-xs font-bold text-slate-700">서류 및 데이터 유무 체크</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <span class="block text-[11px] font-semibold text-slate-500 mb-1.5">📄 성적서 유무</span>
+              <div class="grid grid-cols-3 gap-1.5" id="reportBtnGroup">
+                <button type="button" data-val="성적서 완료" onclick="selectDocCheck('report', '성적서 완료')"
+                  class="doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">
+                  성적서 완료
+                </button>
+                <button type="button" data-val="성적서 미완료" onclick="selectDocCheck('report', '성적서 미완료')"
+                  class="doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">
+                  미완료
+                </button>
+                <button type="button" data-val="성적서 없음" onclick="selectDocCheck('report', '성적서 없음')"
+                  class="doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">
+                  성적서 없음
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-[11px] font-semibold text-slate-500 mb-1.5">📊 코팅데이터 유무</span>
+              <div class="grid grid-cols-3 gap-1.5" id="coatingBtnGroup">
+                <button type="button" data-val="코팅데이터 있음" onclick="selectDocCheck('coating', '코팅데이터 있음')"
+                  class="doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">
+                  데이터 있음
+                </button>
+                <button type="button" data-val="코팅데이터 대기" onclick="selectDocCheck('coating', '코팅데이터 대기')"
+                  class="doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">
+                  미확보/대기
+                </button>
+                <button type="button" data-val="코팅데이터 없음" onclick="selectDocCheck('coating', '코팅데이터 없음')"
+                  class="doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">
+                  데이터 없음
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
@@ -539,7 +584,6 @@
     let tempDocs = [];
     let db = null;
 
-    // 라이트박스 현재 사진 목록 및 인덱스
     let lightboxPhotos = [];
     let lightboxIndex = 0;
 
@@ -625,6 +669,57 @@
       alert("보안 설정이 저장되었습니다.");
     };
 
+    // 성적서 및 코팅데이터 원터치 버튼 선택 처리
+    window.selectDocCheck = function (type, val) {
+      const inputId = type === "report" ? "fReportStatus" : "fCoatingDataStatus";
+      const groupId = type === "report" ? "reportBtnGroup" : "coatingBtnGroup";
+      const currentVal = document.getElementById(inputId).value;
+      const nextVal = currentVal === val ? "해당없음" : val;
+      document.getElementById(inputId).value = nextVal;
+      updateDocCheckButtons(groupId, nextVal);
+    };
+
+    function updateDocCheckButtons(groupId, activeVal) {
+      const btns = document.querySelectorAll(`#${groupId} .doc-check-btn`);
+      btns.forEach(btn => {
+        const v = btn.getAttribute("data-val");
+        if (v === activeVal) {
+          if (v.includes("완료") || v.includes("있음")) {
+            btn.className = "doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-blue-600 bg-blue-600 text-white shadow-sm transition";
+          } else if (v.includes("미완료") || v.includes("대기")) {
+            btn.className = "doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-amber-500 bg-amber-500 text-white shadow-sm transition";
+          } else {
+            btn.className = "doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-700 bg-slate-700 text-white shadow-sm transition";
+          }
+        } else {
+          btn.className = "doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 transition";
+        }
+      });
+    }
+
+    function renderDocCheckBadges(r) {
+      const badges = [];
+      if (r.reportStatus && r.reportStatus !== "해당없음") {
+        if (r.reportStatus === "성적서 완료") {
+          badges.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-blue-600 text-white">성적서 완료</span>`);
+        } else if (r.reportStatus === "성적서 미완료") {
+          badges.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">성적서 미완료</span>`);
+        } else {
+          badges.push(`<span class="inline-block text-[11px] font-semibold px-2 py-0.5 rounded bg-white text-slate-500 border border-slate-300">성적서 없음</span>`);
+        }
+      }
+      if (r.coatingDataStatus && r.coatingDataStatus !== "해당없음") {
+        if (r.coatingDataStatus === "코팅데이터 있음") {
+          badges.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-purple-700 text-white">코팅데이터 있음</span>`);
+        } else if (r.coatingDataStatus === "코팅데이터 대기") {
+          badges.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">코팅데이터 대기</span>`);
+        } else {
+          badges.push(`<span class="inline-block text-[11px] font-semibold px-2 py-0.5 rounded bg-white text-slate-500 border border-slate-300">코팅데이터 없음</span>`);
+        }
+      }
+      return badges.length > 0 ? `<div class="flex flex-wrap gap-1">${badges.join("")}</div>` : `<span class="text-slate-400 text-xs">-</span>`;
+    }
+
     function getFilteredRecords() {
       const kw = document.getElementById("filterKeyword").value.trim().toLowerCase();
       const cat = document.getElementById("filterCategory").value;
@@ -644,8 +739,10 @@
           if (dFrom && r.workDate < dFrom) return false;
           if (dTo && r.workDate > dTo) return false;
           if (kw) {
-            const hay = [r.workNo, r.title, r.productName, r.partNo, r.lotNo, r.client, r.worker, r.description, r.result, r.remarks]
-              .join(" ").toLowerCase();
+            const hay = [
+              r.workNo, r.title, r.productName, r.partNo, r.lotNo, r.client,
+              r.worker, r.description, r.result, r.remarks, r.reportStatus, r.coatingDataStatus
+            ].join(" ").toLowerCase();
             if (!hay.includes(kw)) return false;
           }
           return true;
@@ -719,6 +816,7 @@
                    <div class="text-slate-500">${esc(r.partNo || "")} ${r.lotNo ? `· <span class="text-purple-700 font-medium">${esc(r.lotNo)}</span>` : ""}</div>`
                 : `<span class="text-slate-400">-</span>`}
             </td>
+            <td class="py-3 px-3.5">${renderDocCheckBadges(r)}</td>
             <td class="py-3 px-3.5 text-xs text-slate-600">${esc(r.client || "-")}</td>
             <td class="py-3 px-3.5 text-xs font-bold text-slate-700 whitespace-nowrap">${esc(r.worker)}</td>
             <td class="py-3 px-3.5 text-xs whitespace-nowrap text-slate-500">
@@ -737,6 +835,8 @@
               ${statusBadge(r.status)}
             </div>
             <div class="font-bold text-slate-900 text-sm leading-snug">${esc(r.title)}</div>
+            ${(r.reportStatus && r.reportStatus !== "해당없음") || (r.coatingDataStatus && r.coatingDataStatus !== "해당없음")
+              ? `<div>${renderDocCheckBadges(r)}</div>` : ""}
             ${(r.productName || r.partNo || r.lotNo) ? `
               <div class="text-xs bg-slate-50 px-2.5 py-1.5 rounded-lg text-slate-700 flex flex-wrap gap-x-2">
                 ${r.productName ? `<span>제품: <strong>${esc(r.productName)}</strong></span>` : ""}
@@ -819,6 +919,7 @@
                   ${statusBadge(r.status)}
                 </div>
                 <div class="font-bold text-slate-900 text-sm">${esc(r.title)}</div>
+                <div class="mt-1">${renderDocCheckBadges(r)}</div>
                 <div class="text-xs text-slate-600 mt-1">${esc(r.result || r.description)}</div>
                 <div class="text-[11px] text-slate-400 mt-1.5">품번: ${esc(r.partNo || "-")} · 제품: ${esc(r.productName || "-")} · 담당: ${esc(r.worker)}</div>
               </div>
@@ -922,6 +1023,8 @@
         document.getElementById("fCategory").value = record.category;
         document.getElementById("fWorker").value = record.worker;
         document.getElementById("fTitle").value = record.title;
+        document.getElementById("fReportStatus").value = record.reportStatus || "해당없음";
+        document.getElementById("fCoatingDataStatus").value = record.coatingDataStatus || "해당없음";
         document.getElementById("fProductName").value = record.productName || "";
         document.getElementById("fPartNo").value = record.partNo || "";
         document.getElementById("fLotNo").value = record.lotNo || "";
@@ -940,7 +1043,12 @@
         document.getElementById("fWorkDate").value = today;
         document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`;
         document.getElementById("fStatus").value = "진행 중";
+        document.getElementById("fReportStatus").value = "해당없음";
+        document.getElementById("fCoatingDataStatus").value = "해당없음";
       }
+
+      updateDocCheckButtons("reportBtnGroup", document.getElementById("fReportStatus").value);
+      updateDocCheckButtons("coatingBtnGroup", document.getElementById("fCoatingDataStatus").value);
       renderAttachmentsPreview();
       document.getElementById("formModal").classList.remove("hidden");
     };
@@ -1034,6 +1142,8 @@
         category: document.getElementById("fCategory").value,
         worker: document.getElementById("fWorker").value.trim(),
         title: document.getElementById("fTitle").value.trim(),
+        reportStatus: document.getElementById("fReportStatus").value || "해당없음",
+        coatingDataStatus: document.getElementById("fCoatingDataStatus").value || "해당없음",
         productName: document.getElementById("fProductName").value.trim(),
         partNo: document.getElementById("fPartNo").value.trim(),
         lotNo: document.getElementById("fLotNo").value.trim(),
@@ -1120,10 +1230,12 @@
           <div><span class="text-slate-400 block">작업일자</span><strong class="text-slate-800">${esc(r.workDate)}</strong></div>
           <div><span class="text-slate-400 block">담당 작업자</span><strong class="text-slate-800">${esc(r.worker)}</strong></div>
           <div><span class="text-slate-400 block">판정 결과</span><strong class="text-purple-800">${esc(r.judgment || "해당없음")}</strong></div>
+          <div><span class="text-slate-400 block">성적서 유무</span><strong class="text-blue-700">${esc(r.reportStatus || "해당없음")}</strong></div>
+          <div><span class="text-slate-400 block">코팅데이터 유무</span><strong class="text-purple-700">${esc(r.coatingDataStatus || "해당없음")}</strong></div>
+          <div><span class="text-slate-400 block">고객사 / 협력업체</span><strong class="text-slate-800">${esc(r.client || "-")}</strong></div>
           <div><span class="text-slate-400 block">제품명</span><strong class="text-slate-800">${esc(r.productName || "-")}</strong></div>
           <div><span class="text-slate-400 block">품번 (Part No.)</span><strong class="text-slate-800">${esc(r.partNo || "-")}</strong></div>
           <div><span class="text-slate-400 block">관리번호 / Lot</span><strong class="text-indigo-700">${esc(r.lotNo || "-")}</strong></div>
-          <div class="col-span-2 sm:col-span-3"><span class="text-slate-400 block">고객사 / 협력업체</span><strong class="text-slate-800">${esc(r.client || "-")}</strong></div>
         </div>
 
         <div>
@@ -1152,14 +1264,12 @@
 
     window.closeDetailModal = function () { document.getElementById("detailModal").classList.add("hidden"); };
 
-    // 사진 파일명 자동 생성 헬퍼
     function buildPhotoFilename(record, idx) {
       const workNo = (record?.workNo || "ZENOPS").replace(/[^a-zA-Z0-9-_]/g, "");
       const partNo = (record?.partNo || "").replace(/[^a-zA-Z0-9-_]/g, "");
       return partNo ? `${workNo}_${partNo}_${idx + 1}.jpg` : `${workNo}_${idx + 1}.jpg`;
     }
 
-    // 실제 브라우저 파일 다운로드 트리거
     function triggerImageDownload(src, filename) {
       const a = document.createElement("a");
       a.href = src;
@@ -1185,7 +1295,6 @@
       });
     };
 
-    // 라이트박스 열기 및 좌우 탐색
     window.openLightbox = function (idx) {
       const r = records.find(item => item.id === selectedRecordId);
       if (!r || !r.photos || r.photos.length === 0) return;
@@ -1245,9 +1354,14 @@
     window.closeSettingsModal = function () { document.getElementById("settingsModal").classList.add("hidden"); };
 
     window.exportCSV = function () {
-      const headers = ["작업일자", "고유번호", "업무분류", "진행상태", "담당자", "업무제목", "제품명", "품번", "관리번호", "고객사", "작업내용", "판정", "검사결과", "특이사항"];
+      const headers = [
+        "작업일자", "고유번호", "업무분류", "진행상태", "담당자", "업무제목",
+        "성적서유무", "코팅데이터유무", "제품명", "품번", "관리번호", "고객사",
+        "작업내용", "판정", "검사결과", "특이사항"
+      ];
       const rows = getFilteredRecords().map(r => [
         r.workDate, r.workNo, r.category, r.status, r.worker, r.title,
+        r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음",
         r.productName || "", r.partNo || "", r.lotNo || "", r.client || "",
         (r.description || "").replace(/\n/g, " "), r.judgment || "", r.result || "", r.remarks || ""
       ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
