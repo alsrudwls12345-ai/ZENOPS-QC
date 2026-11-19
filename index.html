@@ -201,7 +201,7 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600">
-                <th class="py-3 px-3.5">작업일자 / 번호</th>
+                <th class="py-3 px-3.5">작업일자 · 완료일</th>
                 <th class="py-3 px-3.5">관리번호 · 업체명</th>
                 <th class="py-3 px-3.5">제품명 · 품번</th>
                 <th class="py-3 px-3.5">업무 분류</th>
@@ -282,9 +282,9 @@
           <div>
             <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
               <span>🏭 외주 업체별 수입검사 불량률 현황</span>
-              <span class="text-[11px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold">불량률 = 불량 ÷ 입고수량</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold">제목 '수입검사' 기준</span>
             </h3>
-            <p class="text-xs text-slate-500 mt-0.5">업무 등록 시 고객사/협력업체란에 외주 업체명을 입력하면 업체별 불량률(%)이 자동 집계됩니다.</p>
+            <p class="text-xs text-slate-500 mt-0.5">업무 제목에서 [수입검사]를 선택한 항목의 외주 업체별 입고수량 대비 불량률(%)만 정확히 집계합니다.</p>
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
             <button type="button" onclick="setVendorScope('INCOMING')" id="vs-INCOMING" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white">수입검사 기준</button>
@@ -394,25 +394,18 @@
           <div id="monthlyChart" class="w-full h-64"></div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <h3 class="text-sm font-bold text-slate-800 mb-1">업무 분류별 비중</h3>
-          <p class="text-xs text-slate-400 mb-4">검사, 세정, Zygo 측정, 코팅, 불량대응 등 유형별 분포</p>
-          <div id="categoryBreakdown" class="space-y-3"></div>
-        </div>
-      </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 mb-1">업무 분류별 비중</h3>
+            <p class="text-xs text-slate-400 mb-3">검사, 세정, Zygo 측정, 코팅, 불량대응 등 유형별 분포</p>
+            <div id="categoryBreakdown" class="space-y-3"></div>
+          </div>
 
-      <!-- 검사/작업 담당자 vs 포장 담당자 분리 집계 -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <h3 class="text-sm font-bold text-slate-800 mb-1">🔍 검사 · 작업 담당자별 처리 현황</h3>
-          <p class="text-xs text-slate-400 mb-3">품질 검사 및 공정 작업 담당 기준</p>
-          <div id="workerBreakdown" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5"></div>
-        </div>
-
-        <div class="bg-white p-5 rounded-xl border border-teal-200/80 shadow-sm">
-          <h3 class="text-sm font-bold text-teal-900 mb-1">📦 포장 담당자별 완료 현황 (출하 실적)</h3>
-          <p class="text-xs text-slate-400 mb-3">포장 완료 체크된 건의 포장 담당자 기준</p>
-          <div id="packerBreakdown" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5"></div>
+          <div class="pt-4 border-t border-slate-200">
+            <h3 class="text-sm font-bold text-teal-900 mb-1">🚚 출하 · 포장 업무 비중 분포</h3>
+            <p class="text-xs text-slate-400 mb-3">전체 등록 업무 중 출하 포장 완료·대기·일반 공정 비율</p>
+            <div id="shipmentBreakdown" class="space-y-3"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -443,18 +436,23 @@
         <input type="hidden" id="fCoatingDataStatus" value="" />
         <input type="hidden" id="fPackingStatus" value="해당없음" />
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- 작업일자 + 작업완료날짜 + 고유번호 + 진행상태 -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">작업일자 <span class="text-rose-600">*</span></label>
-            <input type="date" id="fWorkDate" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            <input type="date" id="fWorkDate" required class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-emerald-700 mb-1">작업완료날짜</label>
+            <input type="date" id="fCompletedDate" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">업무 고유번호</label>
-            <input type="text" id="fWorkNo" readonly class="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-slate-500 font-mono text-xs" />
+            <input type="text" id="fWorkNo" readonly class="w-full bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-500 font-mono text-xs" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">진행상태 <span class="text-rose-600">*</span></label>
-            <select id="fStatus" required class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white font-semibold focus:ring-2 focus:ring-purple-700 focus:outline-none">
+            <select id="fStatus" required onchange="handleStatusChange(this.value)" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 bg-white font-semibold text-xs sm:text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none">
               <option value="진행 중">🟡 진행 중</option>
               <option value="완료">🟢 완료</option>
               <option value="보류">🔴 보류</option>
@@ -658,7 +656,7 @@
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
         </div>
 
-        <!-- 포장 완료 및 확인 / 포장 담당자 분리 영역 (특이사항 바로 아래) -->
+        <!-- 포장 완료 및 확인 / 포장 담당자 분리 영역 -->
         <div class="bg-teal-50/70 p-3.5 rounded-xl border border-teal-200 space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-teal-950">📦 출하 · 포장 완료 및 담당자 확인</span>
@@ -1148,6 +1146,13 @@
       alert("보안 설정이 저장되었습니다.");
     };
 
+    window.handleStatusChange = function (statusVal) {
+      const compEl = document.getElementById("fCompletedDate");
+      if (statusVal === "완료" && !compEl.value) {
+        compEl.value = new Date().toISOString().slice(0, 10);
+      }
+    };
+
     window.applyQuickTitle = function (preset) {
       const input = document.getElementById("fTitle");
       const current = input.value.trim();
@@ -1180,7 +1185,6 @@
       });
     };
 
-    // 포장 여부 원터치 버튼 및 담당자 복사 헬퍼
     window.selectPackingStatus = function (val) {
       document.getElementById("fPackingStatus").value = val;
       updatePackingButtons(val);
@@ -1224,15 +1228,18 @@
       return (v === undefined || v === null || String(v).trim() === "" || isNaN(n)) ? 0 : n;
     }
 
+    function isIncomingInspectionTitle(r) {
+      return (r.title || "").trim().includes("수입검사");
+    }
+
     function calcRecordDefectInfo(r) {
       const wd = toNum(getWorkDoneVal(r));
       const inc = toNum(r.qtyIncoming);
       const del = toNum(r.qtyDelivered);
       const def = toNum(r.qtyDefect);
 
-      const isIncomingCheck = (r.title || "").includes("수입검사") || (r.category === "입고/출고/공정검사" && inc > 0 && wd === 0);
       let base = 0;
-      if (isIncomingCheck) {
+      if (isIncomingInspectionTitle(r)) {
         base = inc > 0 ? inc : wd;
       } else {
         base = wd > 0 ? wd : (inc > 0 ? inc : del);
@@ -1405,6 +1412,7 @@
             const hay = [
               r.lotNo, r.client, r.productName, r.partNo,
               r.workNo, r.title, r.worker, r.packer, r.packingStatus,
+              r.workDate, r.completedDate,
               r.description, r.result, r.remarks,
               r.reportStatus, r.coatingDataStatus, formatQtyInline(r)
             ].join(" ").toLowerCase();
@@ -1475,7 +1483,7 @@
           <tr onclick="openDetailModal('${r.id}')" class="hover:bg-purple-50/50 cursor-pointer transition">
             <td class="py-3 px-3.5 whitespace-nowrap">
               <div class="font-bold text-slate-800">${esc(r.workDate)}</div>
-              <div class="text-[11px] font-mono text-slate-400">${esc(r.workNo)}</div>
+              ${r.completedDate ? `<div class="text-[11px] font-bold text-emerald-700">완료: ${esc(r.completedDate)}</div>` : `<div class="text-[11px] font-mono text-slate-400">${esc(r.workNo)}</div>`}
             </td>
             <td class="py-3 px-3.5 text-xs">
               ${r.lotNo || r.client
@@ -1546,7 +1554,7 @@
 
             <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-100">
               <span>
-                ${esc(r.workDate)} · 검사: <strong class="text-slate-700">${esc(r.worker)}</strong>
+                작업: ${esc(r.workDate)}${r.completedDate ? ` · <strong class="text-emerald-700">완료: ${esc(r.completedDate)}</strong>` : ""} · 검사: <strong class="text-slate-700">${esc(r.worker)}</strong>
                 ${r.packer ? ` · 포장: <strong class="text-teal-700">${esc(r.packer)}</strong>` : ""}
               </span>
               <span>
@@ -1668,14 +1676,15 @@
       document.getElementById("sumDefectRate").textContent = `${overallRate.toFixed(1)}%`;
       document.getElementById("sumBaseInfo").textContent = `검사·작업 모수 ${totalBase.toLocaleString()} ea`;
 
+      // 외주 업체별 불량률: '수입검사 기준'일 때는 제목에 '수입검사'가 들어간 항목만 엄격히 필터링
       const vendorMap = {};
       list.forEach(r => {
         const inc = toNum(r.qtyIncoming);
         const wd = toNum(getWorkDoneVal(r));
         const def = toNum(r.qtyDefect);
-        const isIncomingRecord = (r.title || "").includes("수입검사") || r.category === "입고/출고/공정검사" || inc > 0;
+        const isStrictlyIncoming = isIncomingInspectionTitle(r);
 
-        if (vendorScopeMode === "INCOMING" && !isIncomingRecord) return;
+        if (vendorScopeMode === "INCOMING" && !isStrictlyIncoming) return;
 
         const baseQty = vendorScopeMode === "INCOMING"
           ? (inc > 0 ? inc : wd)
@@ -1705,7 +1714,7 @@
         vendorTbody.innerHTML = `
           <tr>
             <td colspan="7" class="py-8 text-center text-xs text-slate-400">
-              집계할 수입검사(입고수량) 데이터가 없습니다. 업무 등록 시 [수입검사] 선택 후 외주 업체명과 입고/불량 수량을 입력해 주세요.
+              제목에 [수입검사]가 포함된 외주 업체 검사 이력이 없습니다. 업무 등록 시 제목의 [수입검사] 버튼을 누르고 외주 업체명과 입고수량을 입력해 주세요.
             </td>
           </tr>
         `;
@@ -1805,6 +1814,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
                   <div class="flex items-center gap-2">
                     <span class="text-xs font-bold text-purple-800">${esc(r.workDate)}</span>
+                    ${r.completedDate ? `<span class="text-xs font-bold text-emerald-700">(완료: ${esc(r.completedDate)})</span>` : ""}
                     <span class="text-xs font-semibold px-2 py-0.5 rounded bg-white border border-slate-200">${esc(r.category)}</span>
                     ${r.lotNo ? `<span class="text-xs font-bold text-indigo-700">[${esc(r.lotNo)}]</span>` : ""}
                   </div>
@@ -1825,15 +1835,13 @@
       `;
     };
 
-    // ==========================================
-    // 월별 업무 현황 및 포장(출하) 통계 렌더링
-    // ==========================================
     window.renderStats = function () {
       const now = new Date();
       const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
       const packDoneCount = records.filter(r => r.packingStatus === "포장 완료").length;
       const packPendingCount = records.filter(r => r.packingStatus === "포장 미완료").length;
+      const packNoneCount = Math.max(0, records.length - packDoneCount - packPendingCount);
       const packMonthCount = records.filter(r => r.packingStatus === "포장 완료" && (r.workDate || "").startsWith(currentYm)).length;
       const packRatio = records.length > 0 ? Math.round((packDoneCount / records.length) * 100) : 0;
 
@@ -1857,7 +1865,7 @@
       const chartEl = document.getElementById("monthlyChart");
       chartEl.innerHTML = "";
       const width = chartEl.clientWidth || 400;
-      const height = 235;
+      const height = 240;
       const margin = { top: 22, right: 16, bottom: 30, left: 32 };
 
       const svg = d3.select("#monthlyChart").append("svg").attr("width", width).attr("height", height);
@@ -1881,7 +1889,6 @@
         .enter().append("g")
         .attr("transform", d => `translate(${x0(d.ym)},0)`);
 
-      // 전체 등록 건수 막대
       monthGroups.append("rect")
         .attr("x", x1("total"))
         .attr("y", d => y(d.total))
@@ -1890,7 +1897,6 @@
         .attr("rx", 4)
         .attr("fill", "#6b21a8");
 
-      // 포장 완료(출하) 건수 막대
       monthGroups.append("rect")
         .attr("x", x1("packed"))
         .attr("y", d => y(d.packed))
@@ -1899,7 +1905,6 @@
         .attr("rx", 4)
         .attr("fill", "#0d9488");
 
-      // 전체 건수 숫자 라벨
       monthGroups.append("text")
         .attr("x", x1("total") + x1.bandwidth() / 2)
         .attr("y", d => y(d.total) - 4)
@@ -1909,7 +1914,6 @@
         .style("fill", "#581c87")
         .text(d => d.total > 0 ? d.total : "");
 
-      // 포장 완료 건수 숫자 라벨
       monthGroups.append("text")
         .attr("x", x1("packed") + x1.bandwidth() / 2)
         .attr("y", d => y(d.packed) - 4)
@@ -1919,7 +1923,6 @@
         .style("fill", "#0f766e")
         .text(d => d.packed > 0 ? d.packed : "");
 
-      // 업무 분류별 비중
       const catCounts = {};
       records.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
       const total = records.length || 1;
@@ -1939,33 +1942,28 @@
         `;
       }).join("") || `<p class="text-xs text-slate-400">데이터가 없습니다.</p>`;
 
-      // 1) 검사/작업 담당자별 집계
-      const wkCounts = {};
-      records.forEach(r => {
-        const w = (r.worker || "").trim();
-        if (w) wkCounts[w] = (wkCounts[w] || 0) + 1;
-      });
-      document.getElementById("workerBreakdown").innerHTML = Object.entries(wkCounts).sort((a, b) => b[1] - a[1]).map(([w, cnt]) => `
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-800">${esc(w)}</span>
-          <span class="text-sm font-extrabold text-purple-800">${cnt}건</span>
-        </div>
-      `).join("") || `<p class="text-xs text-slate-400 col-span-3">등록된 검사 담당자 데이터가 없습니다.</p>`;
-
-      // 2) 포장 담당자별 완료 집계
-      const pkCounts = {};
-      records.forEach(r => {
-        const p = (r.packer || "").trim();
-        if (p && r.packingStatus === "포장 완료") {
-          pkCounts[p] = (pkCounts[p] || 0) + 1;
-        }
-      });
-      document.getElementById("packerBreakdown").innerHTML = Object.entries(pkCounts).sort((a, b) => b[1] - a[1]).map(([p, cnt]) => `
-        <div class="bg-teal-50/70 p-3 rounded-xl border border-teal-200 flex items-center justify-between">
-          <span class="text-xs font-bold text-teal-950">${esc(p)}</span>
-          <span class="text-sm font-extrabold text-teal-700">${cnt}건</span>
-        </div>
-      `).join("") || `<p class="text-xs text-slate-400 col-span-3">포장 완료 처리된 담당자 기록이 아직 없습니다.</p>`;
+      const shipItems = [
+        { label: "📦 포장 완료 (출하 준비·완료)", cnt: packDoneCount, barColor: "bg-teal-600", textColor: "text-teal-800" },
+        { label: "⏳ 포장 미완료 (출하 대기)", cnt: packPendingCount, barColor: "bg-amber-500", textColor: "text-amber-700" },
+        { label: "📋 일반 공정 · 포장 해당없음", cnt: packNoneCount, barColor: "bg-slate-400", textColor: "text-slate-600" }
+      ];
+      const shipEl = document.getElementById("shipmentBreakdown");
+      shipEl.innerHTML = records.length === 0
+        ? `<p class="text-xs text-slate-400">데이터가 없습니다.</p>`
+        : shipItems.map(item => {
+            const pct = Math.round((item.cnt / total) * 100);
+            return `
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-slate-700">${item.label}</span>
+                  <span class="${item.textColor} font-bold">${item.cnt}건 (${pct}%)</span>
+                </div>
+                <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full ${item.barColor} rounded-full" style="width:${pct}%"></div>
+                </div>
+              </div>
+            `;
+          }).join("");
     };
 
     window.openFormModal = function (record = null) {
@@ -1977,6 +1975,7 @@
         document.getElementById("formModalTitle").textContent = "품질 업무 이력 수정";
         document.getElementById("editRecordId").value = record.id;
         document.getElementById("fWorkDate").value = record.workDate;
+        document.getElementById("fCompletedDate").value = record.completedDate || "";
         document.getElementById("fWorkNo").value = record.workNo;
         document.getElementById("fStatus").value = record.status;
         document.getElementById("fCategory").value = record.category;
@@ -2009,6 +2008,7 @@
         document.getElementById("formModalTitle").textContent = "새 품질 업무 등록";
         document.getElementById("editRecordId").value = "";
         document.getElementById("fWorkDate").value = today;
+        document.getElementById("fCompletedDate").value = "";
         document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`;
         document.getElementById("fStatus").value = "진행 중";
         document.getElementById("fReportStatus").value = "";
@@ -2140,12 +2140,18 @@
 
       const editId = document.getElementById("editRecordId").value;
       const id = editId || ("rec_" + Date.now());
+      const statusVal = document.getElementById("fStatus").value;
+      let completedDateVal = document.getElementById("fCompletedDate").value;
+      if (statusVal === "완료" && !completedDateVal) {
+        completedDateVal = new Date().toISOString().slice(0, 10);
+      }
 
       const payload = {
         id,
         workDate: document.getElementById("fWorkDate").value,
+        completedDate: completedDateVal,
         workNo: document.getElementById("fWorkNo").value,
-        status: document.getElementById("fStatus").value,
+        status: statusVal,
         category: document.getElementById("fCategory").value,
         worker: document.getElementById("fWorker").value.trim(),
         title: document.getElementById("fTitle").value.trim(),
@@ -2251,10 +2257,11 @@
 
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
           <div><span class="text-slate-400 block">작업일자</span><strong class="text-slate-800">${esc(r.workDate)}</strong></div>
+          <div><span class="text-slate-400 block">작업완료날짜</span><strong class="${r.completedDate ? "text-emerald-700" : "text-slate-400"}">${esc(r.completedDate || "-")}</strong></div>
+          <div><span class="text-slate-400 block">판정 결과</span><strong class="text-purple-800">${esc(r.judgment || "해당없음")}</strong></div>
           <div><span class="text-slate-400 block">검사 / 작업 담당자</span><strong class="text-slate-800">${esc(r.worker)}</strong></div>
           <div><span class="text-slate-400 block">포장 담당자</span><strong class="text-teal-700">${esc(r.packer || "-")}</strong></div>
           <div><span class="text-slate-400 block">포장 여부 (출하)</span>${packBadgeText}</div>
-          <div><span class="text-slate-400 block">판정 결과</span><strong class="text-purple-800">${esc(r.judgment || "해당없음")}</strong></div>
           <div><span class="text-slate-400 block">관리번호 / Lot</span><strong class="text-indigo-700 break-all">${esc(r.lotNo || "-")}</strong></div>
           <div><span class="text-slate-400 block">고객사 / 외주업체</span><strong class="text-slate-800 break-words">${esc(r.client || "-")}</strong></div>
           <div><span class="text-slate-400 block">제품명 (품명)</span><strong class="text-slate-800 break-words">${esc(r.productName || "-")}</strong></div>
@@ -2403,7 +2410,7 @@
 
     window.exportCSV = function () {
       const headers = [
-        "작업일자", "고유번호", "관리번호", "고객사/외주업체", "제품명", "품번",
+        "작업일자", "작업완료날짜", "고유번호", "관리번호", "고객사/외주업체", "제품명", "품번",
         "업무분류", "진행상태", "검사담당자", "포장여부", "포장담당자", "업무제목",
         "작업완료(ea)", "입고수량(ea)", "납품수량(ea)", "재고수량(ea)", "불량수량(ea)", "불량률(%)",
         "성적서유무", "코팅데이터유무", "작업내용", "판정", "검사결과", "특이사항"
@@ -2412,7 +2419,7 @@
         const dInfo = calcRecordDefectInfo(r);
         const rateStr = (dInfo && dInfo.base > 0) ? dInfo.rate.toFixed(1) + "%" : "0.0%";
         return [
-          r.workDate, r.workNo, r.lotNo || "", r.client || "", r.productName || "", r.partNo || "",
+          r.workDate, r.completedDate || "", r.workNo, r.lotNo || "", r.client || "", r.productName || "", r.partNo || "",
           r.category, r.status, r.worker, r.packingStatus || "해당없음", r.packer || "", r.title,
           getWorkDoneVal(r), r.qtyIncoming ?? "", r.qtyDelivered ?? "", r.qtyStock ?? "", r.qtyDefect ?? "", rateStr,
           r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음",
