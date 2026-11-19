@@ -70,6 +70,7 @@
           class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span id="syncLabel" class="hidden sm:inline">실시간 클라우드 연동</span>
+          <span id="headerStorageChip" class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-slate-700 text-emerald-300 font-bold">0 MB / 1GB</span>
           <span class="text-slate-400">⚙</span>
         </button>
 
@@ -186,11 +187,15 @@
             class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
         </div>
 
-        <div class="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 pt-1.5 border-t border-slate-100">
           <span>검색 결과 <strong id="resultCount" class="text-purple-800">0</strong>건</span>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2.5">
             <button onclick="exportCSV()" class="sm:hidden text-purple-800 font-semibold">📥 CSV 저장</button>
-            <span id="storageModeText" class="text-[11px] text-emerald-700 font-semibold">☁️ PC · 모바일 실시간 클라우드 동기화 연결됨</span>
+            <button type="button" onclick="openSettingsModal()" id="storageGaugeBarBtn"
+              class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[11px] text-emerald-800 font-bold transition">
+              <span>💾 용량:</span>
+              <span id="storageUsageInline">0.00 MB / 1,024 MB (0.00%)</span>
+            </button>
           </div>
         </div>
       </div>
@@ -356,7 +361,6 @@
 
     <!-- [뷰 4] 월별 업무 현황 및 포장(출하) 통계 대시보드 -->
     <section id="view-stats" class="hidden space-y-4 animate-fade">
-      <!-- 출하 · 포장 현황 요약 카드 -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div class="bg-teal-50/80 p-4 rounded-xl border border-teal-200 shadow-sm flex items-center justify-between">
           <div>
@@ -436,7 +440,6 @@
         <input type="hidden" id="fCoatingDataStatus" value="" />
         <input type="hidden" id="fPackingStatus" value="해당없음" />
 
-        <!-- 작업일자 + 작업완료날짜 + 고유번호 + 진행상태 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">작업일자 <span class="text-rose-600">*</span></label>
@@ -480,7 +483,6 @@
           </div>
         </div>
 
-        <!-- 업무 제목 + 4가지 원터치 빠른 선택 버튼 -->
         <div class="space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-1">
             <label class="block text-xs font-bold text-slate-700">업무 제목 <span class="text-rose-600">*</span></label>
@@ -508,7 +510,6 @@
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
         </div>
 
-        <!-- 관리번호 -> 고객사/외주업체 -> 품명 -> 품번 순서 -->
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
           <div class="text-xs font-bold text-slate-700">제품 및 추적 정보 (관리번호 → 고객사/외주업체 → 품명 → 품번)</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -535,7 +536,6 @@
           </div>
         </div>
 
-        <!-- 필수 입력: 수량 현황 (작업완료 / 입고수량 / 납품수량 / 재고수량 / 불량수량) -->
         <div id="qtySection" class="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200 space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-purple-950">📦 수량 현황 <span class="text-rose-600 font-extrabold">*</span> <span class="text-[11px] font-normal text-purple-800">(최소 1개 이상 입력 필수)</span></span>
@@ -585,7 +585,6 @@
           </div>
         </div>
 
-        <!-- 필수 입력: 성적서 & 코팅데이터 유무 원터치 체크 영역 -->
         <div id="docCheckSection" class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
           <div class="text-xs font-bold text-slate-700">서류 및 데이터 유무 체크 <span class="text-rose-600 font-extrabold">*</span> <span class="text-[11px] font-normal text-slate-500">(필수 선택)</span></div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -656,7 +655,6 @@
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
         </div>
 
-        <!-- 포장 완료 및 확인 / 포장 담당자 분리 영역 -->
         <div class="bg-teal-50/70 p-3.5 rounded-xl border border-teal-200 space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-teal-950">📦 출하 · 포장 완료 및 담당자 확인</span>
@@ -694,7 +692,10 @@
         </div>
 
         <div class="bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 space-y-3">
-          <div class="text-xs font-bold text-purple-900">현장 사진 및 성적서/데이터 첨부</div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-purple-900">현장 사진 및 성적서/데이터 첨부</span>
+            <span id="formDocSizeIndicator" class="text-[11px] font-mono font-bold text-purple-700">현재 게시글 용량: 0 KB / 1,024 KB</span>
+          </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -775,27 +776,64 @@
     </div>
   </div>
 
-  <!-- [모달 3] 보안 및 백업 설정 모달 -->
+  <!-- [모달 3] 시스템 설정 및 실시간 용량 현황 모달 -->
   <div id="settingsModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade">
-      <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
-        <h3 class="text-base font-bold">⚙ 시스템 설정 (클라우드 상태 · 보안 · 백업)</h3>
+      <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+        <h3 class="text-base font-bold">⚙ 클라우드 용량 현황 · 보안 · 백업</h3>
         <button onclick="requestCloseModal('settingsModal')" class="text-slate-400 hover:text-white text-xl">✕</button>
       </div>
 
       <div class="p-5 overflow-y-auto space-y-5 text-xs sm:text-sm">
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 space-y-1">
-          <div class="font-bold text-emerald-900 flex items-center justify-between">
-            <span>☁️ PC · 모바일 실시간 클라우드 연동</span>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-slate-900 text-sm">💾 클라우드 저장 용량 사용량 (무료 1GB 한도)</span>
+            <span id="modalStoragePercentBadge" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0.00% 사용</span>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-bold">
+              <span id="modalStorageUsedText" class="text-purple-800">현재 사용: 0.00 MB</span>
+              <span id="modalStorageRemainText" class="text-slate-500">남은 여유: 1,024.00 MB</span>
+            </div>
+            <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+              <div id="modalStorageProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center pt-1">
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+              <span class="block text-[11px] text-slate-500">📷 현장 사진</span>
+              <strong id="modalPhotoSizeText" class="text-xs font-extrabold text-slate-800 mt-0.5 block">0 B (0장)</strong>
+            </div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+              <span class="block text-[11px] text-slate-500">📎 첨부 성적서</span>
+              <strong id="modalFileSizeText" class="text-xs font-extrabold text-slate-800 mt-0.5 block">0 B (0건)</strong>
+            </div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+              <span class="block text-[11px] text-slate-500">📝 텍스트 이력</span>
+              <strong id="modalTextSizeText" class="text-xs font-extrabold text-slate-800 mt-0.5 block">0 B (0건)</strong>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200/80 space-y-1.5">
+            <div class="text-[11px] font-bold text-slate-600">📊 용량을 많이 차지하는 게시글 TOP 5 (클릭 시 바로 이동)</div>
+            <div id="topStorageRecordsList" class="space-y-1"></div>
+          </div>
+        </div>
+
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-1">
+          <div class="font-bold text-emerald-900 flex items-center justify-between text-xs">
+            <span>☁️ 실시간 클라우드 동기화</span>
             <span id="cloudBadge" class="text-[11px] px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold">연결 완료 (zenops-2c8c6)</span>
           </div>
-          <p class="text-xs text-emerald-800 leading-relaxed">
-            품질팀 공용 클라우드 DB가 내장되어 있어, 스마트폰이나 PC에서 등록한 업무와 현장 사진이 팀원 전원에게 실시간으로 공유됩니다.
+          <p class="text-[11px] text-emerald-800 leading-relaxed">
+            게시글 삭제 또는 사진 삭제 시 해당 용량이 즉시 반환됩니다. 분기마다 백업 파일(JSON)을 PC에 저장해 두시면 더욱 안전합니다.
           </p>
         </div>
 
-        <div class="pt-2 space-y-2">
-          <div class="font-bold text-slate-900">사내 접속 보안 PIN 잠금 (선택 사항)</div>
+        <div class="pt-1 space-y-2">
+          <div class="font-bold text-slate-900 text-xs">사내 접속 보안 PIN 잠금 (선택 사항)</div>
           <div class="flex items-center gap-2">
             <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
               <input type="checkbox" id="pinEnabledCheck" class="rounded text-purple-700" />
@@ -811,8 +849,8 @@
           </div>
         </div>
 
-        <div class="pt-4 border-t border-slate-200 space-y-2">
-          <div class="font-bold text-slate-900">전체 데이터 백업 및 복원 (JSON)</div>
+        <div class="pt-3 border-t border-slate-200 space-y-2">
+          <div class="font-bold text-slate-900 text-xs">전체 데이터 백업 및 복원 (JSON)</div>
           <div class="flex flex-wrap gap-2">
             <button onclick="exportJSON()" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold">
               💾 전체 데이터 백업 파일 받기
@@ -888,6 +926,7 @@
 
     const STORAGE_KEY = "zenops_qc_records_v2";
     const PIN_CFG_KEY = "zenops_qc_pin_cfg";
+    const FREE_QUOTA_BYTES = 1024 * 1024 * 1024; // 1GB (1,024 MB)
 
     let records = [];
     let currentTab = "list";
@@ -917,6 +956,125 @@
     let isHandlingPopState = false;
     let lastBackPressTime = 0;
     let toastTimer = null;
+
+    function getByteLength(str) {
+      return new TextEncoder().encode(String(str || "")).length;
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function calcStorageMetrics() {
+      let totalBytes = 0;
+      let photoBytes = 0;
+      let photoCount = 0;
+      let fileBytes = 0;
+      let fileCount = 0;
+      let textBytes = 0;
+
+      const perRecord = records.map(r => {
+        const fullSize = getByteLength(JSON.stringify(r));
+        const pSize = (r.photos || []).reduce((acc, s) => acc + getByteLength(s), 0);
+        const fSize = (r.files || []).reduce((acc, f) => acc + getByteLength(JSON.stringify(f)), 0);
+        const tSize = Math.max(0, fullSize - pSize - fSize);
+
+        totalBytes += fullSize;
+        photoBytes += pSize;
+        photoCount += (r.photos || []).length;
+        fileBytes += fSize;
+        fileCount += (r.files || []).length;
+        textBytes += tSize;
+
+        return {
+          id: r.id,
+          title: r.title,
+          workDate: r.workDate,
+          lotNo: r.lotNo,
+          photoCount: (r.photos || []).length,
+          bytes: fullSize
+        };
+      });
+
+      const top5 = perRecord.sort((a, b) => b.bytes - a.bytes).slice(0, 5);
+      const usedMB = totalBytes / (1024 * 1024);
+      const pct = Math.min(100, (totalBytes / FREE_QUOTA_BYTES) * 100);
+
+      return {
+        totalBytes,
+        usedMB,
+        remainMB: Math.max(0, 1024 - usedMB),
+        pct,
+        photoBytes,
+        photoCount,
+        fileBytes,
+        fileCount,
+        textBytes,
+        top5
+      };
+    }
+
+    function updateStorageUI() {
+      const m = calcStorageMetrics();
+      const shortMB = m.usedMB < 10 ? `${m.usedMB.toFixed(1)} MB` : `${Math.round(m.usedMB)} MB`;
+
+      const headerChip = document.getElementById("headerStorageChip");
+      headerChip.textContent = `${shortMB} / 1GB`;
+      if (m.pct >= 85) {
+        headerChip.className = "text-[11px] font-mono px-1.5 py-0.5 rounded bg-rose-900 text-rose-200 font-bold";
+      } else if (m.pct >= 65) {
+        headerChip.className = "text-[11px] font-mono px-1.5 py-0.5 rounded bg-amber-900 text-amber-200 font-bold";
+      } else {
+        headerChip.className = "text-[11px] font-mono px-1.5 py-0.5 rounded bg-slate-700 text-emerald-300 font-bold";
+      }
+
+      document.getElementById("storageUsageInline").textContent =
+        `${m.usedMB.toFixed(2)} MB / 1,024 MB (${m.pct.toFixed(2)}%)`;
+
+      const barBtn = document.getElementById("storageGaugeBarBtn");
+      if (m.pct >= 85) {
+        barBtn.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-300 text-[11px] text-rose-800 font-bold transition";
+      } else if (m.pct >= 65) {
+        barBtn.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-300 text-[11px] text-amber-800 font-bold transition";
+      } else {
+        barBtn.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[11px] text-emerald-800 font-bold transition";
+      }
+
+      document.getElementById("modalStoragePercentBadge").textContent = `${m.pct.toFixed(2)}% 사용`;
+      document.getElementById("modalStorageUsedText").textContent = `현재 사용: ${m.usedMB.toFixed(2)} MB`;
+      document.getElementById("modalStorageRemainText").textContent = `남은 여유: ${m.remainMB.toFixed(2)} MB`;
+
+      const progBar = document.getElementById("modalStorageProgressBar");
+      progBar.style.width = `${Math.max(m.pct > 0 ? 1.5 : 0, m.pct)}%`;
+      progBar.className = m.pct >= 85
+        ? "h-full bg-rose-600 rounded-full transition-all duration-300"
+        : m.pct >= 65
+          ? "h-full bg-amber-500 rounded-full transition-all duration-300"
+          : "h-full bg-emerald-500 rounded-full transition-all duration-300";
+
+      document.getElementById("modalPhotoSizeText").textContent = `${formatBytes(m.photoBytes)} (${m.photoCount}장)`;
+      document.getElementById("modalFileSizeText").textContent = `${formatBytes(m.fileBytes)} (${m.fileCount}건)`;
+      document.getElementById("modalTextSizeText").textContent = `${formatBytes(m.textBytes)} (${records.length}건)`;
+
+      const topEl = document.getElementById("topStorageRecordsList");
+      if (m.top5.length === 0) {
+        topEl.innerHTML = `<p class="text-[11px] text-slate-400 py-1">등록된 데이터가 없습니다.</p>`;
+      } else {
+        topEl.innerHTML = m.top5.map((item, i) => `
+          <div onclick="requestCloseModal('settingsModal'); setTimeout(() => openDetailModal('${item.id}'), 60);"
+            class="flex items-center justify-between bg-white hover:bg-purple-50 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px] cursor-pointer transition">
+            <span class="truncate text-slate-700 font-medium">
+              <strong class="text-slate-400 mr-1">${i + 1}.</strong>
+              ${esc(item.title)} ${item.lotNo ? `<span class="text-indigo-600">(${esc(item.lotNo)})</span>` : ""}
+              <span class="text-slate-400">· 사진 ${item.photoCount}장</span>
+            </span>
+            <strong class="text-purple-800 font-mono shrink-0 ml-2">${formatBytes(item.bytes)}</strong>
+          </div>
+        `).join("");
+      }
+    }
 
     function showToast(msg) {
       const el = document.getElementById("toastMsg");
@@ -1087,7 +1245,6 @@
       db = null;
       document.getElementById("syncDot").className = "w-2 h-2 rounded-full bg-amber-400";
       document.getElementById("syncLabel").textContent = "로컬 모드";
-      document.getElementById("storageModeText").textContent = "로컬 브라우저 저장 모드 (네트워크 확인 필요)";
       try {
         records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       } catch {
@@ -1455,6 +1612,8 @@
     };
 
     window.renderAll = function () {
+      updateStorageUI();
+
       const todayStr = new Date().toISOString().slice(0, 10);
       document.getElementById("statTotal").textContent = records.length;
       document.getElementById("statToday").textContent = records.filter(r => r.workDate === todayStr).length;
@@ -1676,7 +1835,6 @@
       document.getElementById("sumDefectRate").textContent = `${overallRate.toFixed(1)}%`;
       document.getElementById("sumBaseInfo").textContent = `검사·작업 모수 ${totalBase.toLocaleString()} ea`;
 
-      // 외주 업체별 불량률: '수입검사 기준'일 때는 제목에 '수입검사'가 들어간 항목만 엄격히 필터링
       const vendorMap = {};
       list.forEach(r => {
         const inc = toNum(r.qtyIncoming);
@@ -1966,6 +2124,19 @@
           }).join("");
     };
 
+    function updateFormDocSizeIndicator() {
+      const photosBytes = tempPhotos.reduce((acc, s) => acc + getByteLength(s), 0);
+      const docsBytes = tempDocs.reduce((acc, d) => acc + getByteLength(JSON.stringify(d)), 0);
+      const approxKB = Math.round((photosBytes + docsBytes + 1024) / 1024);
+      const el = document.getElementById("formDocSizeIndicator");
+      if (el) {
+        el.textContent = `현재 게시글 용량: ${approxKB.toLocaleString()} KB / 1,024 KB`;
+        el.className = approxKB > 900
+          ? "text-[11px] font-mono font-bold text-rose-600"
+          : "text-[11px] font-mono font-bold text-purple-700";
+      }
+    }
+
     window.openFormModal = function (record = null) {
       document.getElementById("recordForm").reset();
       tempPhotos = [];
@@ -2080,6 +2251,7 @@
     };
 
     function renderAttachmentsPreview() {
+      updateFormDocSizeIndicator();
       document.getElementById("previewPhotos").innerHTML = tempPhotos.map((src, i) => `
         <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-300">
           <img src="${src}" class="w-full h-full object-cover" />
@@ -2202,7 +2374,8 @@
       if (!r) return;
       selectedRecordId = id;
 
-      document.getElementById("dWorkNo").textContent = r.workNo;
+      const docSizeText = formatBytes(getByteLength(JSON.stringify(r)));
+      document.getElementById("dWorkNo").textContent = `${r.workNo} · ${docSizeText}`;
       document.getElementById("dCategory").textContent = r.category;
 
       const photosHtml = (r.photos && r.photos.length > 0) ? `
@@ -2404,6 +2577,7 @@
     };
 
     window.openSettingsModal = function () {
+      updateStorageUI();
       document.getElementById("settingsModal").classList.remove("hidden");
       pushModalHistory("settingsModal");
     };
