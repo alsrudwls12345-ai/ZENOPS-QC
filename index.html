@@ -63,8 +63,8 @@
       <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <button onclick="openSettingsModal()" id="syncStatusBtn"
           class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">
-          <span id="syncDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
-          <span id="syncLabel" class="hidden sm:inline">로컬 모드</span>
+          <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="syncLabel" class="hidden sm:inline">실시간 클라우드 연동</span>
           <span class="text-slate-400">⚙</span>
         </button>
 
@@ -87,7 +87,7 @@
   <!-- 메인 컨테이너 -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 space-y-5">
 
-    <!-- 상단 KPI 요약 카드 (원클릭 필터 연동) -->
+    <!-- 상단 KPI 요약 카드 -->
     <section class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3">
       <button onclick="quickFilter('ALL')" id="kpi-ALL" class="kpi-card text-left bg-white p-3.5 sm:p-4 rounded-xl border-2 border-purple-700 shadow-sm transition hover:shadow">
         <div class="text-xs font-medium text-slate-500">전체 업무 이력</div>
@@ -126,7 +126,6 @@
 
     <!-- [뷰 1] 업무 이력 조회 & 다중 필터 -->
     <section id="view-list" class="space-y-4 animate-fade">
-      <!-- 검색 및 다중 필터 패널 -->
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
         <div class="flex flex-col sm:flex-row gap-2">
           <div class="relative flex-1">
@@ -173,7 +172,7 @@
           <span>검색 결과 <strong id="resultCount" class="text-purple-800">0</strong>건</span>
           <div class="flex items-center gap-2">
             <button onclick="exportCSV()" class="sm:hidden text-purple-800 font-semibold">📥 CSV 저장</button>
-            <span id="storageModeText" class="text-[11px] text-slate-400">로컬 브라우저 저장 모드</span>
+            <span id="storageModeText" class="text-[11px] text-emerald-700 font-semibold">☁️ PC · 모바일 실시간 클라우드 동기화 연결됨</span>
           </div>
         </div>
       </div>
@@ -206,7 +205,7 @@
       <div id="emptyState" class="hidden bg-white rounded-xl border border-slate-200 p-10 text-center">
         <div class="text-3xl mb-2">📂</div>
         <p class="text-sm font-bold text-slate-700">조건에 일치하는 업무 이력이 없습니다.</p>
-        <p class="text-xs text-slate-400 mt-1">검색 필터를 초기화하거나 우측 상단 [＋ 업무 등록] 버튼으로 새 이력을 기록하세요.</p>
+        <p class="text-xs text-slate-400 mt-1">우측 상단 [＋ 업무 등록] 버튼으로 첫 품질 업무를 등록해 보세요.</p>
       </div>
     </section>
 
@@ -273,7 +272,6 @@
       <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-5 overflow-y-auto space-y-4 text-sm">
         <input type="hidden" id="editRecordId" />
 
-        <!-- 1. 기본 정보 -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">작업일자 <span class="text-rose-600">*</span></label>
@@ -319,7 +317,6 @@
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
         </div>
 
-        <!-- 2. 제품 및 추적 정보 (선택 입력) -->
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
           <div class="text-xs font-bold text-slate-600">제품 및 추적 정보 (해당 시 선택 입력)</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -346,7 +343,6 @@
           </div>
         </div>
 
-        <!-- 3. 작업내용, 결과, 특이사항 -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">작업내용 <span class="text-rose-600">*</span></label>
           <textarea id="fDescription" rows="3" required placeholder="수행한 검사, 세정, 조립, 측정 조건 및 상세 내용을 입력하세요."
@@ -376,7 +372,6 @@
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
         </div>
 
-        <!-- 4. 현장 사진 및 성적서/데이터 첨부 -->
         <div class="bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 space-y-3">
           <div class="text-xs font-bold text-purple-900">현장 사진 및 성적서/데이터 첨부</div>
 
@@ -393,7 +388,6 @@
             </div>
           </div>
 
-          <!-- 첨부 미리보기 영역 -->
           <div id="previewPhotos" class="flex flex-wrap gap-2"></div>
           <div id="previewDocs" class="space-y-1"></div>
         </div>
@@ -439,40 +433,27 @@
     </div>
   </div>
 
-  <!-- [모달 3] 클라우드 실시간 동기화 및 보안 설정 모달 -->
+  <!-- [모달 3] 보안 및 백업 설정 모달 -->
   <div id="settingsModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade">
       <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
-        <h3 class="text-base font-bold">⚙ 시스템 설정 (실시간 동기화 · 보안 · 백업)</h3>
+        <h3 class="text-base font-bold">⚙ 시스템 설정 (클라우드 상태 · 보안 · 백업)</h3>
         <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white text-xl">✕</button>
       </div>
 
       <div class="p-5 overflow-y-auto space-y-5 text-xs sm:text-sm">
-        <!-- 1. PC·모바일 실시간 클라우드 연동 -->
-        <div class="space-y-2">
-          <div class="font-bold text-slate-900 flex items-center justify-between">
-            <span>1. PC · 모바일 실시간 클라우드 연동 (Firebase)</span>
-            <span id="cloudBadge" class="text-[11px] px-2 py-0.5 rounded bg-amber-100 text-amber-800">미연결 (로컬 저장)</span>
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 space-y-1">
+          <div class="font-bold text-emerald-900 flex items-center justify-between">
+            <span>☁️ PC · 모바일 실시간 클라우드 연동</span>
+            <span id="cloudBadge" class="text-[11px] px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold">연결 완료 (zenops-2c8c6)</span>
           </div>
-          <p class="text-xs text-slate-500 leading-relaxed">
-            여러 팀원이 스마트폰과 PC에서 동시에 데이터를 공유하려면 무료 Firebase 프로젝트의 <code class="bg-slate-100 px-1 rounded">firebaseConfig</code> 객체를 아래에 붙여넣고 저장하세요.
+          <p class="text-xs text-emerald-800 leading-relaxed">
+            품질팀 공용 클라우드 DB가 내장되어 있어, 스마트폰이나 PC에서 등록한 업무와 현장 사진이 팀원 전원에게 실시간으로 공유됩니다.
           </p>
-          <textarea id="firebaseConfigInput" rows="4"
-            placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "...", "storageBucket": "...", "messagingSenderId": "...", "appId": "..."}'
-            class="w-full font-mono text-xs border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
-          <div class="flex gap-2">
-            <button onclick="saveFirebaseConfig()" class="px-3.5 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold">
-              클라우드 연결 저장
-            </button>
-            <button onclick="clearFirebaseConfig()" class="px-3 py-2 rounded-lg border border-slate-300 text-slate-600 text-xs font-semibold hover:bg-slate-50">
-              연결 해제
-            </button>
-          </div>
         </div>
 
-        <!-- 2. 사내 보안 PIN 설정 -->
-        <div class="pt-4 border-t border-slate-200 space-y-2">
-          <div class="font-bold text-slate-900">2. 사내 접속 보안 PIN 잠금 (선택 사항)</div>
+        <div class="pt-2 space-y-2">
+          <div class="font-bold text-slate-900">사내 접속 보안 PIN 잠금 (선택 사항)</div>
           <div class="flex items-center gap-2">
             <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
               <input type="checkbox" id="pinEnabledCheck" class="rounded text-purple-700" />
@@ -488,9 +469,8 @@
           </div>
         </div>
 
-        <!-- 3. 데이터 백업 및 복원 -->
         <div class="pt-4 border-t border-slate-200 space-y-2">
-          <div class="font-bold text-slate-900">3. 전체 데이터 백업 및 복원 (JSON)</div>
+          <div class="font-bold text-slate-900">전체 데이터 백업 및 복원 (JSON)</div>
           <div class="flex flex-wrap gap-2">
             <button onclick="exportJSON()" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold">
               💾 전체 데이터 백업 파일 받기
@@ -514,8 +494,17 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    // ZENOPS 품질팀 공용 Firebase 실시간 DB 설정 내장
+    const DEFAULT_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyC19E_q6V1GOf6FAIA4byXPLHzvjwrrzFk",
+      authDomain: "zenops-2c8c6.firebaseapp.com",
+      projectId: "zenops-2c8c6",
+      storageBucket: "zenops-2c8c6.firebasestorage.app",
+      messagingSenderId: "999431475162",
+      appId: "1:999431475162:web:6135272673ebe30a4a3ae3"
+    };
+
     const STORAGE_KEY = "zenops_qc_records_v2";
-    const FB_CONFIG_KEY = "zenops_qc_fb_config";
     const PIN_CFG_KEY = "zenops_qc_pin_cfg";
 
     let records = [];
@@ -525,103 +514,37 @@
     let tempPhotos = [];
     let tempDocs = [];
     let db = null;
-    let unsubscribeSnapshot = null;
 
-    // 초기 샘플 데이터 (최초 1회)
-    const SAMPLE_RECORDS = [
-      {
-        id: "rec_sample_1",
-        workNo: "Q-20261118-001",
-        workDate: new Date().toISOString().slice(0, 10),
-        category: "Zygo 측정 및 분석",
-        status: "완료",
-        worker: "김민준",
-        title: "AR 코팅 후 표면 형상(PV/RMS) Zygo 간섭계 측정",
-        productName: "비구면 광학 렌즈",
-        partNo: "111-1",
-        lotNo: "S2:AR",
-        client: "제놉스 내부공정",
-        description: "코팅 챔버 2호기 증착 완료된 S2:AR Lot 샘플 5매 Zygo 간섭계 측정 및 데이터 분석 진행.",
-        judgment: "합격",
-        result: "PV 0.078λ, RMS 0.012λ (규격 0.1λ 이하 합격)",
-        remarks: "전 수량 스펙 이내 양호, 출고검사 인계 완료",
-        photos: [],
-        files: [{ name: "111-1_S2_AR_Zygo_Report.pdf", size: "420 KB", dataUrl: "" }],
-        updatedAt: Date.now()
-      },
-      {
-        id: "rec_sample_2",
-        workNo: "Q-20261118-002",
-        workDate: new Date().toISOString().slice(0, 10),
-        category: "광학 세정/조립/수리",
-        status: "진행 중",
-        worker: "이서연",
-        title: "코팅 전 초음파 정밀 세정 및 암실 외관 전수검사",
-        productName: "비구면 광학 렌즈",
-        partNo: "111-1",
-        lotNo: "S1:Mirror",
-        client: "제놉스 내부공정",
-        description: "증착 전 초음파 4단 세정 후 집광등 하에서 이물 및 미세 스크래치 외관 전수검사.",
-        judgment: "조건부합격",
-        result: "총 50매 중 48매 양호, 2매 재세정 투입",
-        remarks: "재세정 2매 건조 후 재확인 예정",
-        photos: [],
-        files: [],
-        updatedAt: Date.now() - 3600000
-      }
-    ];
-
-    // 초기화 실행
     async function init() {
       checkPinLockOnLoad();
-      const savedFb = localStorage.getItem(FB_CONFIG_KEY);
-      if (savedFb) {
-        try {
-          const cfg = JSON.parse(savedFb);
-          document.getElementById("firebaseConfigInput").value = JSON.stringify(cfg, null, 2);
-          await connectFirebase(cfg);
-          return;
-        } catch (e) {
-          console.error("Firebase 연결 실패, 로컬 모드로 전환:", e);
-        }
+      try {
+        const app = initializeApp(DEFAULT_FIREBASE_CONFIG);
+        db = getFirestore(app);
+        const q = query(collection(db, "zenops_quality_records"), orderBy("workDate", "desc"));
+        onSnapshot(q, (snapshot) => {
+          records = snapshot.docs.map(d => d.data());
+          renderAll();
+        }, (err) => {
+          console.error("Firestore 동기화 오류:", err);
+          fallbackToLocal();
+        });
+      } catch (e) {
+        console.error("Firebase 초기화 실패:", e);
+        fallbackToLocal();
       }
-      loadLocalRecords();
     }
 
-    function loadLocalRecords() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        records = [...SAMPLE_RECORDS];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-      } else {
-        try {
-          records = JSON.parse(raw);
-        } catch {
-          records = [];
-        }
+    function fallbackToLocal() {
+      db = null;
+      document.getElementById("syncDot").className = "w-2 h-2 rounded-full bg-amber-400";
+      document.getElementById("syncLabel").textContent = "로컬 모드";
+      document.getElementById("storageModeText").textContent = "로컬 브라우저 저장 모드 (네트워크 확인 필요)";
+      try {
+        records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        records = [];
       }
       renderAll();
-    }
-
-    function saveLocalRecords() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-    }
-
-    async function connectFirebase(cfg) {
-      const app = initializeApp(cfg);
-      db = getFirestore(app);
-      const q = query(collection(db, "zenops_quality_records"), orderBy("workDate", "desc"));
-      if (unsubscribeSnapshot) unsubscribeSnapshot();
-      unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
-        records = snapshot.docs.map(d => d.data());
-        renderAll();
-      });
-
-      document.getElementById("syncDot").className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-      document.getElementById("syncLabel").textContent = "실시간 클라우드 연동";
-      document.getElementById("storageModeText").textContent = "☁️ PC · 모바일 실시간 클라우드 동기화 중";
-      document.getElementById("cloudBadge").className = "text-[11px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold";
-      document.getElementById("cloudBadge").textContent = "실시간 연결됨";
     }
 
     // PIN 잠금 제어
@@ -675,7 +598,7 @@
       alert("보안 설정이 저장되었습니다.");
     };
 
-    // 필터링 로직
+    // 필터링
     function getFilteredRecords() {
       const kw = document.getElementById("filterKeyword").value.trim().toLowerCase();
       const cat = document.getElementById("filterCategory").value;
@@ -730,7 +653,6 @@
       quickFilter("ALL");
     };
 
-    // 전체 렌더링
     window.renderAll = function () {
       const todayStr = new Date().toISOString().slice(0, 10);
       document.getElementById("statTotal").textContent = records.length;
@@ -817,7 +739,6 @@
       return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">진행 중</span>`;
     }
 
-    // 탭 전환
     window.switchTab = function (tab) {
       currentTab = tab;
       ["list", "trace", "stats"].forEach(t => {
@@ -833,7 +754,6 @@
       if (tab === "stats") renderStats();
     };
 
-    // [뷰 2] 제품/품번별 이력 추적
     window.renderTrace = function () {
       const chipsEl = document.getElementById("traceQuickChips");
       const uniqueParts = [...new Set(records.map(r => r.partNo).filter(Boolean))].slice(0, 6);
@@ -882,9 +802,7 @@
       `;
     };
 
-    // [뷰 3] 월별 업무 현황
     window.renderStats = function () {
-      // 최근 6개월 집계
       const months = [];
       const now = new Date();
       for (let i = 5; i >= 0; i--) {
@@ -935,7 +853,6 @@
         .style("fill", "#1e293b")
         .text(d => d.count);
 
-      // 업무 분류별 비중
       const catCounts = {};
       records.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
       const total = records.length || 1;
@@ -955,7 +872,6 @@
         `;
       }).join("") || `<p class="text-xs text-slate-400">데이터가 없습니다.</p>`;
 
-      // 담당자별 현황
       const wkCounts = {};
       records.forEach(r => { if (r.worker) wkCounts[r.worker] = (wkCounts[r.worker] || 0) + 1; });
       document.getElementById("workerBreakdown").innerHTML = Object.entries(wkCounts).sort((a, b) => b[1] - a[1]).map(([w, cnt]) => `
@@ -966,7 +882,6 @@
       `).join("") || `<p class="text-xs text-slate-400 col-span-4">등록된 담당자 데이터가 없습니다.</p>`;
     };
 
-    // 업무 등록/수정 모달 제어
     window.openFormModal = function (record = null) {
       document.getElementById("recordForm").reset();
       tempPhotos = [];
@@ -1004,15 +919,12 @@
       document.getElementById("formModal").classList.remove("hidden");
     };
 
-    window.closeFormModal = function () {
-      document.getElementById("formModal").classList.add("hidden");
-    };
+    window.closeFormModal = function () { document.getElementById("formModal").classList.add("hidden"); };
 
-    // 이미지 자동 압축 처리 (모바일 촬영 고화질 대응)
     window.handlePhotoSelect = async function (e) {
       const files = Array.from(e.target.files || []);
       for (const file of files) {
-        const compressed = await compressImage(file, 1024, 0.72);
+        const compressed = await compressImage(file, 900, 0.65);
         tempPhotos.push(compressed);
       }
       renderAttachmentsPreview();
@@ -1048,7 +960,7 @@
       for (const file of files) {
         const sizeKB = Math.max(1, Math.round(file.size / 1024)) + " KB";
         let dataUrl = "";
-        if (file.size <= 1.5 * 1024 * 1024) {
+        if (file.size <= 500 * 1024) {
           dataUrl = await new Promise(res => {
             const r = new FileReader();
             r.onload = ev => res(ev.target.result);
@@ -1080,9 +992,12 @@
     window.removeTempPhoto = function (idx) { tempPhotos.splice(idx, 1); renderAttachmentsPreview(); };
     window.removeTempDoc = function (idx) { tempDocs.splice(idx, 1); renderAttachmentsPreview(); };
 
-    // 저장 실행
     window.handleFormSubmit = async function (e) {
       e.preventDefault();
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.textContent = "저장 중...";
+
       const editId = document.getElementById("editRecordId").value;
       const id = editId || ("rec_" + Date.now());
       const payload = {
@@ -1106,24 +1021,25 @@
         updatedAt: Date.now()
       };
 
-      if (db) {
-        try {
+      try {
+        if (db) {
           await setDoc(doc(db, "zenops_quality_records", id), payload);
-        } catch (err) {
-          alert("클라우드 저장 중 오류가 발생했습니다(사진 용량 초과 여부 확인): " + err.message);
-          return;
+        } else {
+          const idx = records.findIndex(r => r.id === id);
+          if (idx >= 0) records[idx] = payload;
+          else records.unshift(payload);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+          renderAll();
         }
-      } else {
-        const idx = records.findIndex(r => r.id === id);
-        if (idx >= 0) records[idx] = payload;
-        else records.unshift(payload);
-        saveLocalRecords();
-        renderAll();
+        closeFormModal();
+      } catch (err) {
+        alert("저장 오류: 사진 장수가 너무 많거나 용량 제한(1MB)을 초과했습니다. 사진을 줄여서 다시 시도해 주세요.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "업무 이력 저장";
       }
-      closeFormModal();
     };
 
-    // 상세 모달 제어
     window.openDetailModal = function (id) {
       const r = records.find(item => item.id === id);
       if (!r) return;
@@ -1209,7 +1125,7 @@
         await deleteDoc(doc(db, "zenops_quality_records", selectedRecordId));
       } else {
         records = records.filter(r => r.id !== selectedRecordId);
-        saveLocalRecords();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
         renderAll();
       }
       closeDetailModal();
@@ -1220,28 +1136,8 @@
       document.getElementById("lightboxModal").classList.remove("hidden");
     };
 
-    // 설정 모달 및 클라우드/백업 제어
     window.openSettingsModal = function () { document.getElementById("settingsModal").classList.remove("hidden"); };
     window.closeSettingsModal = function () { document.getElementById("settingsModal").classList.add("hidden"); };
-
-    window.saveFirebaseConfig = async function () {
-      const raw = document.getElementById("firebaseConfigInput").value.trim();
-      try {
-        const cfg = JSON.parse(raw);
-        if (!cfg.apiKey || !cfg.projectId) throw new Error("필수 키(apiKey, projectId) 누락");
-        localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(cfg));
-        await connectFirebase(cfg);
-        alert("클라우드 실시간 연동이 완료되었습니다!");
-        closeSettingsModal();
-      } catch (e) {
-        alert("설정 JSON 형식이 올바르지 않습니다: " + e.message);
-      }
-    };
-
-    window.clearFirebaseConfig = function () {
-      localStorage.removeItem(FB_CONFIG_KEY);
-      location.reload();
-    };
 
     window.exportCSV = function () {
       const headers = ["작업일자", "고유번호", "업무분류", "진행상태", "담당자", "업무제목", "제품명", "품번", "관리번호", "고객사", "작업내용", "판정", "검사결과", "특이사항"];
@@ -1283,7 +1179,7 @@
             }
           } else {
             records = imported;
-            saveLocalRecords();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
             renderAll();
           }
           alert(`총 ${imported.length}건의 이력을 복원했습니다.`);
