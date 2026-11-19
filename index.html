@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0f172a" />
@@ -135,7 +135,7 @@
         <div class="flex flex-col sm:flex-row gap-2">
           <div class="relative flex-1">
             <input type="text" id="filterKeyword" oninput="renderAll()"
-              placeholder="제목, 제품명, 품번(예: 111-1), 관리번호, 담당자, 고객사, 작업내용 통합검색..."
+              placeholder="관리번호, 고객사, 제품명, 품번(예: 111-1), 제목, 담당자 통합검색..."
               class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-700" />
             <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔎</span>
           </div>
@@ -182,18 +182,18 @@
         </div>
       </div>
 
-      <!-- PC 테이블 뷰 -->
+      <!-- PC 테이블 뷰 (관리번호 -> 고객사 -> 제품명 -> 품번 순서 반영) -->
       <div class="hidden md:block bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600">
                 <th class="py-3 px-3.5">작업일자 / 번호</th>
+                <th class="py-3 px-3.5">관리번호 · 고객사</th>
+                <th class="py-3 px-3.5">제품명 · 품번</th>
                 <th class="py-3 px-3.5">업무 분류</th>
                 <th class="py-3 px-3.5">업무 제목 / 수량 요약</th>
-                <th class="py-3 px-3.5">제품명 / 품번 / 관리번호</th>
                 <th class="py-3 px-3.5">성적서 · 코팅데이터</th>
-                <th class="py-3 px-3.5">고객사/업체</th>
                 <th class="py-3 px-3.5">담당자</th>
                 <th class="py-3 px-3.5">첨부</th>
                 <th class="py-3 px-3.5">상태</th>
@@ -204,7 +204,7 @@
         </div>
       </div>
 
-      <!-- 모바일 카드 뷰 -->
+      <!-- 모바일 카드 뷰 (관리번호 최상단 강조) -->
       <div id="mobileCardList" class="md:hidden space-y-2.5"></div>
 
       <!-- 빈 상태 안내 -->
@@ -219,12 +219,12 @@
     <section id="view-trace" class="hidden space-y-4 animate-fade">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
         <div>
-          <h2 class="text-base font-bold text-slate-900">제품 / 품번 / 관리번호별 공정 타임라인 추적</h2>
-          <p class="text-xs text-slate-500 mt-0.5">입고검사 → 세정 → 코팅 → Zygo 측정 → 출고까지 특정 품번 또는 관리번호의 전체 이력을 시간순으로 추적합니다.</p>
+          <h2 class="text-base font-bold text-slate-900">관리번호 / 품번 / 제품별 공정 타임라인 추적</h2>
+          <p class="text-xs text-slate-500 mt-0.5">입고검사 → 세정 → 코팅 → Zygo 측정 → 출고까지 특정 관리번호 또는 품번의 전체 이력을 시간순으로 추적합니다.</p>
         </div>
         <div class="flex flex-col sm:flex-row gap-2">
           <input type="text" id="traceInput" oninput="renderTrace()"
-            placeholder="품번(예: 111-1), 제품명, 또는 관리번호(Lot No)를 입력하세요..."
+            placeholder="관리번호(Lot No), 품번(예: 111-1), 또는 제품명을 입력하세요..."
             class="flex-1 text-sm border border-slate-300 rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-700" />
           <div id="traceQuickChips" class="flex flex-wrap gap-1.5 items-center"></div>
         </div>
@@ -325,6 +325,33 @@
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
         </div>
 
+        <!-- 관리번호 -> 고객사 -> 품명 -> 품번 순서로 재배치 -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+          <div class="text-xs font-bold text-slate-700">제품 및 추적 정보 (관리번호 → 고객사 → 품명 → 품번)</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-indigo-700 mb-1">1. 관리번호 / Lot No.</label>
+              <input type="text" id="fLotNo" placeholder="예: 5420OC02BH 261306"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">2. 고객사 / 협력업체명</label>
+              <input type="text" id="fClient" placeholder="예: 미래컴퍼니"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">3. 제품명 (품명)</label>
+              <input type="text" id="fProductName" placeholder="예: 25.4mmØ, 3.0mmThk, 343nm"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">4. 품번 (Part No.)</label>
+              <input type="text" id="fPartNo" placeholder="예: MS-876-343-Y-X"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
         <!-- 코팅완료 / 납품 / 재고 / 불량 수량 전용 입력 영역 -->
         <div class="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200 space-y-2.5">
           <div class="flex items-center justify-between">
@@ -409,35 +436,9 @@
           </div>
         </div>
 
-        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
-          <div class="text-xs font-bold text-slate-600">제품 및 추적 정보 (해당 시 선택 입력)</div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-500 mb-1">제품명</label>
-              <input type="text" id="fProductName" placeholder="예: 25.4mmØ, 3.0mmThk, 343nm"
-                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-500 mb-1">품번 (Part No.)</label>
-              <input type="text" id="fPartNo" placeholder="예: MS-876-343-Y-X"
-                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-500 mb-1">관리번호 / Lot No.</label>
-              <input type="text" id="fLotNo" placeholder="예: 5420OC02BH 261306"
-                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-500 mb-1">고객사 / 협력업체명</label>
-              <input type="text" id="fClient" placeholder="예: 미래컴퍼니"
-                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" />
-            </div>
-          </div>
-        </div>
-
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">작업 및 검사 상세내용 <span class="text-[11px] font-normal text-slate-400">(선택 입력)</span></label>
-          <textarea id="fDescription" rows="2" placeholder="수량은 위 칸에 입력하시고, 여기에는 추가 작업 내용이나 측정 조건만 적으세요."
+          <label class="block text-xs font-bold text-slate-700 mb-1">작업 및 검사 상세내용 <span class="text-[11px] font-normal text-slate-400">(선택 입력 · 자동 줄내림)</span></label>
+          <textarea id="fDescription" rows="2" placeholder="추가 작업 내용이나 측정 조건을 입력하세요. (Enter로 줄바꿈 가능)"
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
         </div>
 
@@ -452,16 +453,16 @@
             </select>
           </div>
           <div class="sm:col-span-2">
-            <label class="block text-xs font-bold text-slate-700 mb-1">검사 및 작업 결과 수치/요약</label>
-            <input type="text" id="fResult" placeholder="예: PV 0.082λ, RMS 0.014λ 기준 이내 양호"
-              class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+            <label class="block text-xs font-bold text-slate-700 mb-1">검사 및 작업 결과 수치/요약 <span class="text-[11px] font-normal text-slate-400">(줄바꿈 가능)</span></label>
+            <textarea id="fResult" rows="2" placeholder="예: PV 0.082λ, RMS 0.014λ 기준 이내 양호"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모</label>
-          <input type="text" id="fRemarks" placeholder="예: Doe 코팅제품 외경 사이즈만 확인 면세정"
-            class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
+          <label class="block text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모 <span class="text-[11px] font-normal text-slate-400">(줄바꿈 가능)</span></label>
+          <textarea id="fRemarks" rows="2" placeholder="예: Doe 코팅제품 외경 사이즈만 확인 면세정"
+            class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
         </div>
 
         <div class="bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 space-y-3">
@@ -509,7 +510,6 @@
 
       <div id="detailBody" class="p-5 overflow-y-auto space-y-4 text-sm"></div>
 
-      <!-- 하단 액션바 (오클릭 방지를 위해 닫기/수정과 삭제 영역을 명확히 분리) -->
       <div class="px-5 py-3.5 bg-slate-100 border-t border-slate-200 flex items-center justify-between shrink-0">
         <button onclick="openDeleteConfirm()" class="px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
           이력 삭제...
@@ -599,33 +599,52 @@
     </div>
   </div>
 
-  <!-- 사진 확대 보기 및 다운로드 라이트박스 -->
-  <div id="lightboxModal" onclick="closeLightboxBackdrop(event)" class="hidden fixed inset-0 z-[90] bg-black/90 flex flex-col items-center justify-center p-4">
-    <div onclick="event.stopPropagation()" class="w-full max-w-4xl flex items-center justify-between text-white mb-3 px-1">
-      <span id="lightboxCounter" class="text-xs sm:text-sm font-bold text-slate-300">사진 1 / 1</span>
+  <!-- 사진 확대(핀치 줌/배율 버튼) 및 다운로드 라이트박스 -->
+  <div id="lightboxModal" onclick="closeLightboxBackdrop(event)" class="hidden fixed inset-0 z-[90] bg-black/95 flex flex-col justify-between p-3 sm:p-4 select-none">
+    <!-- 상단 툴바 -->
+    <div onclick="event.stopPropagation()" class="w-full max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2 text-white z-10">
       <div class="flex items-center gap-2">
-        <button onclick="downloadCurrentLightboxPhoto()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs sm:text-sm font-bold shadow transition">
-          📥 이 사진 저장
+        <span id="lightboxCounter" class="text-xs sm:text-sm font-bold text-slate-200">1 / 1</span>
+        <span id="lightboxZoomBadge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/15 text-purple-200">100%</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button type="button" onclick="adjustLightboxZoom(-0.5)" title="축소" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700">
+          🔍-
         </button>
-        <button onclick="requestCloseModal('lightboxModal')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-bold">
-          ✕ 닫기
+        <button type="button" onclick="resetLightboxZoom()" title="원본 크기" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700">
+          1:1
+        </button>
+        <button type="button" onclick="adjustLightboxZoom(0.5)" title="확대" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700">
+          🔍+
+        </button>
+        <button type="button" onclick="downloadCurrentLightboxPhoto()" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold shadow transition">
+          📥 저장
+        </button>
+        <button type="button" onclick="requestCloseModal('lightboxModal')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold">
+          ✕
         </button>
       </div>
     </div>
 
-    <div onclick="event.stopPropagation()" class="relative flex items-center justify-center max-w-full max-h-[78vh]">
-      <button id="lightboxPrevBtn" onclick="navigateLightbox(-1)" class="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 text-white text-lg font-bold mr-3 transition">
+    <!-- 중앙 이미지 뷰포트 (드래그, 핀치 줌, 더블탭 지원) -->
+    <div id="lightboxViewport" onclick="event.stopPropagation()" class="relative flex-1 w-full flex items-center justify-center overflow-hidden my-2 touch-none">
+      <button id="lightboxPrevBtn" onclick="navigateLightbox(-1)" class="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 text-white text-lg font-bold z-10 mr-3 transition">
         ‹
       </button>
-      <img id="lightboxImg" src="" alt="확대 사진" class="max-w-[88vw] sm:max-w-[75vw] max-h-[76vh] object-contain rounded-lg shadow-2xl" />
-      <button id="lightboxNextBtn" onclick="navigateLightbox(1)" class="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 text-white text-lg font-bold ml-3 transition">
+      <img id="lightboxImg" src="" alt="확대 사진" draggable="false"
+        class="max-w-[92vw] sm:max-w-[78vw] max-h-[75vh] object-contain rounded-lg shadow-2xl transition-transform duration-75 ease-out cursor-grab active:cursor-grabbing" />
+      <button id="lightboxNextBtn" onclick="navigateLightbox(1)" class="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 text-white text-lg font-bold z-10 ml-3 transition">
         ›
       </button>
     </div>
 
-    <div id="lightboxMobileNav" onclick="event.stopPropagation()" class="flex sm:hidden items-center gap-4 mt-3">
-      <button onclick="navigateLightbox(-1)" class="px-4 py-1.5 rounded-lg bg-white/15 text-white text-xs font-bold">◀ 이전 사진</button>
-      <button onclick="navigateLightbox(1)" class="px-4 py-1.5 rounded-lg bg-white/15 text-white text-xs font-bold">다음 사진 ▶</button>
+    <!-- 하단 모바일 안내 및 이전/다음 버튼 -->
+    <div onclick="event.stopPropagation()" class="flex flex-col items-center gap-2 z-10">
+      <p class="text-[11px] text-slate-400">두 손가락으로 확대/축소 또는 사진 더블탭 시 2배 확대됩니다.</p>
+      <div id="lightboxMobileNav" class="flex sm:hidden items-center gap-4">
+        <button onclick="navigateLightbox(-1)" class="px-4 py-1.5 rounded-lg bg-white/15 text-white text-xs font-bold">◀ 이전 사진</button>
+        <button onclick="navigateLightbox(1)" class="px-4 py-1.5 rounded-lg bg-white/15 text-white text-xs font-bold">다음 사진 ▶</button>
+      </div>
     </div>
   </div>
 
@@ -655,6 +674,17 @@
 
     let lightboxPhotos = [];
     let lightboxIndex = 0;
+
+    // 라이트박스 줌/팬 상태 변수
+    let zoomScale = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let initialPinchDist = 0;
+    let initialPinchScale = 1;
+    let lastTapTime = 0;
 
     let modalStack = [];
     let isHandlingPopState = false;
@@ -713,8 +743,105 @@
       }
     };
 
+    // 라이트박스 줌/제스처 초기화
+    function setupLightboxGestures() {
+      const vp = document.getElementById("lightboxViewport");
+      const img = document.getElementById("lightboxImg");
+
+      // 마우스 휠 확대/축소 (PC)
+      vp.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.35 : -0.35;
+        setLightboxTransform(zoomScale + delta, panX, panY);
+      }, { passive: false });
+
+      // 마우스 드래그 이동 (PC)
+      img.addEventListener("mousedown", (e) => {
+        if (zoomScale <= 1) return;
+        isDragging = true;
+        dragStartX = e.clientX - panX;
+        dragStartY = e.clientY - panY;
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        setLightboxTransform(zoomScale, e.clientX - dragStartX, e.clientY - dragStartY);
+      });
+      window.addEventListener("mouseup", () => { isDragging = false; });
+
+      // 모바일 터치: 핀치 줌, 한 손가락 드래그, 더블탭 확대
+      vp.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 2) {
+          isDragging = false;
+          initialPinchDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          initialPinchScale = zoomScale;
+        } else if (e.touches.length === 1) {
+          const now = Date.now();
+          if (now - lastTapTime < 280) {
+            if (zoomScale > 1) {
+              resetLightboxZoom();
+            } else {
+              setLightboxTransform(2.2, 0, 0);
+            }
+          }
+          lastTapTime = now;
+
+          if (zoomScale > 1) {
+            isDragging = true;
+            dragStartX = e.touches[0].clientX - panX;
+            dragStartY = e.touches[0].clientY - panY;
+          }
+        }
+      }, { passive: true });
+
+      vp.addEventListener("touchmove", (e) => {
+        if (e.touches.length === 2 && initialPinchDist > 0) {
+          e.preventDefault();
+          const currentDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const nextScale = initialPinchScale * (currentDist / initialPinchDist);
+          setLightboxTransform(nextScale, panX, panY);
+        } else if (e.touches.length === 1 && isDragging && zoomScale > 1) {
+          e.preventDefault();
+          setLightboxTransform(zoomScale, e.touches[0].clientX - dragStartX, e.touches[0].clientY - dragStartY);
+        }
+      }, { passive: false });
+
+      vp.addEventListener("touchend", () => {
+        isDragging = false;
+        initialPinchDist = 0;
+      });
+    }
+
+    function setLightboxTransform(nextScale, nextX, nextY) {
+      zoomScale = Math.min(4, Math.max(1, nextScale));
+      if (zoomScale === 1) {
+        panX = 0;
+        panY = 0;
+      } else {
+        panX = nextX;
+        panY = nextY;
+      }
+      const img = document.getElementById("lightboxImg");
+      img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+      document.getElementById("lightboxZoomBadge").textContent = `${Math.round(zoomScale * 100)}%`;
+    }
+
+    window.adjustLightboxZoom = function (delta) {
+      setLightboxTransform(zoomScale + delta, panX, panY);
+    };
+
+    window.resetLightboxZoom = function () {
+      setLightboxTransform(1, 0, 0);
+    };
+
     async function init() {
       setupMobileBackNavigation();
+      setupLightboxGestures();
       checkPinLockOnLoad();
       try {
         const app = initializeApp(DEFAULT_FIREBASE_CONFIG);
@@ -796,7 +923,6 @@
       alert("보안 설정이 저장되었습니다.");
     };
 
-    // 수량 4종 요약 포맷 헬퍼
     function hasAnyQty(r) {
       return [r.qtyCoated, r.qtyDelivered, r.qtyStock, r.qtyDefect].some(v => v !== undefined && v !== null && String(v).trim() !== "");
     }
@@ -908,9 +1034,9 @@
           if (dTo && r.workDate > dTo) return false;
           if (kw) {
             const hay = [
-              r.workNo, r.title, r.productName, r.partNo, r.lotNo, r.client,
-              r.worker, r.description, r.result, r.remarks, r.reportStatus, r.coatingDataStatus,
-              formatQtyInline(r)
+              r.lotNo, r.client, r.productName, r.partNo,
+              r.workNo, r.title, r.worker, r.description, r.result, r.remarks,
+              r.reportStatus, r.coatingDataStatus, formatQtyInline(r)
             ].join(" ").toLowerCase();
             if (!hay.includes(kw)) return false;
           }
@@ -975,6 +1101,18 @@
               <div class="font-bold text-slate-800">${esc(r.workDate)}</div>
               <div class="text-[11px] font-mono text-slate-400">${esc(r.workNo)}</div>
             </td>
+            <td class="py-3 px-3.5 text-xs">
+              ${r.lotNo || r.client
+                ? `<div class="font-bold text-indigo-700">${esc(r.lotNo || "-")}</div>
+                   <div class="text-slate-600 mt-0.5">${esc(r.client || "-")}</div>`
+                : `<span class="text-slate-400">-</span>`}
+            </td>
+            <td class="py-3 px-3.5 text-xs max-w-[200px]">
+              ${r.productName || r.partNo
+                ? `<div class="font-semibold text-slate-800 truncate">${esc(r.productName || "-")}</div>
+                   <div class="text-slate-500 mt-0.5">${esc(r.partNo || "-")}</div>`
+                : `<span class="text-slate-400">-</span>`}
+            </td>
             <td class="py-3 px-3.5 whitespace-nowrap">
               <span class="text-xs font-semibold px-2 py-1 rounded-md bg-slate-100 text-slate-700">${esc(r.category)}</span>
             </td>
@@ -982,14 +1120,7 @@
               <div class="font-bold text-slate-900 truncate">${esc(r.title)}</div>
               <div class="text-xs ${qtyLine ? "text-purple-800 font-semibold" : "text-slate-500"} truncate mt-0.5">${esc(subSummary)}</div>
             </td>
-            <td class="py-3 px-3.5 text-xs">
-              ${r.productName || r.partNo || r.lotNo
-                ? `<div class="font-semibold text-slate-800">${esc(r.productName || "-")}</div>
-                   <div class="text-slate-500">${esc(r.partNo || "")} ${r.lotNo ? `· <span class="text-purple-700 font-medium">${esc(r.lotNo)}</span>` : ""}</div>`
-                : `<span class="text-slate-400">-</span>`}
-            </td>
             <td class="py-3 px-3.5">${renderDocCheckBadges(r)}</td>
-            <td class="py-3 px-3.5 text-xs text-slate-600">${esc(r.client || "-")}</td>
             <td class="py-3 px-3.5 text-xs font-bold text-slate-700 whitespace-nowrap">${esc(r.worker)}</td>
             <td class="py-3 px-3.5 text-xs whitespace-nowrap text-slate-500">
               ${(r.photos?.length || 0) > 0 ? `📷 ${r.photos.length} ` : ""}
@@ -1001,25 +1132,41 @@
         `;
         }).join("");
 
+        // 모바일 카드: 관리번호 -> 고객사 -> 품명 -> 품번이 한눈에 보이도록 배치
         mobileList.innerHTML = filtered.map(r => {
           const qtyLine = formatQtyInline(r);
+          const hasTrackingInfo = r.lotNo || r.client || r.productName || r.partNo;
           return `
           <div onclick="openDetailModal('${r.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 space-y-2">
             <div class="flex items-center justify-between gap-2">
               <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(r.category)}</span>
               ${statusBadge(r.status)}
             </div>
-            <div class="font-bold text-slate-900 text-sm leading-snug">${esc(r.title)}</div>
+
+            <div class="font-bold text-slate-900 text-sm leading-snug break-words">${esc(r.title)}</div>
+
+            ${hasTrackingInfo ? `
+              <div class="text-xs bg-slate-50 px-2.5 py-2 rounded-lg border border-slate-200/80 space-y-1">
+                ${(r.lotNo || r.client) ? `
+                  <div class="flex flex-wrap items-center justify-between gap-1">
+                    ${r.lotNo ? `<span class="font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/80">관리번호: ${esc(r.lotNo)}</span>` : `<span></span>`}
+                    ${r.client ? `<span class="font-bold text-slate-700">${esc(r.client)}</span>` : ""}
+                  </div>` : ""}
+                ${(r.productName || r.partNo) ? `
+                  <div class="text-slate-600 break-words leading-relaxed">
+                    ${r.productName ? `<span>품명: <strong class="text-slate-800">${esc(r.productName)}</strong></span>` : ""}
+                    ${(r.productName && r.partNo) ? ` · ` : ""}
+                    ${r.partNo ? `<span>품번: <strong class="text-slate-800">${esc(r.partNo)}</strong></span>` : ""}
+                  </div>` : ""}
+              </div>` : ""}
+
             ${qtyLine ? `<div class="text-xs font-bold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200/70">📦 ${esc(qtyLine)}</div>` : ""}
+
             ${(r.reportStatus && r.reportStatus !== "해당없음") || (r.coatingDataStatus && r.coatingDataStatus !== "해당없음")
               ? `<div>${renderDocCheckBadges(r)}</div>` : ""}
-            ${(r.productName || r.partNo || r.lotNo) ? `
-              <div class="text-xs bg-slate-50 px-2.5 py-1.5 rounded-lg text-slate-700 flex flex-wrap gap-x-2">
-                ${r.productName ? `<span>제품: <strong>${esc(r.productName)}</strong></span>` : ""}
-                ${r.partNo ? `<span>품번: <strong>${esc(r.partNo)}</strong></span>` : ""}
-                ${r.lotNo ? `<span class="text-purple-700 font-semibold">${esc(r.lotNo)}</span>` : ""}
-              </div>` : ""}
-            ${(r.result || r.description) ? `<p class="text-xs text-slate-500 line-clamp-2">${esc(r.result || r.description)}</p>` : ""}
+
+            ${(r.result || r.description) ? `<p class="text-xs text-slate-500 line-clamp-2 break-all">${esc(r.result || r.description)}</p>` : ""}
+
             <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-100">
               <span>${esc(r.workDate)} · 담당: <strong class="text-slate-700">${esc(r.worker)}</strong></span>
               <span>
@@ -1059,8 +1206,8 @@
 
     window.renderTrace = function () {
       const chipsEl = document.getElementById("traceQuickChips");
-      const uniqueParts = [...new Set(records.map(r => r.partNo).filter(Boolean))].slice(0, 6);
-      chipsEl.innerHTML = uniqueParts.map(p =>
+      const uniqueLots = [...new Set(records.map(r => r.lotNo || r.partNo).filter(Boolean))].slice(0, 6);
+      chipsEl.innerHTML = uniqueLots.map(p =>
         `<button onclick="document.getElementById('traceInput').value='${esc(p)}'; renderTrace();"
           class="text-xs px-2.5 py-1 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-800 font-semibold border border-purple-200">
           #${esc(p)}
@@ -1071,13 +1218,13 @@
       const container = document.getElementById("traceTimelineContainer");
       const matched = records
         .filter(r => {
-          if (!q) return r.partNo || r.productName || r.lotNo;
-          return [r.partNo, r.productName, r.lotNo].some(v => (v || "").toLowerCase().includes(q));
+          if (!q) return r.lotNo || r.partNo || r.productName;
+          return [r.lotNo, r.partNo, r.productName, r.client].some(v => (v || "").toLowerCase().includes(q));
         })
         .sort((a, b) => (a.workDate || "").localeCompare(b.workDate || "") || (a.updatedAt || 0) - (b.updatedAt || 0));
 
       if (matched.length === 0) {
-        container.innerHTML = `<p class="text-center text-sm text-slate-400 py-8">일치하는 제품 또는 품번 이력이 없습니다.</p>`;
+        container.innerHTML = `<p class="text-center text-sm text-slate-400 py-8">일치하는 관리번호 또는 품번 이력이 없습니다.</p>`;
         return;
       }
 
@@ -1100,8 +1247,8 @@
                 <div class="font-bold text-slate-900 text-sm">${esc(r.title)}</div>
                 ${qtyLine ? `<div class="text-xs font-bold text-purple-800 mt-1">📦 ${esc(qtyLine)}</div>` : ""}
                 <div class="mt-1">${renderDocCheckBadges(r)}</div>
-                ${(r.result || r.description) ? `<div class="text-xs text-slate-600 mt-1">${esc(r.result || r.description)}</div>` : ""}
-                <div class="text-[11px] text-slate-400 mt-1.5">품번: ${esc(r.partNo || "-")} · 제품: ${esc(r.productName || "-")} · 담당: ${esc(r.worker)}</div>
+                ${(r.result || r.description) ? `<div class="text-xs text-slate-600 mt-1 break-all whitespace-pre-line">${esc(r.result || r.description)}</div>` : ""}
+                <div class="text-[11px] text-slate-400 mt-1.5">관리번호: ${esc(r.lotNo || "-")} · 고객사: ${esc(r.client || "-")} · 품번: ${esc(r.partNo || "-")} · 담당: ${esc(r.worker)}</div>
               </div>
             </div>
           `;
@@ -1204,16 +1351,16 @@
         document.getElementById("fCategory").value = record.category;
         document.getElementById("fWorker").value = record.worker;
         document.getElementById("fTitle").value = record.title;
+        document.getElementById("fLotNo").value = record.lotNo || "";
+        document.getElementById("fClient").value = record.client || "";
+        document.getElementById("fProductName").value = record.productName || "";
+        document.getElementById("fPartNo").value = record.partNo || "";
         document.getElementById("fQtyCoated").value = record.qtyCoated ?? "";
         document.getElementById("fQtyDelivered").value = record.qtyDelivered ?? "";
         document.getElementById("fQtyStock").value = record.qtyStock ?? "";
         document.getElementById("fQtyDefect").value = record.qtyDefect ?? "";
         document.getElementById("fReportStatus").value = record.reportStatus || "해당없음";
         document.getElementById("fCoatingDataStatus").value = record.coatingDataStatus || "해당없음";
-        document.getElementById("fProductName").value = record.productName || "";
-        document.getElementById("fPartNo").value = record.partNo || "";
-        document.getElementById("fLotNo").value = record.lotNo || "";
-        document.getElementById("fClient").value = record.client || "";
         document.getElementById("fDescription").value = record.description || "";
         document.getElementById("fJudgment").value = record.judgment || "해당없음";
         document.getElementById("fResult").value = record.result || "";
@@ -1331,16 +1478,16 @@
         category: document.getElementById("fCategory").value,
         worker: document.getElementById("fWorker").value.trim(),
         title: document.getElementById("fTitle").value.trim(),
+        lotNo: document.getElementById("fLotNo").value.trim(),
+        client: document.getElementById("fClient").value.trim(),
+        productName: document.getElementById("fProductName").value.trim(),
+        partNo: document.getElementById("fPartNo").value.trim(),
         qtyCoated: parseQty("fQtyCoated"),
         qtyDelivered: parseQty("fQtyDelivered"),
         qtyStock: parseQty("fQtyStock"),
         qtyDefect: parseQty("fQtyDefect"),
         reportStatus: document.getElementById("fReportStatus").value || "해당없음",
         coatingDataStatus: document.getElementById("fCoatingDataStatus").value || "해당없음",
-        productName: document.getElementById("fProductName").value.trim(),
-        partNo: document.getElementById("fPartNo").value.trim(),
-        lotNo: document.getElementById("fLotNo").value.trim(),
-        client: document.getElementById("fClient").value.trim(),
         description: document.getElementById("fDescription").value.trim(),
         judgment: document.getElementById("fJudgment").value,
         result: document.getElementById("fResult").value.trim(),
@@ -1380,9 +1527,9 @@
       const photosHtml = (r.photos && r.photos.length > 0) ? `
         <div class="pt-1">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-slate-700">📷 첨부 현장 사진 (${r.photos.length}장) <span class="text-[11px] font-normal text-slate-400">· 클릭 시 확대 및 저장</span></span>
+            <span class="text-xs font-bold text-slate-700">📷 첨부 현장 사진 (${r.photos.length}장) <span class="text-[11px] font-normal text-slate-400">· 터치 시 확대</span></span>
             <button type="button" onclick="downloadAllRecordPhotos()" class="text-xs font-bold text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200 transition">
-              📥 전체 사진 저장 (${r.photos.length}장)
+              📥 전체 저장 (${r.photos.length}장)
             </button>
           </div>
           <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 pb-2">
@@ -1413,10 +1560,11 @@
         </div>
       ` : "";
 
+      // 상세 조회 화면: 관리번호 -> 고객사 -> 품명 -> 품번 순서 및 긴 텍스트 자동 줄내림(break-all whitespace-pre-line)
       document.getElementById("detailBody").innerHTML = `
         <div class="flex items-start justify-between gap-2">
-          <h4 class="text-lg font-extrabold text-slate-900 leading-snug">${esc(r.title)}</h4>
-          ${statusBadge(r.status)}
+          <h4 class="text-lg font-extrabold text-slate-900 leading-snug break-words">${esc(r.title)}</h4>
+          <div class="shrink-0">${statusBadge(r.status)}</div>
         </div>
 
         ${renderQtyCards(r)}
@@ -1425,30 +1573,30 @@
           <div><span class="text-slate-400 block">작업일자</span><strong class="text-slate-800">${esc(r.workDate)}</strong></div>
           <div><span class="text-slate-400 block">담당 작업자</span><strong class="text-slate-800">${esc(r.worker)}</strong></div>
           <div><span class="text-slate-400 block">판정 결과</span><strong class="text-purple-800">${esc(r.judgment || "해당없음")}</strong></div>
+          <div><span class="text-slate-400 block">관리번호 / Lot</span><strong class="text-indigo-700 break-all">${esc(r.lotNo || "-")}</strong></div>
+          <div><span class="text-slate-400 block">고객사 / 협력업체</span><strong class="text-slate-800 break-words">${esc(r.client || "-")}</strong></div>
+          <div><span class="text-slate-400 block">제품명 (품명)</span><strong class="text-slate-800 break-words">${esc(r.productName || "-")}</strong></div>
+          <div><span class="text-slate-400 block">품번 (Part No.)</span><strong class="text-slate-800 break-all">${esc(r.partNo || "-")}</strong></div>
           <div><span class="text-slate-400 block">성적서 유무</span><strong class="text-blue-700">${esc(r.reportStatus || "해당없음")}</strong></div>
           <div><span class="text-slate-400 block">코팅데이터 유무</span><strong class="text-purple-700">${esc(r.coatingDataStatus || "해당없음")}</strong></div>
-          <div><span class="text-slate-400 block">고객사 / 협력업체</span><strong class="text-slate-800">${esc(r.client || "-")}</strong></div>
-          <div><span class="text-slate-400 block">제품명</span><strong class="text-slate-800">${esc(r.productName || "-")}</strong></div>
-          <div><span class="text-slate-400 block">품번 (Part No.)</span><strong class="text-slate-800">${esc(r.partNo || "-")}</strong></div>
-          <div><span class="text-slate-400 block">관리번호 / Lot</span><strong class="text-indigo-700">${esc(r.lotNo || "-")}</strong></div>
         </div>
 
         ${r.description ? `
           <div>
             <div class="text-xs font-bold text-slate-700 mb-1">작업 및 검사 상세내용</div>
-            <div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-800 whitespace-pre-line leading-relaxed">${esc(r.description)}</div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-800 break-all whitespace-pre-line leading-relaxed">${esc(r.description)}</div>
           </div>` : ""}
 
         ${r.result ? `
           <div>
             <div class="text-xs font-bold text-slate-700 mb-1">검사 및 작업 결과</div>
-            <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-emerald-950 font-medium">${esc(r.result)}</div>
+            <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-emerald-950 font-medium break-all whitespace-pre-line leading-relaxed">${esc(r.result)}</div>
           </div>` : ""}
 
         ${r.remarks ? `
           <div>
             <div class="text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모</div>
-            <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-amber-950">${esc(r.remarks)}</div>
+            <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-amber-950 break-all whitespace-pre-line leading-relaxed">${esc(r.remarks)}</div>
           </div>` : ""}
 
         ${photosHtml}
@@ -1459,7 +1607,6 @@
       pushModalHistory("detailModal");
     };
 
-    // 2단계 삭제 확인 창 열기/닫기/실행
     window.openDeleteConfirm = function () {
       document.getElementById("deleteConfirmInput").value = "";
       document.getElementById("deleteConfirmModal").classList.remove("hidden");
@@ -1491,8 +1638,8 @@
 
     function buildPhotoFilename(record, idx) {
       const workNo = (record?.workNo || "ZENOPS").replace(/[^a-zA-Z0-9-_]/g, "");
-      const partNo = (record?.partNo || "").replace(/[^a-zA-Z0-9-_]/g, "");
-      return partNo ? `${workNo}_${partNo}_${idx + 1}.jpg` : `${workNo}_${idx + 1}.jpg`;
+      const lotOrPart = (record?.lotNo || record?.partNo || "").replace(/[^a-zA-Z0-9-_]/g, "");
+      return lotOrPart ? `${workNo}_${lotOrPart}_${idx + 1}.jpg` : `${workNo}_${idx + 1}.jpg`;
     }
 
     function triggerImageDownload(src, filename) {
@@ -1531,8 +1678,9 @@
     };
 
     function updateLightboxView() {
+      resetLightboxZoom();
       document.getElementById("lightboxImg").src = lightboxPhotos[lightboxIndex];
-      document.getElementById("lightboxCounter").textContent = `사진 ${lightboxIndex + 1} / ${lightboxPhotos.length}`;
+      document.getElementById("lightboxCounter").textContent = `${lightboxIndex + 1} / ${lightboxPhotos.length}`;
       const hasMultiple = lightboxPhotos.length > 1;
       document.getElementById("lightboxPrevBtn").style.visibility = hasMultiple ? "visible" : "hidden";
       document.getElementById("lightboxNextBtn").style.visibility = hasMultiple ? "visible" : "hidden";
@@ -1573,17 +1721,18 @@
 
     window.exportCSV = function () {
       const headers = [
-        "작업일자", "고유번호", "업무분류", "진행상태", "담당자", "업무제목",
+        "작업일자", "고유번호", "관리번호", "고객사", "제품명", "품번",
+        "업무분류", "진행상태", "담당자", "업무제목",
         "코팅완료(ea)", "납품수량(ea)", "재고수량(ea)", "불량수량(ea)",
-        "성적서유무", "코팅데이터유무", "제품명", "품번", "관리번호", "고객사",
-        "작업내용", "판정", "검사결과", "특이사항"
+        "성적서유무", "코팅데이터유무", "작업내용", "판정", "검사결과", "특이사항"
       ];
       const rows = getFilteredRecords().map(r => [
-        r.workDate, r.workNo, r.category, r.status, r.worker, r.title,
+        r.workDate, r.workNo, r.lotNo || "", r.client || "", r.productName || "", r.partNo || "",
+        r.category, r.status, r.worker, r.title,
         r.qtyCoated ?? "", r.qtyDelivered ?? "", r.qtyStock ?? "", r.qtyDefect ?? "",
         r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음",
-        r.productName || "", r.partNo || "", r.lotNo || "", r.client || "",
-        (r.description || "").replace(/\n/g, " "), r.judgment || "", r.result || "", r.remarks || ""
+        (r.description || "").replace(/\n/g, " "), r.judgment || "",
+        (r.result || "").replace(/\n/g, " "), (r.remarks || "").replace(/\n/g, " ")
       ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
 
       const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
