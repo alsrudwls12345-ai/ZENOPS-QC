@@ -483,47 +483,51 @@
           </div>
         </div>
 
-        <!-- 업무 제목 + 8가지 원터치 빠른 선택 버튼 (4x2 그리드) -->
+        <!-- 업무 제목 + 9가지 복수 선택 가능 빠른 버튼 -->
         <div class="space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-1">
             <label class="block text-xs font-bold text-slate-700">업무 제목 <span class="text-rose-600">*</span></label>
-            <span class="text-[11px] text-slate-400">버튼 터치 또는 직접 입력 가능</span>
+            <span class="text-[11px] text-purple-700 font-semibold">복수 선택 가능 (재터치 시 해제) · 직접 입력 가능</span>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5" id="titleQuickBtnGroup">
-            <button type="button" data-title="코팅" onclick="applyQuickTitle('코팅')"
+          <div class="grid grid-cols-3 gap-1.5" id="titleQuickBtnGroup">
+            <button type="button" data-title="생산 출고품" onclick="toggleQuickTitle('생산 출고품')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
-              코팅
+              생산 출고품
             </button>
-            <button type="button" data-title="작업지시서" onclick="applyQuickTitle('작업지시서')"
+            <button type="button" data-title="재고 출고품" onclick="toggleQuickTitle('재고 출고품')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
-              작업지시서
+              재고 출고품
             </button>
-            <button type="button" data-title="조립" onclick="applyQuickTitle('조립')"
+            <button type="button" data-title="조립 출고품" onclick="toggleQuickTitle('조립 출고품')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
-              조립
+              조립 출고품
             </button>
-            <button type="button" data-title="수입검사" onclick="applyQuickTitle('수입검사')"
+            <button type="button" data-title="외주 출고품" onclick="toggleQuickTitle('외주 출고품')"
+              class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
+              외주 출고품
+            </button>
+            <button type="button" data-title="수입검사" onclick="toggleQuickTitle('수입검사')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
               수입검사
             </button>
-            <button type="button" data-title="자이고 측정건" onclick="applyQuickTitle('자이고 측정건')"
+            <button type="button" data-title="자이고 측정건" onclick="toggleQuickTitle('자이고 측정건')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
               자이고 측정건
             </button>
-            <button type="button" data-title="분광기 측정건" onclick="applyQuickTitle('분광기 측정건')"
+            <button type="button" data-title="분광기 측정건" onclick="toggleQuickTitle('분광기 측정건')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
               분광기 측정건
             </button>
-            <button type="button" data-title="현미경 측정건" onclick="applyQuickTitle('현미경 측정건')"
+            <button type="button" data-title="현미경 측정건" onclick="toggleQuickTitle('현미경 측정건')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
               현미경 측정건
             </button>
-            <button type="button" data-title="제품 분석건" onclick="applyQuickTitle('제품 분석건')"
+            <button type="button" data-title="제품 분석건" onclick="toggleQuickTitle('제품 분석건')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
               제품 분석건
             </button>
           </div>
-          <input type="text" id="fTitle" required oninput="syncTitleQuickButtons()" placeholder="위 버튼을 누르거나 업무 제목을 직접 입력하세요"
+          <input type="text" id="fTitle" required oninput="syncTitleQuickButtons()" placeholder="위 버튼을 하나 또는 여러 개 누르거나 직접 입력하세요"
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none" />
         </div>
 
@@ -672,7 +676,7 @@
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
         </div>
 
-        <!-- 출하 · 포장 완료 및 담당자 확인 + 포장 비고란 추가 -->
+        <!-- 출하 · 포장 완료 및 담당자 확인 + 포장 비고란 -->
         <div class="bg-teal-50/70 p-3.5 rounded-xl border border-teal-200 space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-teal-950">📦 출하 · 포장 완료 및 담당자 확인</span>
@@ -708,7 +712,6 @@
             </div>
           </div>
 
-          <!-- 포장 여부 밑 작업자 비고/코멘트란 (줄바꿈 및 자동 줄내림 지원) -->
           <div>
             <label class="block text-[11px] font-bold text-teal-900 mb-1">포장 / 출하 비고 (작업자 코멘트 · 자동 줄내림)</label>
             <textarea id="fPackingNote" rows="2" placeholder="포장 상태, 실리카겔 동봉 여부, 박스 수량, 출하 특이사항 등을 입력하세요. (Enter로 줄바꿈 가능)"
@@ -951,7 +954,7 @@
 
     const STORAGE_KEY = "zenops_qc_records_v2";
     const PIN_CFG_KEY = "zenops_qc_pin_cfg";
-    const FREE_QUOTA_BYTES = 1024 * 1024 * 1024; // 1GB (1,024 MB)
+    const FREE_QUOTA_BYTES = 1024 * 1024 * 1024;
 
     let records = [];
     let currentTab = "list";
@@ -1335,35 +1338,41 @@
       }
     };
 
-    // 업무 제목 8종 원터치 버튼 처리
+    // 업무 제목 9종 복수 선택(토글) 처리
     const TITLE_PRESETS = [
-      "코팅", "작업지시서", "조립", "수입검사",
-      "자이고 측정건", "분광기 측정건", "현미경 측정건", "제품 분석건"
+      "생산 출고품", "재고 출고품", "조립 출고품", "외주 출고품",
+      "수입검사", "자이고 측정건", "분광기 측정건", "현미경 측정건", "제품 분석건"
     ];
 
-    window.applyQuickTitle = function (preset) {
+    window.toggleQuickTitle = function (preset) {
       const input = document.getElementById("fTitle");
       const current = input.value.trim();
-      if (!current || TITLE_PRESETS.includes(current)) {
-        input.value = preset;
-      } else if (!current.startsWith(preset)) {
-        let rest = current;
-        for (const p of TITLE_PRESETS) {
-          if (rest.startsWith(p + " ")) {
-            rest = rest.slice(p.length + 1);
-            break;
-          }
-        }
-        input.value = `${preset} ${rest}`;
+
+      // 현재 입력값에서 '+'로 구분된 항목들을 분리
+      let tokens = current ? current.split(/\s*\+\s*/).map(s => s.trim()).filter(Boolean) : [];
+      const existingIdx = tokens.indexOf(preset);
+
+      if (existingIdx >= 0) {
+        // 이미 선택되어 있으면 해제
+        tokens.splice(existingIdx, 1);
+      } else {
+        // 선택되어 있지 않으면 추가 (직접 입력 텍스트가 맨 뒤에 있다면 프리셋들 뒤에 유지)
+        const customParts = tokens.filter(t => !TITLE_PRESETS.includes(t));
+        const selectedPresets = tokens.filter(t => TITLE_PRESETS.includes(t));
+        selectedPresets.push(preset);
+        tokens = [...selectedPresets, ...customParts];
       }
+
+      input.value = tokens.join(" + ");
       syncTitleQuickButtons();
     };
 
     window.syncTitleQuickButtons = function () {
       const val = document.getElementById("fTitle").value.trim();
+      const tokens = val ? val.split(/\s*\+\s*/).map(s => s.trim()) : [];
       document.querySelectorAll("#titleQuickBtnGroup .title-quick-btn").forEach(btn => {
         const t = btn.getAttribute("data-title");
-        const isActive = val === t || val.startsWith(t + " ");
+        const isActive = tokens.includes(t) || val.includes(t);
         if (isActive) {
           btn.className = "title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-purple-700 bg-purple-700 text-white shadow-sm transition";
         } else {
