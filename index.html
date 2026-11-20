@@ -676,7 +676,6 @@
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
         </div>
 
-        <!-- 출하 · 포장 완료 및 담당자 확인 + 포장 비고란 -->
         <div class="bg-teal-50/70 p-3.5 rounded-xl border border-teal-200 space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-teal-950">📦 출하 · 포장 완료 및 담당자 확인</span>
@@ -719,10 +718,13 @@
           </div>
         </div>
 
+        <!-- 1MB 제한 해제 안내 적용된 사진/파일 첨부 섹션 -->
         <div class="bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 space-y-3">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-1">
             <span class="text-xs font-bold text-purple-900">현장 사진 및 성적서/데이터 첨부</span>
-            <span id="formDocSizeIndicator" class="text-[11px] font-mono font-bold text-purple-700">현재 게시글 용량: 0 KB / 1,024 KB</span>
+            <span id="formPhotoCountBadge" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              ✨ 사진 개별 분할 저장 적용 (1MB 제한 해제)
+            </span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -852,11 +854,11 @@
 
         <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-1">
           <div class="font-bold text-emerald-900 flex items-center justify-between text-xs">
-            <span>☁️ 실시간 클라우드 동기화</span>
+            <span>☁️ 사진 분할 저장 모드 활성화됨</span>
             <span id="cloudBadge" class="text-[11px] px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold">연결 완료 (zenops-2c8c6)</span>
           </div>
           <p class="text-[11px] text-emerald-800 leading-relaxed">
-            게시글 삭제 또는 사진 삭제 시 해당 용량이 즉시 반환됩니다. 분기마다 백업 파일(JSON)을 PC에 저장해 두시면 더욱 안전합니다.
+            사진이 개별 조각 문서로 자동 분할 저장되므로 게시글당 1MB 제한 없이 등록할 수 있습니다. 삭제 시 모든 사진 조각 용량이 즉시 반환됩니다.
           </p>
         </div>
 
@@ -941,7 +943,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const DEFAULT_FIREBASE_CONFIG = {
       apiKey: "AIzaSyC19E_q6V1GOf6FAIA4byXPLHzvjwrrzFk",
@@ -957,6 +959,7 @@
     const FREE_QUOTA_BYTES = 1024 * 1024 * 1024;
 
     let records = [];
+    let photoCache = {}; // { [recordId]: [base64...] } 메모리 캐시
     let currentTab = "list";
     let quickFilterMode = "ALL";
     let selectedRecordId = null;
@@ -995,6 +998,51 @@
       return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
     }
 
+    // 사진 서브컬렉션에서 게시글의 사진 목록 불러오기 (구버전 inline photos 호환)
+    async function loadRecordPhotos(record) {
+      if (!record) return [];
+      // 1. 구버전 방식(문서 내부에 직접 배열이 있는 경우)
+      if (Array.isArray(record.photos) && record.photos.length > 0) {
+        return record.photos;
+      }
+      // 2. 캐시에 이미 불러온 경우
+      if (photoCache[record.id]) {
+        return photoCache[record.id];
+      }
+      // 3. Firestore 서브컬렉션(zenops_quality_records/{id}/photos)에서 조회
+      if (db && (record.photoCount || 0) > 0) {
+        try {
+          const snap = await getDocs(collection(db, "zenops_quality_records", record.id, "photos"));
+          const items = snap.docs
+            .map(d => d.data())
+            .sort((a, b) => (a.idx ?? 0) - (b.idx ?? 0))
+            .map(d => d.data);
+          photoCache[record.id] = items;
+          return items;
+        } catch (err) {
+          console.error("사진 조각 로드 오류:", err);
+          return [];
+        }
+      }
+      return [];
+    }
+
+    // 게시글의 사진 개수 반환 (구버전 + 신버전 호환)
+    function getRecordPhotoCount(r) {
+      if (typeof r.photoCount === "number") return r.photoCount;
+      if (Array.isArray(r.photos)) return r.photos.length;
+      return 0;
+    }
+
+    // 게시글의 사진 총 바이트 계산 (신버전 photoBytes 메타데이터 + 구버전 inline 배열 호환)
+    function getRecordPhotoBytes(r) {
+      if (typeof r.photoBytes === "number") return r.photoBytes;
+      if (Array.isArray(r.photos)) {
+        return r.photos.reduce((acc, s) => acc + getByteLength(s), 0);
+      }
+      return 0;
+    }
+
     function calcStorageMetrics() {
       let totalBytes = 0;
       let photoBytes = 0;
@@ -1004,14 +1052,19 @@
       let textBytes = 0;
 
       const perRecord = records.map(r => {
-        const fullSize = getByteLength(JSON.stringify(r));
-        const pSize = (r.photos || []).reduce((acc, s) => acc + getByteLength(s), 0);
+        const docSize = getByteLength(JSON.stringify(r));
+        const pCount = getRecordPhotoCount(r);
+        const pSize = getRecordPhotoBytes(r);
+        // 구버전은 docSize에 pSize가 이미 포함되어 있고, 신버전은 서브컬렉션에 별도 저장됨
+        const isInlinePhotos = Array.isArray(r.photos) && r.photos.length > 0;
+        const fullSize = isInlinePhotos ? docSize : (docSize + pSize);
+
         const fSize = (r.files || []).reduce((acc, f) => acc + getByteLength(JSON.stringify(f)), 0);
         const tSize = Math.max(0, fullSize - pSize - fSize);
 
         totalBytes += fullSize;
         photoBytes += pSize;
-        photoCount += (r.photos || []).length;
+        photoCount += pCount;
         fileBytes += fSize;
         fileCount += (r.files || []).length;
         textBytes += tSize;
@@ -1021,7 +1074,7 @@
           title: r.title,
           workDate: r.workDate,
           lotNo: r.lotNo,
-          photoCount: (r.photos || []).length,
+          photoCount: pCount,
           bytes: fullSize
         };
       });
@@ -1338,7 +1391,6 @@
       }
     };
 
-    // 업무 제목 9종 복수 선택(토글) 처리
     const TITLE_PRESETS = [
       "생산 출고품", "재고 출고품", "조립 출고품", "외주 출고품",
       "수입검사", "자이고 측정건", "분광기 측정건", "현미경 측정건", "제품 분석건"
@@ -1348,15 +1400,12 @@
       const input = document.getElementById("fTitle");
       const current = input.value.trim();
 
-      // 현재 입력값에서 '+'로 구분된 항목들을 분리
       let tokens = current ? current.split(/\s*\+\s*/).map(s => s.trim()).filter(Boolean) : [];
       const existingIdx = tokens.indexOf(preset);
 
       if (existingIdx >= 0) {
-        // 이미 선택되어 있으면 해제
         tokens.splice(existingIdx, 1);
       } else {
-        // 선택되어 있지 않으면 추가 (직접 입력 텍스트가 맨 뒤에 있다면 프리셋들 뒤에 유지)
         const customParts = tokens.filter(t => !TITLE_PRESETS.includes(t));
         const selectedPresets = tokens.filter(t => TITLE_PRESETS.includes(t));
         selectedPresets.push(preset);
@@ -1677,6 +1726,7 @@
         tbody.innerHTML = filtered.map(r => {
           const qtyLine = formatQtyInline(r);
           const subSummary = qtyLine || r.result || r.description || "-";
+          const pCnt = getRecordPhotoCount(r);
           return `
           <tr onclick="openDetailModal('${r.id}')" class="hover:bg-purple-50/50 cursor-pointer transition">
             <td class="py-3 px-3.5 whitespace-nowrap">
@@ -1711,9 +1761,9 @@
               ${r.packer ? `<div class="text-teal-700 font-semibold mt-0.5">포장: ${esc(r.packer)}</div>` : ""}
             </td>
             <td class="py-3 px-3.5 text-xs whitespace-nowrap text-slate-500">
-              ${(r.photos?.length || 0) > 0 ? `📷 ${r.photos.length} ` : ""}
+              ${pCnt > 0 ? `📷 ${pCnt} ` : ""}
               ${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}
-              ${!(r.photos?.length || r.files?.length) ? "-" : ""}
+              ${!(pCnt || r.files?.length) ? "-" : ""}
             </td>
             <td class="py-3 px-3.5 whitespace-nowrap">${statusBadge(r.status)}</td>
           </tr>
@@ -1723,6 +1773,7 @@
         mobileList.innerHTML = filtered.map(r => {
           const qtyLine = formatQtyInline(r);
           const hasTrackingInfo = r.lotNo || r.client || r.productName || r.partNo;
+          const pCnt = getRecordPhotoCount(r);
           return `
           <div onclick="openDetailModal('${r.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 space-y-2">
             <div class="flex items-center justify-between gap-2">
@@ -1761,7 +1812,7 @@
                 ${r.packer ? ` · 포장: <strong class="text-teal-700">${esc(r.packer)}</strong>` : ""}
               </span>
               <span>
-                ${(r.photos?.length || 0) > 0 ? `📷 ${r.photos.length} ` : ""}
+                ${pCnt > 0 ? `📷 ${pCnt} ` : ""}
                 ${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}
               </span>
             </div>
@@ -2169,20 +2220,17 @@
           }).join("");
     };
 
-    function updateFormDocSizeIndicator() {
+    function updateFormPhotoCountBadge() {
       const photosBytes = tempPhotos.reduce((acc, s) => acc + getByteLength(s), 0);
-      const docsBytes = tempDocs.reduce((acc, d) => acc + getByteLength(JSON.stringify(d)), 0);
-      const approxKB = Math.round((photosBytes + docsBytes + 1024) / 1024);
-      const el = document.getElementById("formDocSizeIndicator");
+      const el = document.getElementById("formPhotoCountBadge");
       if (el) {
-        el.textContent = `현재 게시글 용량: ${approxKB.toLocaleString()} KB / 1,024 KB`;
-        el.className = approxKB > 900
-          ? "text-[11px] font-mono font-bold text-rose-600"
-          : "text-[11px] font-mono font-bold text-purple-700";
+        el.textContent = tempPhotos.length > 0
+          ? `✨ 사진 ${tempPhotos.length}장 (${formatBytes(photosBytes)}) · 분할 저장 모드`
+          : `✨ 사진 개별 분할 저장 적용 (1MB 제한 해제)`;
       }
     }
 
-    window.openFormModal = function (record = null) {
+    window.openFormModal = async function (record = null) {
       document.getElementById("recordForm").reset();
       tempPhotos = [];
       tempDocs = [];
@@ -2217,8 +2265,10 @@
         document.getElementById("fPackingStatus").value = record.packingStatus || "해당없음";
         document.getElementById("fPacker").value = record.packer || "";
         document.getElementById("fPackingNote").value = record.packingNote || "";
-        tempPhotos = [...(record.photos || [])];
         tempDocs = [...(record.files || [])];
+
+        const loadedPhotos = await loadRecordPhotos(record);
+        tempPhotos = [...loadedPhotos];
       } else {
         const today = new Date().toISOString().slice(0, 10);
         const seq = String(records.filter(r => r.workDate === today).length + 1).padStart(3, "0");
@@ -2248,7 +2298,7 @@
     window.handlePhotoSelect = async function (e) {
       const files = Array.from(e.target.files || []);
       for (const file of files) {
-        const compressed = await compressImage(file, 900, 0.65);
+        const compressed = await compressImage(file, 960, 0.7);
         tempPhotos.push(compressed);
       }
       renderAttachmentsPreview();
@@ -2298,7 +2348,7 @@
     };
 
     function renderAttachmentsPreview() {
-      updateFormDocSizeIndicator();
+      updateFormPhotoCountBadge();
       document.getElementById("previewPhotos").innerHTML = tempPhotos.map((src, i) => `
         <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-300">
           <img src="${src}" class="w-full h-full object-cover" />
@@ -2316,6 +2366,29 @@
 
     window.removeTempPhoto = function (idx) { tempPhotos.splice(idx, 1); renderAttachmentsPreview(); };
     window.removeTempDoc = function (idx) { tempDocs.splice(idx, 1); renderAttachmentsPreview(); };
+
+    // 서브컬렉션 사진 조각 저장 및 기존 초과 조각 정리
+    async function savePhotosToSubcollection(recordId, photosArr) {
+      const photosCol = collection(db, "zenops_quality_records", recordId, "photos");
+      const existingSnap = await getDocs(photosCol);
+
+      // 새 사진 목록 저장 (1장당 개별 문서이므로 1MB 제한 없음)
+      for (let i = 0; i < photosArr.length; i++) {
+        await setDoc(doc(photosCol, `p_${i}`), {
+          idx: i,
+          data: photosArr[i]
+        });
+      }
+
+      // 기존에 사진이 더 많았다면 남는 뒷번호 조각 문서 삭제
+      for (const oldDoc of existingSnap.docs) {
+        const match = oldDoc.id.match(/^p_(\d+)$/);
+        if (!match || Number(match[1]) >= photosArr.length) {
+          await deleteDoc(oldDoc.ref);
+        }
+      }
+      photoCache[recordId] = [...photosArr];
+    }
 
     window.handleFormSubmit = async function (e) {
       e.preventDefault();
@@ -2355,7 +2428,7 @@
 
       const btn = document.getElementById("submitBtn");
       btn.disabled = true;
-      btn.textContent = "저장 중...";
+      btn.textContent = tempPhotos.length > 0 ? `사진 ${tempPhotos.length}장 분할 저장 중...` : "저장 중...";
 
       const editId = document.getElementById("editRecordId").value;
       const id = editId || ("rec_" + Date.now());
@@ -2365,6 +2438,9 @@
         completedDateVal = new Date().toISOString().slice(0, 10);
       }
 
+      const totalPhotoBytes = tempPhotos.reduce((acc, s) => acc + getByteLength(s), 0);
+
+      // 메인 문서에는 텍스트와 사진 메타데이터(장수·용량)만 저장하고 photos 배열은 비움 -> 1MB 초과 원천 차단
       const payload = {
         id,
         workDate: document.getElementById("fWorkDate").value,
@@ -2392,61 +2468,45 @@
         packingStatus: document.getElementById("fPackingStatus").value || "해당없음",
         packer: document.getElementById("fPacker").value.trim(),
         packingNote: document.getElementById("fPackingNote").value.trim(),
-        photos: tempPhotos,
+        photos: [],
+        photoCount: tempPhotos.length,
+        photoBytes: totalPhotoBytes,
         files: tempDocs,
         updatedAt: Date.now()
       };
 
       try {
         if (db) {
+          await savePhotosToSubcollection(id, tempPhotos);
           await setDoc(doc(db, "zenops_quality_records", id), payload);
         } else {
+          const localPayload = { ...payload, photos: [...tempPhotos] };
           const idx = records.findIndex(r => r.id === id);
-          if (idx >= 0) records[idx] = payload;
-          else records.unshift(payload);
+          if (idx >= 0) records[idx] = localPayload;
+          else records.unshift(localPayload);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
           renderAll();
         }
         requestCloseModal("formModal");
-        showToast("업무 이력이 저장되었습니다.");
+        showToast("업무 이력과 사진이 안전하게 저장되었습니다.");
       } catch (err) {
-        alert("저장 오류: 사진 장수가 너무 많거나 용량 제한(1MB)을 초과했습니다. 사진을 줄여서 다시 시도해 주세요.");
+        console.error(err);
+        alert("저장 중 오류가 발생했습니다: " + err.message);
       } finally {
         btn.disabled = false;
         btn.textContent = "업무 이력 저장";
       }
     };
 
-    window.openDetailModal = function (id) {
+    window.openDetailModal = async function (id) {
       const r = records.find(item => item.id === id);
       if (!r) return;
       selectedRecordId = id;
 
-      const docSizeText = formatBytes(getByteLength(JSON.stringify(r)));
+      const pCnt = getRecordPhotoCount(r);
+      const docSizeText = formatBytes(getByteLength(JSON.stringify(r)) + (Array.isArray(r.photos) && r.photos.length > 0 ? 0 : getRecordPhotoBytes(r)));
       document.getElementById("dWorkNo").textContent = `${r.workNo} · ${docSizeText}`;
       document.getElementById("dCategory").textContent = r.category;
-
-      const photosHtml = (r.photos && r.photos.length > 0) ? `
-        <div class="pt-1">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-slate-700">📷 첨부 현장 사진 (${r.photos.length}장) <span class="text-[11px] font-normal text-slate-400">· 터치 시 확대</span></span>
-            <button type="button" onclick="downloadAllRecordPhotos()" class="text-xs font-bold text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200 transition">
-              📥 전체 저장 (${r.photos.length}장)
-            </button>
-          </div>
-          <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 pb-2">
-            ${r.photos.map((src, idx) => `
-              <div class="relative group rounded-lg overflow-hidden border border-slate-200">
-                <img src="${src}" onclick="openLightbox(${idx})" class="w-full h-24 object-cover cursor-zoom-in group-hover:opacity-90 transition" />
-                <button type="button" onclick="event.stopPropagation(); downloadPhotoAt(${idx})" title="이 사진 저장"
-                  class="absolute bottom-1.5 right-1.5 bg-slate-900/80 hover:bg-purple-700 text-white text-[11px] font-bold px-2 py-0.5 rounded shadow transition">
-                  📥
-                </button>
-              </div>
-            `).join("")}
-          </div>
-        </div>
-      ` : "";
 
       const filesHtml = (r.files && r.files.length > 0) ? `
         <div>
@@ -2467,6 +2527,14 @@
         : r.packingStatus === "포장 미완료"
           ? `<strong class="text-amber-700">⏳ 포장 미완료</strong>`
           : `<strong class="text-slate-500">해당없음</strong>`;
+
+      const initialPhotosArea = pCnt > 0 ? `
+        <div id="detailPhotosContainer" class="pt-1">
+          <div class="text-xs font-bold text-slate-500 py-4 text-center bg-slate-50 rounded-xl border border-slate-200 animate-pulse">
+            📷 첨부 현장 사진 ${pCnt}장 불러오는 중...
+          </div>
+        </div>
+      ` : "";
 
       document.getElementById("detailBody").innerHTML = `
         <div class="flex items-start justify-between gap-2">
@@ -2515,12 +2583,42 @@
             <div class="bg-teal-50/80 p-3 rounded-xl border border-teal-200 text-teal-950 break-all whitespace-pre-line leading-relaxed">${esc(r.packingNote)}</div>
           </div>` : ""}
 
-        ${photosHtml}
+        ${initialPhotosArea}
         ${filesHtml}
       `;
 
       document.getElementById("detailModal").classList.remove("hidden");
       pushModalHistory("detailModal");
+
+      if (pCnt > 0) {
+        const photos = await loadRecordPhotos(r);
+        const container = document.getElementById("detailPhotosContainer");
+        if (container && selectedRecordId === id) {
+          if (photos.length === 0) {
+            container.innerHTML = `<p class="text-xs text-slate-400">저장된 사진을 불러올 수 없습니다.</p>`;
+          } else {
+            container.innerHTML = `
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-700">📷 첨부 현장 사진 (${photos.length}장) <span class="text-[11px] font-normal text-slate-400">· 터치 시 확대</span></span>
+                <button type="button" onclick="downloadAllRecordPhotos()" class="text-xs font-bold text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200 transition">
+                  📥 전체 저장 (${photos.length}장)
+                </button>
+              </div>
+              <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 pb-2">
+                ${photos.map((src, idx) => `
+                  <div class="relative group rounded-lg overflow-hidden border border-slate-200">
+                    <img src="${src}" onclick="openLightbox(${idx})" class="w-full h-24 object-cover cursor-zoom-in group-hover:opacity-90 transition" />
+                    <button type="button" onclick="event.stopPropagation(); downloadPhotoAt(${idx})" title="이 사진 저장"
+                      class="absolute bottom-1.5 right-1.5 bg-slate-900/80 hover:bg-purple-700 text-white text-[11px] font-bold px-2 py-0.5 rounded shadow transition">
+                      📥
+                    </button>
+                  </div>
+                `).join("")}
+              </div>
+            `;
+          }
+        }
+      }
     };
 
     window.openDeleteConfirm = function () {
@@ -2542,6 +2640,17 @@
       requestCloseModal("deleteConfirmModal");
       if (!selectedRecordId) return;
       if (db) {
+        // 서브컬렉션 사진 조각들 먼저 삭제 후 메인 문서 삭제
+        try {
+          const photosCol = collection(db, "zenops_quality_records", selectedRecordId, "photos");
+          const snap = await getDocs(photosCol);
+          for (const d of snap.docs) {
+            await deleteDoc(d.ref);
+          }
+        } catch (e) {
+          console.error("서브컬렉션 사진 삭제 중 오류:", e);
+        }
+        delete photoCache[selectedRecordId];
         await deleteDoc(doc(db, "zenops_quality_records", selectedRecordId));
       } else {
         records = records.filter(r => r.id !== selectedRecordId);
@@ -2549,7 +2658,7 @@
         renderAll();
       }
       requestCloseModal("detailModal");
-      showToast("업무 이력이 삭제되었습니다.");
+      showToast("업무 이력과 첨부 사진이 모두 삭제되었습니다.");
     };
 
     function buildPhotoFilename(record, idx) {
@@ -2567,26 +2676,32 @@
       document.body.removeChild(a);
     }
 
-    window.downloadPhotoAt = function (idx) {
+    window.downloadPhotoAt = async function (idx) {
       const r = records.find(item => item.id === selectedRecordId);
-      if (!r || !r.photos || !r.photos[idx]) return;
-      triggerImageDownload(r.photos[idx], buildPhotoFilename(r, idx));
+      if (!r) return;
+      const photos = await loadRecordPhotos(r);
+      if (!photos[idx]) return;
+      triggerImageDownload(photos[idx], buildPhotoFilename(r, idx));
     };
 
-    window.downloadAllRecordPhotos = function () {
+    window.downloadAllRecordPhotos = async function () {
       const r = records.find(item => item.id === selectedRecordId);
-      if (!r || !r.photos || r.photos.length === 0) return;
-      r.photos.forEach((src, idx) => {
+      if (!r) return;
+      const photos = await loadRecordPhotos(r);
+      if (photos.length === 0) return;
+      photos.forEach((src, idx) => {
         setTimeout(() => {
           triggerImageDownload(src, buildPhotoFilename(r, idx));
         }, idx * 250);
       });
     };
 
-    window.openLightbox = function (idx) {
+    window.openLightbox = async function (idx) {
       const r = records.find(item => item.id === selectedRecordId);
-      if (!r || !r.photos || r.photos.length === 0) return;
-      lightboxPhotos = r.photos;
+      if (!r) return;
+      const photos = await loadRecordPhotos(r);
+      if (photos.length === 0) return;
+      lightboxPhotos = photos;
       lightboxIndex = idx;
       updateLightboxView();
       document.getElementById("lightboxModal").classList.remove("hidden");
@@ -2665,8 +2780,14 @@
       a.click();
     };
 
-    window.exportJSON = function () {
-      const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json" });
+    window.exportJSON = async function () {
+      showToast("백업 파일을 생성하고 있습니다...");
+      const fullBackup = [];
+      for (const r of records) {
+        const photos = await loadRecordPhotos(r);
+        fullBackup.push({ ...r, photos });
+      }
+      const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -2684,14 +2805,22 @@
           if (!Array.isArray(imported)) throw new Error("배열 형식이 아닙니다.");
           if (db) {
             for (const item of imported) {
-              await setDoc(doc(db, "zenops_quality_records", item.id), item);
+              const itemPhotos = Array.isArray(item.photos) ? item.photos : [];
+              const pBytes = itemPhotos.reduce((acc, s) => acc + getByteLength(s), 0);
+              await savePhotosToSubcollection(item.id, itemPhotos);
+              await setDoc(doc(db, "zenops_quality_records", item.id), {
+                ...item,
+                photos: [],
+                photoCount: itemPhotos.length,
+                photoBytes: pBytes
+              });
             }
           } else {
             records = imported;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
             renderAll();
           }
-          alert(`총 ${imported.length}건의 이력을 복원했습니다.`);
+          alert(`총 ${imported.length}건의 이력과 사진을 복원했습니다.`);
         } catch (err) {
           alert("백업 파일 읽기 오류: " + err.message);
         }
