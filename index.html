@@ -483,12 +483,13 @@
           </div>
         </div>
 
+        <!-- 업무 제목 + 8가지 원터치 빠른 선택 버튼 (4x2 그리드) -->
         <div class="space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-1">
             <label class="block text-xs font-bold text-slate-700">업무 제목 <span class="text-rose-600">*</span></label>
             <span class="text-[11px] text-slate-400">버튼 터치 또는 직접 입력 가능</span>
           </div>
-          <div class="grid grid-cols-4 gap-1.5" id="titleQuickBtnGroup">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5" id="titleQuickBtnGroup">
             <button type="button" data-title="코팅" onclick="applyQuickTitle('코팅')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
               코팅
@@ -504,6 +505,22 @@
             <button type="button" data-title="수입검사" onclick="applyQuickTitle('수입검사')"
               class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
               수입검사
+            </button>
+            <button type="button" data-title="자이고 측정건" onclick="applyQuickTitle('자이고 측정건')"
+              class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
+              자이고 측정건
+            </button>
+            <button type="button" data-title="분광기 측정건" onclick="applyQuickTitle('분광기 측정건')"
+              class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
+              분광기 측정건
+            </button>
+            <button type="button" data-title="현미경 측정건" onclick="applyQuickTitle('현미경 측정건')"
+              class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
+              현미경 측정건
+            </button>
+            <button type="button" data-title="제품 분석건" onclick="applyQuickTitle('제품 분석건')"
+              class="title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition">
+              제품 분석건
             </button>
           </div>
           <input type="text" id="fTitle" required oninput="syncTitleQuickButtons()" placeholder="위 버튼을 누르거나 업무 제목을 직접 입력하세요"
@@ -655,6 +672,7 @@
             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
         </div>
 
+        <!-- 출하 · 포장 완료 및 담당자 확인 + 포장 비고란 추가 -->
         <div class="bg-teal-50/70 p-3.5 rounded-xl border border-teal-200 space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-teal-950">📦 출하 · 포장 완료 및 담당자 확인</span>
@@ -688,6 +706,13 @@
               <input type="text" id="fPacker" placeholder="포장 담당자 이름 입력 (예: 이대헌)"
                 class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-600 focus:outline-none" />
             </div>
+          </div>
+
+          <!-- 포장 여부 밑 작업자 비고/코멘트란 (줄바꿈 및 자동 줄내림 지원) -->
+          <div>
+            <label class="block text-[11px] font-bold text-teal-900 mb-1">포장 / 출하 비고 (작업자 코멘트 · 자동 줄내림)</label>
+            <textarea id="fPackingNote" rows="2" placeholder="포장 상태, 실리카겔 동봉 여부, 박스 수량, 출하 특이사항 등을 입력하세요. (Enter로 줄바꿈 가능)"
+              class="w-full bg-white border border-teal-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-600 focus:outline-none"></textarea>
           </div>
         </div>
 
@@ -1310,15 +1335,20 @@
       }
     };
 
+    // 업무 제목 8종 원터치 버튼 처리
+    const TITLE_PRESETS = [
+      "코팅", "작업지시서", "조립", "수입검사",
+      "자이고 측정건", "분광기 측정건", "현미경 측정건", "제품 분석건"
+    ];
+
     window.applyQuickTitle = function (preset) {
       const input = document.getElementById("fTitle");
       const current = input.value.trim();
-      const presets = ["코팅", "작업지시서", "조립", "수입검사"];
-      if (!current || presets.includes(current)) {
+      if (!current || TITLE_PRESETS.includes(current)) {
         input.value = preset;
       } else if (!current.startsWith(preset)) {
         let rest = current;
-        for (const p of presets) {
+        for (const p of TITLE_PRESETS) {
           if (rest.startsWith(p + " ")) {
             rest = rest.slice(p.length + 1);
             break;
@@ -1568,7 +1598,7 @@
           if (kw) {
             const hay = [
               r.lotNo, r.client, r.productName, r.partNo,
-              r.workNo, r.title, r.worker, r.packer, r.packingStatus,
+              r.workNo, r.title, r.worker, r.packer, r.packingStatus, r.packingNote,
               r.workDate, r.completedDate,
               r.description, r.result, r.remarks,
               r.reportStatus, r.coatingDataStatus, formatQtyInline(r)
@@ -1663,7 +1693,10 @@
               <div class="font-bold text-slate-900 truncate">${esc(r.title)}</div>
               <div class="text-xs ${qtyLine ? "text-purple-800 font-semibold" : "text-slate-500"} truncate mt-0.5">${esc(subSummary)}</div>
             </td>
-            <td class="py-3 px-3.5">${renderDocAndPackingBadges(r)}</td>
+            <td class="py-3 px-3.5">
+              ${renderDocAndPackingBadges(r)}
+              ${r.packingNote ? `<div class="text-[11px] text-teal-800 truncate max-w-[180px] mt-1">📝 ${esc(r.packingNote)}</div>` : ""}
+            </td>
             <td class="py-3 px-3.5 text-xs whitespace-nowrap">
               <div class="font-bold text-slate-700">검사: ${esc(r.worker)}</div>
               ${r.packer ? `<div class="text-teal-700 font-semibold mt-0.5">포장: ${esc(r.packer)}</div>` : ""}
@@ -1708,6 +1741,8 @@
             ${qtyLine ? `<div class="text-xs font-bold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200/70">📦 ${esc(qtyLine)}</div>` : ""}
 
             <div>${renderDocAndPackingBadges(r)}</div>
+
+            ${r.packingNote ? `<div class="text-xs text-teal-900 bg-teal-50/80 px-2.5 py-1.5 rounded-lg border border-teal-200/80 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}
 
             ${(r.result || r.description) ? `<p class="text-xs text-slate-500 line-clamp-2 break-all">${esc(r.result || r.description)}</p>` : ""}
 
@@ -1981,6 +2016,7 @@
                 <div class="font-bold text-slate-900 text-sm">${esc(r.title)}</div>
                 ${qtyLine ? `<div class="text-xs font-bold text-purple-800 mt-1">📦 ${esc(qtyLine)}</div>` : ""}
                 <div class="mt-1">${renderDocAndPackingBadges(r)}</div>
+                ${r.packingNote ? `<div class="text-xs text-teal-800 mt-1 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}
                 ${(r.result || r.description) ? `<div class="text-xs text-slate-600 mt-1 break-all whitespace-pre-line">${esc(r.result || r.description)}</div>` : ""}
                 <div class="text-[11px] text-slate-400 mt-1.5">
                   관리번호: ${esc(r.lotNo || "-")} · 업체: ${esc(r.client || "-")} · 검사: ${esc(r.worker)}${r.packer ? ` · 포장: ${esc(r.packer)}` : ""}
@@ -2171,6 +2207,7 @@
         document.getElementById("fRemarks").value = record.remarks || "";
         document.getElementById("fPackingStatus").value = record.packingStatus || "해당없음";
         document.getElementById("fPacker").value = record.packer || "";
+        document.getElementById("fPackingNote").value = record.packingNote || "";
         tempPhotos = [...(record.photos || [])];
         tempDocs = [...(record.files || [])];
       } else {
@@ -2186,6 +2223,7 @@
         document.getElementById("fCoatingDataStatus").value = "";
         document.getElementById("fPackingStatus").value = "해당없음";
         document.getElementById("fPacker").value = "";
+        document.getElementById("fPackingNote").value = "";
       }
 
       syncTitleQuickButtons();
@@ -2344,6 +2382,7 @@
         remarks: document.getElementById("fRemarks").value.trim(),
         packingStatus: document.getElementById("fPackingStatus").value || "해당없음",
         packer: document.getElementById("fPacker").value.trim(),
+        packingNote: document.getElementById("fPackingNote").value.trim(),
         photos: tempPhotos,
         files: tempDocs,
         updatedAt: Date.now()
@@ -2459,6 +2498,12 @@
           <div>
             <div class="text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모</div>
             <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-amber-950 break-all whitespace-pre-line leading-relaxed">${esc(r.remarks)}</div>
+          </div>` : ""}
+
+        ${r.packingNote ? `
+          <div>
+            <div class="text-xs font-bold text-teal-900 mb-1">📦 포장 / 출하 비고 (작업자 코멘트)</div>
+            <div class="bg-teal-50/80 p-3 rounded-xl border border-teal-200 text-teal-950 break-all whitespace-pre-line leading-relaxed">${esc(r.packingNote)}</div>
           </div>` : ""}
 
         ${photosHtml}
@@ -2585,7 +2630,7 @@
     window.exportCSV = function () {
       const headers = [
         "작업일자", "작업완료날짜", "고유번호", "관리번호", "고객사/외주업체", "제품명", "품번",
-        "업무분류", "진행상태", "검사담당자", "포장여부", "포장담당자", "업무제목",
+        "업무분류", "진행상태", "검사담당자", "포장여부", "포장담당자", "포장비고", "업무제목",
         "작업완료(ea)", "입고수량(ea)", "납품수량(ea)", "재고수량(ea)", "불량수량(ea)", "불량률(%)",
         "성적서유무", "코팅데이터유무", "작업내용", "판정", "검사결과", "특이사항"
       ];
@@ -2594,7 +2639,7 @@
         const rateStr = (dInfo && dInfo.base > 0) ? dInfo.rate.toFixed(1) + "%" : "0.0%";
         return [
           r.workDate, r.completedDate || "", r.workNo, r.lotNo || "", r.client || "", r.productName || "", r.partNo || "",
-          r.category, r.status, r.worker, r.packingStatus || "해당없음", r.packer || "", r.title,
+          r.category, r.status, r.worker, r.packingStatus || "해당없음", r.packer || "", (r.packingNote || "").replace(/\n/g, " "), r.title,
           getWorkDoneVal(r), r.qtyIncoming ?? "", r.qtyDelivered ?? "", r.qtyStock ?? "", r.qtyDefect ?? "", rateStr,
           r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음",
           (r.description || "").replace(/\n/g, " "), r.judgment || "",
