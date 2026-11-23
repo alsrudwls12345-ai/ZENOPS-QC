@@ -116,7 +116,6 @@
       </button>
     </section>
 
-    <!-- 뷰 전환 네비게이션 탭 (구글 캘린더 일정 탭 포함) -->
     <nav class="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm flex gap-1 overflow-x-auto scrollbar-hide">
       <button onclick="switchTab('list')" id="tab-list" class="tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-bold bg-slate-900 text-white transition">📋 업무 이력 조회</button>
       <button onclick="switchTab('calendar')" id="tab-calendar" class="tab-btn flex-1 min-w-[125px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition flex items-center justify-center gap-1">
@@ -128,7 +127,7 @@
       <button onclick="switchTab('stats')" id="tab-stats" class="tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">📊 월별 업무 현황</button>
     </nav>
 
-    <!-- [뷰 1] 업무 이력 조회 -->
+    <!-- [뷰 1] 업무 이력 조회 (업무 제목 필터 + 완료일 기준 날짜 검색 + 사진 업데이트 필터) -->
     <section id="view-list" class="space-y-4 animate-fade">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
         <div class="flex flex-col sm:flex-row gap-2">
@@ -139,31 +138,55 @@
           <button onclick="resetFilters()" class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg shrink-0">필터 초기화</button>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
-          <select id="filterCategory" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700">
-            <option value="">전체 업무 분류</option>
-            <option value="입고/출고/공정검사">입고/출고/공정검사</option>
-            <option value="광학 세정/조립/수리">광학 세정/조립/수리</option>
-            <option value="Zygo 측정 및 분석">Zygo 측정 및 분석</option>
-            <option value="코팅 및 외관검사">코팅 및 외관검사</option>
-            <option value="불량 분석 및 개선조치">불량 분석 및 개선조치</option>
-            <option value="고객사 및 협력업체 대응">고객사 및 협력업체 대응</option>
-            <option value="측정기 관리 및 기타">측정기 관리 및 기타</option>
+        <div class="grid grid-cols-2 sm:grid-cols-8 gap-2">
+          <!-- 1. 업무 제목 분류 필터 -->
+          <select id="filterTitleType" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-700">
+            <option value="">전체 업무 제목</option>
+            <option value="생산 출고품">생산 출고품</option>
+            <option value="재고 출고품">재고 출고품</option>
+            <option value="조립 출고품">조립 출고품</option>
+            <option value="외주 출고품">외주 출고품</option>
+            <option value="수입검사">수입검사</option>
+            <option value="자이고 측정건">자이고 측정건</option>
+            <option value="분광기 측정건">분광기 측정건</option>
+            <option value="현미경 측정건">현미경 측정건</option>
+            <option value="제품 분석건">제품 분석건</option>
           </select>
+
+          <!-- 2. 진행상태 -->
           <select id="filterStatus" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700">
             <option value="">전체 진행상태</option>
             <option value="진행 중">진행 중</option>
             <option value="완료">완료</option>
             <option value="보류">보류</option>
           </select>
+
+          <!-- 3. 포장여부 -->
           <select id="filterPacking" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700">
             <option value="">전체 포장여부</option>
             <option value="포장 완료">📦 포장 완료</option>
             <option value="포장 미완료">⏳ 포장 미완료</option>
           </select>
+
+          <!-- 4. 사진 업데이트 여부 -->
+          <select id="filterPhotoStatus" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700">
+            <option value="">전체 사진여부</option>
+            <option value="사진 업데이트 완료">📷 사진 업데이트 완료</option>
+            <option value="사진 미완료">⏳ 사진 미완료</option>
+          </select>
+
+          <!-- 5. 담당자 -->
           <input type="text" id="filterWorker" oninput="renderAll()" placeholder="검사 / 포장 담당자" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
-          <input type="date" id="filterDateFrom" onchange="renderAll()" title="시작일" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
-          <input type="date" id="filterDateTo" onchange="renderAll()" title="종료일" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
+
+          <!-- 6. 날짜 검색 기준 (작업완료날짜 / 작업일자 선택) -->
+          <select id="filterDateType" onchange="renderAll()" class="text-xs sm:text-sm border border-emerald-300 bg-emerald-50/60 font-bold text-emerald-900 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+            <option value="completedDate">📅 완료일 기준</option>
+            <option value="workDate">🗓 작업일 기준</option>
+          </select>
+
+          <!-- 7~8. 시작일 / 종료일 -->
+          <input type="date" id="filterDateFrom" onchange="renderAll()" title="시작일" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
+          <input type="date" id="filterDateTo" onchange="renderAll()" title="종료일" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 pt-1.5 border-t border-slate-100">
@@ -187,7 +210,7 @@
                 <th class="py-3 px-3.5">제품명 · 품번</th>
                 <th class="py-3 px-3.5">업무 분류</th>
                 <th class="py-3 px-3.5">업무 제목 / 수량 · 불량률</th>
-                <th class="py-3 px-3.5">서류 · 포장(출하)</th>
+                <th class="py-3 px-3.5">서류 · 포장 · 사진</th>
                 <th class="py-3 px-3.5">검사 / 포장 담당</th>
                 <th class="py-3 px-3.5">첨부</th>
                 <th class="py-3 px-3.5">상태</th>
@@ -227,7 +250,6 @@
           </div>
         </div>
 
-        <!-- 캘린더 기간 필터 & 키워드 검색 -->
         <div class="flex flex-col sm:flex-row gap-2">
           <div class="flex flex-wrap gap-1.5">
             <button type="button" onclick="setCalRangeFilter('TODAY')" id="cr-TODAY" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">오늘 일정</button>
@@ -242,11 +264,9 @@
           </div>
         </div>
 
-        <!-- 개별 캘린더 필터 칩 (s2 ns, 생산관리, 최영웅 대리님 등 자동 생성) -->
         <div id="calSourceChips" class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs"></div>
       </div>
 
-      <!-- 날짜별 캘린더 일정 리스트 컨테이너 -->
       <div id="calendarTimelineList" class="space-y-4"></div>
     </section>
 
@@ -398,6 +418,7 @@
         <input type="hidden" id="fReportStatus" value="" />
         <input type="hidden" id="fCoatingDataStatus" value="" />
         <input type="hidden" id="fPackingStatus" value="해당없음" />
+        <input type="hidden" id="fPhotoUpdateStatus" value="해당없음" />
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div><label class="block text-xs font-bold text-slate-700 mb-1">작업일자 <span class="text-rose-600">*</span></label><input type="date" id="fWorkDate" required class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" /></div>
@@ -560,15 +581,39 @@
           </div>
         </div>
 
+        <!-- 현장 사진 및 성적서/데이터 첨부 + 사진 업데이트 완료 체크 -->
         <div class="bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-1">
             <span class="text-xs font-bold text-purple-900">현장 사진 및 성적서/데이터 첨부</span>
             <span id="formPhotoCountBadge" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">✨ 사진 개별 분할 저장 적용 (1MB 제한 해제)</span>
           </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">📷 제품/현장 사진 (다중 선택 / 카메라 직촬)</label><input type="file" id="fPhotoInput" accept="image/*" multiple onchange="handlePhotoSelect(event)" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-purple-700 file:text-white hover:file:bg-purple-800 cursor-pointer" /></div>
             <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">📎 성적서 / Zygo 데이터 / 도면 파일</label><input type="file" id="fDocInput" multiple onchange="handleDocSelect(event)" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-700 file:text-white hover:file:bg-slate-800 cursor-pointer" /></div>
           </div>
+
+          <!-- 사진 여부 체크란 (사진 업데이트 완료 표시 연동) -->
+          <div class="bg-white p-3 rounded-xl border border-purple-200/80 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-slate-700">📷 사진 여부 확인 <span class="font-normal text-slate-400">(사진 첨부 시 자동 체크 · 메인보드 배지 표시)</span></span>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5" id="photoStatusBtnGroup">
+              <button type="button" data-val="사진 업데이트 완료" onclick="selectPhotoUpdateStatus('사진 업데이트 완료')"
+                class="photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">
+                ✅ 사진 업데이트 완료
+              </button>
+              <button type="button" data-val="사진 미완료" onclick="selectPhotoUpdateStatus('사진 미완료')"
+                class="photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">
+                ⏳ 사진 미완료
+              </button>
+              <button type="button" data-val="해당없음" onclick="selectPhotoUpdateStatus('해당없음')"
+                class="photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">
+                해당없음
+              </button>
+            </div>
+          </div>
+
           <div id="previewPhotos" class="flex flex-wrap gap-2"></div>
           <div id="previewDocs" class="space-y-1"></div>
         </div>
@@ -695,7 +740,6 @@
       appId: "1:999431475162:web:6135272673ebe30a4a3ae3"
     };
 
-    // 배포된 구글 캘린더 연동 Apps Script Web App URL
     const CALENDAR_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyOU38i7fUGcrs33BQMAeY6jnAmyStLTAC47ykYPooZ0i-F6EanRnFXs1F4tiDsGGloPA/exec";
 
     const STORAGE_KEY = "zenops_qc_records_v2";
@@ -708,11 +752,7 @@
     let zoomScale = 1, panX = 0, panY = 0, isDragging = false, dragStartX = 0, dragStartY = 0, initialPinchDist = 0, initialPinchScale = 1, lastTapTime = 0;
     let modalStack = [], isHandlingPopState = false, lastBackPressTime = 0, toastTimer = null;
 
-    // 구글 캘린더 상태 변수
-    let calendarEvents = [];
-    let calendarNames = [];
-    let selectedCalendarFilter = "ALL";
-    let calRangeMode = "ALL";
+    let calendarEvents = [], calendarNames = [], selectedCalendarFilter = "ALL", calRangeMode = "ALL";
 
     const THEMES = [
       { id: "purple", label: "퍼플 기본", className: "" },
@@ -736,275 +776,137 @@
       showToast(`화면 테마 변경: ${next.label}`);
     };
 
-    // ========================================================
-    // 구글 캘린더 실시간 동기화 & 원클릭 업무 등록 파서
-    // ========================================================
     window.fetchGoogleCalendarEvents = async function (manual = false) {
-      const badge = document.getElementById("calSyncStatusBadge");
-      const btn = document.getElementById("calRefreshBtn");
+      const badge = document.getElementById("calSyncStatusBadge"), btn = document.getElementById("calRefreshBtn");
       if (badge) { badge.textContent = "불러오는 중..."; badge.className = "text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold"; }
       if (btn) btn.disabled = true;
-
       try {
         const res = await fetch(`${CALENDAR_SCRIPT_URL}?before=7&after=30`);
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         calendarEvents = Array.isArray(data.events) ? data.events : [];
         calendarNames = Array.isArray(data.calendars) ? data.calendars : [];
-
         const todayStr = new Date().toISOString().slice(0, 10);
         const todayCount = calendarEvents.filter(e => e.date === todayStr).length;
         const tabBadge = document.getElementById("calTabBadge");
         if (tabBadge) tabBadge.textContent = todayCount > 0 ? `오늘 ${todayCount}` : `${calendarEvents.length}`;
-
         if (badge) { badge.textContent = `연동 완료 (${calendarEvents.length}건)`; badge.className = "text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold"; }
-        const nowTime = new Date().toTimeString().slice(0, 5);
-        document.getElementById("calLastUpdatedText").textContent = `최근 동기화: ${nowTime}`;
+        document.getElementById("calLastUpdatedText").textContent = `최근 동기화: ${new Date().toTimeString().slice(0, 5)}`;
         renderCalendarView();
         if (manual) showToast(`구글 캘린더 최신 일정 ${calendarEvents.length}건을 불러왔습니다.`);
       } catch (err) {
-        console.error("캘린더 로드 오류:", err);
         if (badge) { badge.textContent = "연결 확인 필요"; badge.className = "text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold"; }
-        document.getElementById("calendarTimelineList").innerHTML = `
-          <div class="bg-white p-8 rounded-xl border border-rose-200 text-center space-y-2">
-            <div class="text-2xl">⚠️</div>
-            <p class="text-sm font-bold text-slate-800">캘린더 일정을 불러오지 못했습니다.</p>
-            <p class="text-xs text-slate-500">네트워크 연결을 확인하거나 우측 상단 [새로고침] 버튼을 다시 눌러주세요.</p>
-          </div>
-        `;
-      } finally {
-        if (btn) btn.disabled = false;
-      }
+        document.getElementById("calendarTimelineList").innerHTML = `<div class="bg-white p-8 rounded-xl border border-rose-200 text-center space-y-2"><div class="text-2xl">⚠️</div><p class="text-sm font-bold text-slate-800">캘린더 일정을 불러오지 못했습니다.</p><p class="text-xs text-slate-500">네트워크 연결을 확인하거나 우측 상단 [새로고침] 버튼을 다시 눌러주세요.</p></div>`;
+      } finally { if (btn) btn.disabled = false; }
     };
 
     window.setCalRangeFilter = function (mode) {
       calRangeMode = mode;
-      ["TODAY", "TOMORROW", "WEEK", "ALL"].forEach(m => {
-        const b = document.getElementById(`cr-${m}`);
-        if (b) b.className = m === mode ? "cr-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white" : "cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200";
-      });
+      ["TODAY", "TOMORROW", "WEEK", "ALL"].forEach(m => { const b = document.getElementById(`cr-${m}`); if (b) b.className = m === mode ? "cr-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white" : "cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"; });
       renderCalendarView();
     };
-
-    window.setCalSourceFilter = function (calName) {
-      selectedCalendarFilter = calName;
-      renderCalendarView();
-    };
+    window.setCalSourceFilter = function (calName) { selectedCalendarFilter = calName; renderCalendarView(); };
 
     function getKoreanDayLabel(dateStr) {
-      const days = ["일", "월", "화", "수", "목", "금", "토"];
-      const d = new Date(dateStr + "T00:00:00");
+      const days = ["일", "월", "화", "수", "목", "금", "토"], d = new Date(dateStr + "T00:00:00");
       if (isNaN(d.getTime())) return dateStr;
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const tmrStr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-      const tag = dateStr === todayStr ? " · 오늘" : dateStr === tmrStr ? " · 내일" : "";
-      return `${dateStr} (${days[d.getDay()]}요일)${tag}`;
+      const todayStr = new Date().toISOString().slice(0, 10), tmrStr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+      return `${dateStr} (${days[d.getDay()]}요일)${dateStr === todayStr ? " · 오늘" : dateStr === tmrStr ? " · 내일" : ""}`;
     }
 
     window.renderCalendarView = function () {
-      const chipsEl = document.getElementById("calSourceChips");
-      const allSources = ["ALL", ...calendarNames];
+      const chipsEl = document.getElementById("calSourceChips"), allSources = ["ALL", ...calendarNames];
       chipsEl.innerHTML = `<span class="text-slate-400 font-semibold mr-1">캘린더 선택:</span>` + allSources.map(name => {
-        const isSel = selectedCalendarFilter === name;
-        const label = name === "ALL" ? `전체 캘린더 (${calendarEvents.length})` : `${name} (${calendarEvents.filter(e => e.calendar === name).length})`;
+        const isSel = selectedCalendarFilter === name, label = name === "ALL" ? `전체 캘린더 (${calendarEvents.length})` : `${name} (${calendarEvents.filter(e => e.calendar === name).length})`;
         return `<button type="button" onclick="setCalSourceFilter('${esc(name)}')" class="px-2.5 py-1 rounded-full text-xs font-bold border transition ${isSel ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}">${esc(label)}</button>`;
       }).join("");
-
-      const kw = (document.getElementById("calSearchInput")?.value || "").trim().toLowerCase();
-      const now = new Date();
-      const todayStr = now.toISOString().slice(0, 10);
-      const tmrStr = new Date(now.getTime() + 86400000).toISOString().slice(0, 10);
-      const weekStr = new Date(now.getTime() + 7 * 86400000).toISOString().slice(0, 10);
-
+      const kw = (document.getElementById("calSearchInput")?.value || "").trim().toLowerCase(), now = new Date(), todayStr = now.toISOString().slice(0, 10), tmrStr = new Date(now.getTime() + 86400000).toISOString().slice(0, 10), weekStr = new Date(now.getTime() + 7 * 86400000).toISOString().slice(0, 10);
       const filtered = calendarEvents.filter(ev => {
         if (selectedCalendarFilter !== "ALL" && ev.calendar !== selectedCalendarFilter) return false;
         if (calRangeMode === "TODAY" && ev.date !== todayStr) return false;
         if (calRangeMode === "TOMORROW" && ev.date !== tmrStr) return false;
         if (calRangeMode === "WEEK" && (ev.date < todayStr || ev.date > weekStr)) return false;
-        if (kw) {
-          const hay = `${ev.title} ${ev.calendar} ${ev.description} ${ev.date}`.toLowerCase();
-          if (!hay.includes(kw)) return false;
-        }
+        if (kw && !`${ev.title} ${ev.calendar} ${ev.description} ${ev.date}`.toLowerCase().includes(kw)) return false;
         return true;
       });
-
       const container = document.getElementById("calendarTimelineList");
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="bg-white p-10 rounded-xl border border-slate-200 text-center"><div class="text-3xl mb-2">🗓️</div><p class="text-sm font-bold text-slate-700">선택한 조건에 해당하는 캘린더 일정이 없습니다.</p></div>`;
-        return;
-      }
-
-      // 날짜별 그룹화
-      const groups = {};
-      filtered.forEach(ev => {
-        if (!groups[ev.date]) groups[ev.date] = [];
-        groups[ev.date].push(ev);
-      });
-
+      if (filtered.length === 0) { container.innerHTML = `<div class="bg-white p-10 rounded-xl border border-slate-200 text-center"><div class="text-3xl mb-2">🗓️</div><p class="text-sm font-bold text-slate-700">선택한 조건에 해당하는 캘린더 일정이 없습니다.</p></div>`; return; }
+      const groups = {}; filtered.forEach(ev => { if (!groups[ev.date]) groups[ev.date] = []; groups[ev.date].push(ev); });
       container.innerHTML = Object.entries(groups).map(([dateStr, items]) => {
         const isToday = dateStr === todayStr;
-        return `
-          <div class="bg-white rounded-xl border ${isToday ? "border-purple-400 ring-1 ring-purple-200" : "border-slate-200"} shadow-sm overflow-hidden">
-            <div class="px-4 py-2.5 ${isToday ? "bg-purple-50 text-purple-950" : "bg-slate-50 text-slate-800"} border-b border-slate-200 flex items-center justify-between">
-              <span class="text-xs sm:text-sm font-extrabold">${esc(getKoreanDayLabel(dateStr))}</span>
-              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600">${items.length}건</span>
-            </div>
-            <div class="divide-y divide-slate-100">
-              ${items.map((ev, idx) => {
-                const isWait = ev.title.includes("출고대기") || ev.title.includes("출고예정");
-                return `
-                  <div class="p-3.5 hover:bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition">
-                    <div class="min-w-0 space-y-1">
-                      <div class="flex flex-wrap items-center gap-1.5">
-                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                          <span class="w-2 h-2 rounded-full inline-block" style="background-color:${esc(ev.color)}"></span>
-                          ${esc(ev.calendar)}
-                        </span>
-                        <span class="text-[11px] font-mono text-slate-400">${esc(ev.time)}</span>
-                        ${isWait ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">출고 관련</span>` : ""}
-                      </div>
-                      <div class="text-xs sm:text-sm font-bold text-slate-900 break-words leading-snug">${esc(ev.title)}</div>
-                      ${ev.description ? `<div class="text-[11px] text-slate-500 line-clamp-1">${esc(ev.description)}</div>` : ""}
-                    </div>
-                    <button type="button" onclick="createRecordFromCalendarEvent('${esc(ev.id)}')"
-                      class="shrink-0 self-start sm:self-center flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs transition">
-                      <span>＋</span><span>업무 등록</span>
-                    </button>
-                  </div>
-                `;
-              }).join("")}
-            </div>
-          </div>
-        `;
+        return `<div class="bg-white rounded-xl border ${isToday ? "border-purple-400 ring-1 ring-purple-200" : "border-slate-200"} shadow-sm overflow-hidden"><div class="px-4 py-2.5 ${isToday ? "bg-purple-50 text-purple-950" : "bg-slate-50 text-slate-800"} border-b border-slate-200 flex items-center justify-between"><span class="text-xs sm:text-sm font-extrabold">${esc(getKoreanDayLabel(dateStr))}</span><span class="text-xs font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600">${items.length}건</span></div><div class="divide-y divide-slate-100">${items.map(ev => {
+          const isWait = ev.title.includes("출고대기") || ev.title.includes("출고예정");
+          return `<div class="p-3.5 hover:bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition"><div class="min-w-0 space-y-1"><div class="flex flex-wrap items-center gap-1.5"><span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700"><span class="w-2 h-2 rounded-full inline-block" style="background-color:${esc(ev.color)}"></span>${esc(ev.calendar)}</span><span class="text-[11px] font-mono text-slate-400">${esc(ev.time)}</span>${isWait ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">출고 관련</span>` : ""}</div><div class="text-xs sm:text-sm font-bold text-slate-900 break-words leading-snug">${esc(ev.title)}</div>${ev.description ? `<div class="text-[11px] text-slate-500 line-clamp-1">${esc(ev.description)}</div>` : ""}</div><button type="button" onclick="createRecordFromCalendarEvent('${esc(ev.id)}')" class="shrink-0 self-start sm:self-center flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs transition"><span>＋</span><span>업무 등록</span></button></div>`;
+        }).join("")}</div></div>`;
       }).join("");
     };
 
-    // 캘린더 일정 제목을 자동 파싱하여 업무 등록 폼에 채우기
-    // 예: "(출고대기) 5386SE23CD 261311 아큐레이저 - 50.8mmØ x 9.0mmThk, UVFS... 10ea"
     function parseCalendarEventTitle(rawTitle) {
-      let text = String(rawTitle || "").trim();
-      let prefixTag = "";
+      let text = String(rawTitle || "").trim(), prefixTag = "";
       const tagMatch = text.match(/^\(([^)]+)\)\s*/);
-      if (tagMatch) {
-        prefixTag = tagMatch[1];
-        text = text.slice(tagMatch[0].length).trim();
-      }
-
-      // 끝부분 수량(예: 10ea, 200ea) 추출
-      let qty = "";
-      const qtyMatch = text.match(/(\d+)\s*ea\s*$/i);
-      if (qtyMatch) {
-        qty = Number(qtyMatch[1]);
-        text = text.slice(0, qtyMatch.index).trim();
-      }
-
-      // '-' 기준으로 좌측(관리번호 + 고객사), 우측(제품명 + 품번) 분리
-      let leftPart = text, rightPart = "";
-      const dashIdx = text.indexOf(" - ");
-      if (dashIdx >= 0) {
-        leftPart = text.slice(0, dashIdx).trim();
-        rightPart = text.slice(dashIdx + 3).trim();
-      }
-
-      // 좌측에서 관리번호(영문숫자 코드 2덩어리 또는 1덩어리)와 고객사 분리
-      let lotNo = "", client = "";
-      const leftTokens = leftPart.split(/\s+/);
-      if (leftTokens.length >= 3 && /^[A-Z0-9-]+$/i.test(leftTokens[0]) && /^[A-Z0-9-]+$/i.test(leftTokens[1])) {
-        lotNo = `${leftTokens[0]} ${leftTokens[1]}`;
-        client = leftTokens.slice(2).join(" ");
-      } else if (leftTokens.length >= 2 && /^[A-Z0-9-]+$/i.test(leftTokens[0])) {
-        lotNo = leftTokens[0];
-        client = leftTokens.slice(1).join(" ");
-      } else {
-        client = leftPart;
-      }
-
-      // 우측에서 마지막 영문+숫자+하이픈 코드를 품번으로 추정
+      if (tagMatch) { prefixTag = tagMatch[1]; text = text.slice(tagMatch[0].length).trim(); }
+      let qty = ""; const qtyMatch = text.match(/(\d+)\s*ea\s*$/i);
+      if (qtyMatch) { qty = Number(qtyMatch[1]); text = text.slice(0, qtyMatch.index).trim(); }
+      let leftPart = text, rightPart = ""; const dashIdx = text.indexOf(" - ");
+      if (dashIdx >= 0) { leftPart = text.slice(0, dashIdx).trim(); rightPart = text.slice(dashIdx + 3).trim(); }
+      let lotNo = "", client = ""; const leftTokens = leftPart.split(/\s+/);
+      if (leftTokens.length >= 3 && /^[A-Z0-9-]+$/i.test(leftTokens[0]) && /^[A-Z0-9-]+$/i.test(leftTokens[1])) { lotNo = `${leftTokens[0]} ${leftTokens[1]}`; client = leftTokens.slice(2).join(" "); }
+      else if (leftTokens.length >= 2 && /^[A-Z0-9-]+$/i.test(leftTokens[0])) { lotNo = leftTokens[0]; client = leftTokens.slice(1).join(" "); }
+      else client = leftPart;
       let productName = rightPart, partNo = "";
-      if (rightPart) {
-        const rTokens = rightPart.split(/\s+/);
-        const lastTok = rTokens[rTokens.length - 1];
-        if (rTokens.length >= 2 && /[0-9]/.test(lastTok) && /^[A-Z0-9-]+$/i.test(lastTok)) {
-          partNo = lastTok;
-          productName = rTokens.slice(0, -1).join(" ");
-        }
-      }
-
+      if (rightPart) { const rTokens = rightPart.split(/\s+/), lastTok = rTokens[rTokens.length - 1]; if (rTokens.length >= 2 && /[0-9]/.test(lastTok) && /^[A-Z0-9-]+$/i.test(lastTok)) { partNo = lastTok; productName = rTokens.slice(0, -1).join(" "); } }
       return { prefixTag, lotNo, client, productName, partNo, qty };
     }
 
     window.createRecordFromCalendarEvent = async function (eventId) {
-      const ev = calendarEvents.find(e => e.id === eventId);
-      if (!ev) return;
-
+      const ev = calendarEvents.find(e => e.id === eventId); if (!ev) return;
       await openFormModal(null);
       const parsed = parseCalendarEventTitle(ev.title);
-
       document.getElementById("fWorkDate").value = ev.date || new Date().toISOString().slice(0, 10);
       document.getElementById("fLotNo").value = parsed.lotNo;
       document.getElementById("fClient").value = parsed.client;
       document.getElementById("fProductName").value = parsed.productName;
       document.getElementById("fPartNo").value = parsed.partNo;
-      if (parsed.qty !== "") {
-        document.getElementById("fQtyIncoming").value = parsed.qty;
-      }
+      if (parsed.qty !== "") document.getElementById("fQtyIncoming").value = parsed.qty;
       document.getElementById("fRemarks").value = `[캘린더 일정: ${ev.calendar}] ${ev.title}${ev.description ? "\n" + ev.description : ""}`;
       updateLiveDefectPreview();
       showToast("캘린더 일정 정보가 자동으로 입력되었습니다.");
     };
 
     function getByteLength(str) { return new TextEncoder().encode(String(str || "")).length; }
-    function formatBytes(bytes) {
-      if (bytes < 1024) return `${bytes} B`;
-      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-    }
+    function formatBytes(bytes) { if (bytes < 1024) return `${bytes} B`; if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`; return `${(bytes / (1024 * 1024)).toFixed(2)} MB`; }
 
     function buildSubItemsRows(existingItems = []) {
-      const tbody = document.getElementById("subItemsTableBody");
-      let html = "";
+      const tbody = document.getElementById("subItemsTableBody"); let html = "";
       for (let i = 1; i <= 10; i++) {
         const item = existingItems.find(x => x.no === i) || {};
         html += `<tr class="hover:bg-slate-50/80"><td class="py-1.5 px-2 text-center font-bold text-slate-500">${i}.</td><td class="py-1 px-1.5"><input type="text" id="sub_name_${i}" value="${esc(item.name || "")}" placeholder="예: #${i}" oninput="recalcSubItemsSummary()" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:border-indigo-600 focus:outline-none" /></td><td class="py-1 px-1.5"><input type="number" id="sub_work_${i}" value="${item.workQty ?? ""}" min="0" inputmode="numeric" placeholder="0" oninput="recalcSubItemsSummary()" class="w-full text-right border border-slate-200 rounded px-2 py-1 text-xs font-bold text-blue-800 focus:border-indigo-600 focus:outline-none" /></td><td class="py-1 px-1.5"><input type="number" id="sub_stock_${i}" value="${item.stockQty ?? ""}" min="0" inputmode="numeric" placeholder="0" oninput="recalcSubItemsSummary()" class="w-full text-right border border-slate-200 rounded px-2 py-1 text-xs font-bold text-indigo-800 focus:border-indigo-600 focus:outline-none" /></td><td class="py-1 px-1.5"><input type="number" id="sub_defect_${i}" value="${item.defectQty ?? ""}" min="0" inputmode="numeric" placeholder="0" oninput="recalcSubItemsSummary()" class="w-full text-right border border-slate-200 rounded px-2 py-1 text-xs font-bold text-rose-600 focus:border-indigo-600 focus:outline-none" /></td><td class="py-1 px-1.5"><input type="number" id="sub_deliv_${i}" value="${item.deliveredQty ?? ""}" min="0" inputmode="numeric" placeholder="0" oninput="recalcSubItemsSummary()" class="w-full text-right border border-slate-200 rounded px-2 py-1 text-xs font-bold text-emerald-700 focus:border-indigo-600 focus:outline-none" /></td></tr>`;
       }
-      tbody.innerHTML = html;
-      recalcSubItemsSummary();
+      tbody.innerHTML = html; recalcSubItemsSummary();
     }
 
     function collectSubItemsFromForm() {
       const list = [];
       for (let i = 1; i <= 10; i++) {
-        const name = (document.getElementById(`sub_name_${i}`)?.value || "").trim();
-        const wRaw = (document.getElementById(`sub_work_${i}`)?.value || "").trim();
-        const sRaw = (document.getElementById(`sub_stock_${i}`)?.value || "").trim();
-        const dRaw = (document.getElementById(`sub_defect_${i}`)?.value || "").trim();
-        const dlRaw = (document.getElementById(`sub_deliv_${i}`)?.value || "").trim();
-        if (name || wRaw !== "" || sRaw !== "" || dRaw !== "" || dlRaw !== "") {
-          list.push({ no: i, name: name || `#${i}`, workQty: wRaw === "" ? "" : Number(wRaw), stockQty: sRaw === "" ? "" : Number(sRaw), defectQty: dRaw === "" ? "" : Number(dRaw), deliveredQty: dlRaw === "" ? "" : Number(dlRaw) });
-        }
+        const name = (document.getElementById(`sub_name_${i}`)?.value || "").trim(), wRaw = (document.getElementById(`sub_work_${i}`)?.value || "").trim(), sRaw = (document.getElementById(`sub_stock_${i}`)?.value || "").trim(), dRaw = (document.getElementById(`sub_defect_${i}`)?.value || "").trim(), dlRaw = (document.getElementById(`sub_deliv_${i}`)?.value || "").trim();
+        if (name || wRaw !== "" || sRaw !== "" || dRaw !== "" || dlRaw !== "") list.push({ no: i, name: name || `#${i}`, workQty: wRaw === "" ? "" : Number(wRaw), stockQty: sRaw === "" ? "" : Number(sRaw), defectQty: dRaw === "" ? "" : Number(dRaw), deliveredQty: dlRaw === "" ? "" : Number(dlRaw) });
       }
       return list;
     }
 
     window.recalcSubItemsSummary = function () {
-      const items = collectSubItemsFromForm();
-      let sumW = 0, sumS = 0, sumD = 0, sumDl = 0;
+      const items = collectSubItemsFromForm(); let sumW = 0, sumS = 0, sumD = 0, sumDl = 0;
       items.forEach(it => { sumW += toNum(it.workQty); sumS += toNum(it.stockQty); sumD += toNum(it.defectQty); sumDl += toNum(it.deliveredQty); });
-      document.getElementById("subSumWork").textContent = `${sumW} ea`;
-      document.getElementById("subSumStock").textContent = `${sumS} ea`;
-      document.getElementById("subSumDefect").textContent = `${sumD} ea`;
-      document.getElementById("subSumDelivered").textContent = `${sumDl} ea`;
+      document.getElementById("subSumWork").textContent = `${sumW} ea`; document.getElementById("subSumStock").textContent = `${sumS} ea`; document.getElementById("subSumDefect").textContent = `${sumD} ea`; document.getElementById("subSumDelivered").textContent = `${sumDl} ea`;
       const badge = document.getElementById("subItemsFilledBadge");
-      if (items.length > 0) { badge.textContent = `${items.length}건 입력됨`; badge.classList.remove("hidden"); } else { badge.classList.add("hidden"); }
+      if (items.length > 0) { badge.textContent = `${items.length}건 입력됨`; badge.classList.remove("hidden"); } else badge.classList.add("hidden");
       return { items, sumW, sumS, sumD, sumDl };
     };
 
     window.toggleSubItemsSection = function (forceOpen = null) {
       const container = document.getElementById("subItemsContainer"), syncBtn = document.getElementById("syncSubSumBtn"), icon = document.getElementById("subItemsToggleIcon");
       const shouldOpen = forceOpen !== null ? forceOpen : container.classList.contains("hidden");
-      container.classList.toggle("hidden", !shouldOpen);
-      syncBtn.classList.toggle("hidden", !shouldOpen);
-      icon.textContent = shouldOpen ? "➖" : "➕";
+      container.classList.toggle("hidden", !shouldOpen); syncBtn.classList.toggle("hidden", !shouldOpen); icon.textContent = shouldOpen ? "➖" : "➕";
     };
 
     window.syncSubItemsSumToMain = function () {
@@ -1012,18 +914,14 @@
       if (items.length === 0) { alert("세부 품목 표에 먼저 수량을 입력해 주세요."); return; }
       const isIncoming = isIncomingInspectionTitle({ title: document.getElementById("fTitle").value }) || document.getElementById("fCategory").value === "입고/출고/공정검사";
       if (isIncoming) document.getElementById("fQtyIncoming").value = sumW; else document.getElementById("fQtyWorkDone").value = sumW;
-      document.getElementById("fQtyStock").value = sumS;
-      document.getElementById("fQtyDefect").value = sumD;
-      document.getElementById("fQtyDelivered").value = sumDl;
-      updateLiveDefectPreview();
-      showToast("세부 품목 합계가 위 수량 현황에 반영되었습니다.");
+      document.getElementById("fQtyStock").value = sumS; document.getElementById("fQtyDefect").value = sumD; document.getElementById("fQtyDelivered").value = sumDl;
+      updateLiveDefectPreview(); showToast("세부 품목 합계가 위 수량 현황에 반영되었습니다.");
     };
 
     window.clearAllSubItems = function () { if (confirm("세부 품목(1~10번) 입력 내용을 모두 지울까요?")) buildSubItemsRows([]); };
 
     function renderDetailSubItemsTable(r) {
-      const items = Array.isArray(r.subItems) ? r.subItems : [];
-      if (items.length === 0) return "";
+      const items = Array.isArray(r.subItems) ? r.subItems : []; if (items.length === 0) return "";
       const valFmt = v => (v !== undefined && v !== null && String(v) !== "") ? `${v} ea` : "-";
       return `<div><div class="text-xs font-bold text-indigo-900 mb-1.5">📋 세부 품목별 수량 내역 (${items.length}종)</div><div class="overflow-x-auto rounded-xl border border-slate-200"><table class="w-full text-left border-collapse text-xs"><thead><tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-bold text-slate-600"><th class="py-2 px-2.5 text-center w-10">No.</th><th class="py-2 px-2.5">제품</th><th class="py-2 px-2.5 text-right">작업/입고</th><th class="py-2 px-2.5 text-right">재고</th><th class="py-2 px-2.5 text-right text-rose-600">불량</th><th class="py-2 px-2.5 text-right text-emerald-700">납품</th></tr></thead><tbody class="divide-y divide-slate-100 bg-white">${items.map(it => { const hasDef = toNum(it.defectQty) > 0; return `<tr class="${hasDef ? "bg-rose-50/40" : ""}"><td class="py-2 px-2.5 text-center font-bold text-slate-500">${it.no}.</td><td class="py-2 px-2.5 font-extrabold text-slate-800">${esc(it.name)}</td><td class="py-2 px-2.5 text-right font-semibold text-blue-800">${esc(valFmt(it.workQty))}</td><td class="py-2 px-2.5 text-right font-semibold text-indigo-800">${esc(valFmt(it.stockQty))}</td><td class="py-2 px-2.5 text-right font-extrabold ${hasDef ? "text-rose-600" : "text-slate-400"}">${esc(valFmt(it.defectQty))}</td><td class="py-2 px-2.5 text-right font-semibold text-emerald-700">${esc(valFmt(it.deliveredQty))}</td></tr>`; }).join("")}</tbody></table></div></div>`;
     }
@@ -1036,9 +934,8 @@
         try {
           const snap = await getDocs(collection(db, "zenops_quality_records", record.id, "photos"));
           const items = snap.docs.map(d => d.data()).sort((a, b) => (a.idx ?? 0) - (b.idx ?? 0)).map(d => d.data);
-          photoCache[record.id] = items;
-          return items;
-        } catch (err) { console.error("사진 로드 오류:", err); return []; }
+          photoCache[record.id] = items; return items;
+        } catch { return []; }
       }
       return [];
     }
@@ -1050,21 +947,17 @@
       let totalBytes = 0, photoBytes = 0, photoCount = 0, fileBytes = 0, fileCount = 0, textBytes = 0;
       const perRecord = records.map(r => {
         const docSize = getByteLength(JSON.stringify(r)), pCount = getRecordPhotoCount(r), pSize = getRecordPhotoBytes(r);
-        const isInline = Array.isArray(r.photos) && r.photos.length > 0;
-        const fullSize = isInline ? docSize : (docSize + pSize);
-        const fSize = (r.files || []).reduce((a, f) => a + getByteLength(JSON.stringify(f)), 0);
-        const tSize = Math.max(0, fullSize - pSize - fSize);
+        const isInline = Array.isArray(r.photos) && r.photos.length > 0, fullSize = isInline ? docSize : (docSize + pSize);
+        const fSize = (r.files || []).reduce((a, f) => a + getByteLength(JSON.stringify(f)), 0), tSize = Math.max(0, fullSize - pSize - fSize);
         totalBytes += fullSize; photoBytes += pSize; photoCount += pCount; fileBytes += fSize; fileCount += (r.files || []).length; textBytes += tSize;
         return { id: r.id, title: r.title, lotNo: r.lotNo, photoCount: pCount, bytes: fullSize };
       });
-      const top5 = perRecord.sort((a, b) => b.bytes - a.bytes).slice(0, 5);
-      const usedMB = totalBytes / (1024 * 1024), pct = Math.min(100, (totalBytes / FREE_QUOTA_BYTES) * 100);
+      const top5 = perRecord.sort((a, b) => b.bytes - a.bytes).slice(0, 5), usedMB = totalBytes / (1024 * 1024), pct = Math.min(100, (totalBytes / FREE_QUOTA_BYTES) * 100);
       return { usedMB, remainMB: Math.max(0, 1024 - usedMB), pct, photoBytes, photoCount, fileBytes, fileCount, textBytes, top5 };
     }
 
     function updateStorageUI() {
-      const m = calcStorageMetrics();
-      const shortMB = m.usedMB < 10 ? `${m.usedMB.toFixed(1)} MB` : `${Math.round(m.usedMB)} MB`;
+      const m = calcStorageMetrics(), shortMB = m.usedMB < 10 ? `${m.usedMB.toFixed(1)} MB` : `${Math.round(m.usedMB)} MB`;
       const headerChip = document.getElementById("headerStorageChip");
       headerChip.textContent = `${shortMB} / 1GB`;
       headerChip.className = `text-[11px] font-mono px-1.5 py-0.5 rounded font-bold ${m.pct >= 85 ? "bg-rose-900 text-rose-200" : m.pct >= 65 ? "bg-amber-900 text-amber-200" : "bg-slate-700 text-emerald-300"}`;
@@ -1085,8 +978,7 @@
     function showToast(msg) { const el = document.getElementById("toastMsg"); el.textContent = msg; el.classList.remove("hidden"); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.add("hidden"), 2200); }
 
     function setupMobileBackNavigation() {
-      history.replaceState({ zenopsBase: true }, "");
-      history.pushState({ zenopsGuard: true }, "");
+      history.replaceState({ zenopsBase: true }, ""); history.pushState({ zenopsGuard: true }, "");
       window.addEventListener("popstate", () => {
         if (isHandlingPopState) { isHandlingPopState = false; return; }
         if (modalStack.length > 0) { document.getElementById(modalStack.pop())?.classList.add("hidden"); return; }
@@ -1112,10 +1004,8 @@
       vp.addEventListener("touchstart", e => {
         if (e.touches.length === 2) { isDragging = false; initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); initialPinchScale = zoomScale; }
         else if (e.touches.length === 1) {
-          const now = Date.now();
-          if (now - lastTapTime < 280) { zoomScale > 1 ? resetLightboxZoom() : setLightboxTransform(2.2, 0, 0); }
-          lastTapTime = now;
-          if (zoomScale > 1) { isDragging = true; dragStartX = e.touches[0].clientX - panX; dragStartY = e.touches[0].clientY - panY; }
+          const now = Date.now(); if (now - lastTapTime < 280) { zoomScale > 1 ? resetLightboxZoom() : setLightboxTransform(2.2, 0, 0); }
+          lastTapTime = now; if (zoomScale > 1) { isDragging = true; dragStartX = e.touches[0].clientX - panX; dragStartY = e.touches[0].clientY - panY; }
         }
       }, { passive: true });
       vp.addEventListener("touchmove", e => {
@@ -1126,8 +1016,7 @@
     }
 
     function setLightboxTransform(s, x, y) {
-      zoomScale = Math.min(4, Math.max(1, s));
-      panX = zoomScale === 1 ? 0 : x; panY = zoomScale === 1 ? 0 : y;
+      zoomScale = Math.min(4, Math.max(1, s)); panX = zoomScale === 1 ? 0 : x; panY = zoomScale === 1 ? 0 : y;
       document.getElementById("lightboxImg").style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
       document.getElementById("lightboxZoomBadge").textContent = `${Math.round(zoomScale * 100)}%`;
     }
@@ -1135,31 +1024,22 @@
     window.resetLightboxZoom = () => setLightboxTransform(1, 0, 0);
 
     async function init() {
-      applySavedTheme();
-      setupMobileBackNavigation();
-      setupLightboxGestures();
-      checkPinLockOnLoad();
-      fetchGoogleCalendarEvents(false);
+      applySavedTheme(); setupMobileBackNavigation(); setupLightboxGestures(); checkPinLockOnLoad(); fetchGoogleCalendarEvents(false);
       try {
-        const app = initializeApp(DEFAULT_FIREBASE_CONFIG);
-        db = getFirestore(app);
+        const app = initializeApp(DEFAULT_FIREBASE_CONFIG); db = getFirestore(app);
         onSnapshot(query(collection(db, "zenops_quality_records"), orderBy("workDate", "desc")), snap => { records = snap.docs.map(d => d.data()); renderAll(); }, () => fallbackToLocal());
       } catch { fallbackToLocal(); }
     }
 
     function fallbackToLocal() {
-      db = null;
-      document.getElementById("syncDot").className = "w-2 h-2 rounded-full bg-amber-400";
-      document.getElementById("syncLabel").textContent = "로컬 모드";
+      db = null; document.getElementById("syncDot").className = "w-2 h-2 rounded-full bg-amber-400"; document.getElementById("syncLabel").textContent = "로컬 모드";
       try { records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { records = []; }
       renderAll();
     }
 
     function getPinCfg() { try { return JSON.parse(localStorage.getItem(PIN_CFG_KEY)) || { enabled: false, pin: "0000" }; } catch { return { enabled: false, pin: "0000" }; } }
     function checkPinLockOnLoad() {
-      const cfg = getPinCfg();
-      document.getElementById("pinEnabledCheck").checked = cfg.enabled;
-      document.getElementById("newPinInput").value = cfg.pin || "0000";
+      const cfg = getPinCfg(); document.getElementById("pinEnabledCheck").checked = cfg.enabled; document.getElementById("newPinInput").value = cfg.pin || "0000";
       if (cfg.enabled) { document.getElementById("headerLockBtn").classList.remove("hidden"); if (sessionStorage.getItem("zenops_unlocked") !== "true") document.getElementById("pinLockOverlay").classList.remove("hidden"); }
     }
     window.verifyPin = function () {
@@ -1170,9 +1050,7 @@
     window.lockScreenNow = () => { sessionStorage.removeItem("zenops_unlocked"); document.getElementById("pinLockOverlay").classList.remove("hidden"); };
     window.savePinSettings = function () {
       const enabled = document.getElementById("pinEnabledCheck").checked, pin = document.getElementById("newPinInput").value.trim() || "0000";
-      localStorage.setItem(PIN_CFG_KEY, JSON.stringify({ enabled, pin }));
-      document.getElementById("headerLockBtn").classList.toggle("hidden", !enabled);
-      alert("보안 설정이 저장되었습니다.");
+      localStorage.setItem(PIN_CFG_KEY, JSON.stringify({ enabled, pin })); document.getElementById("headerLockBtn").classList.toggle("hidden", !enabled); alert("보안 설정이 저장되었습니다.");
     };
 
     window.handleStatusChange = v => { const el = document.getElementById("fCompletedDate"); if (v === "완료" && !el.value) el.value = new Date().toISOString().slice(0, 10); };
@@ -1184,8 +1062,7 @@
       const idx = tokens.indexOf(preset);
       if (idx >= 0) tokens.splice(idx, 1);
       else { const custom = tokens.filter(t => !TITLE_PRESETS.includes(t)), sel = tokens.filter(t => TITLE_PRESETS.includes(t)); sel.push(preset); tokens = [...sel, ...custom]; }
-      input.value = tokens.join(" + ");
-      syncTitleQuickButtons();
+      input.value = tokens.join(" + "); syncTitleQuickButtons();
     };
     window.syncTitleQuickButtons = function () {
       const val = document.getElementById("fTitle").value.trim(), tokens = val ? val.split(/\s*\+\s*/).map(s => s.trim()) : [];
@@ -1203,6 +1080,17 @@
         else btn.className = "pack-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 transition";
       });
     }
+
+    // 사진 업데이트 완료 체크 버튼 제어
+    window.selectPhotoUpdateStatus = val => { document.getElementById("fPhotoUpdateStatus").value = val; updatePhotoStatusButtons(val); };
+    function updatePhotoStatusButtons(activeVal) {
+      document.querySelectorAll("#photoStatusBtnGroup .photo-check-btn").forEach(btn => {
+        const v = btn.getAttribute("data-val");
+        if (v === activeVal) btn.className = `photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border text-white shadow-sm transition ${v === "사진 업데이트 완료" ? "border-emerald-600 bg-emerald-600" : v === "사진 미완료" ? "border-amber-500 bg-amber-500" : "border-slate-700 bg-slate-700"}`;
+        else btn.className = "photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 transition";
+      });
+    }
+
     window.copyInspectorToPacker = () => { const w = document.getElementById("fWorker").value.trim(); if (!w) { alert("상단의 [검사 / 작업 담당자] 이름을 먼저 입력해 주세요."); return; } document.getElementById("fPacker").value = w; };
 
     function getWorkDoneVal(r) { return (r.qtyWorkDone !== undefined && r.qtyWorkDone !== null && String(r.qtyWorkDone) !== "") ? r.qtyWorkDone : ((r.qtyCoated !== undefined && r.qtyCoated !== null && String(r.qtyCoated) !== "") ? r.qtyCoated : ""); }
@@ -1213,8 +1101,7 @@
       const wd = toNum(getWorkDoneVal(r)), inc = toNum(r.qtyIncoming), del = toNum(r.qtyDelivered), def = toNum(r.qtyDefect);
       const base = isIncomingInspectionTitle(r) ? (inc > 0 ? inc : wd) : (wd > 0 ? wd : (inc > 0 ? inc : del));
       if (base <= 0 && def <= 0) return null;
-      const eff = Math.max(base, def);
-      return { base: eff, defect: def, rate: eff > 0 ? (def / eff) * 100 : 0 };
+      const eff = Math.max(base, def); return { base: eff, defect: def, rate: eff > 0 ? (def / eff) * 100 : 0 };
     }
 
     window.updateLiveDefectPreview = function () {
@@ -1247,8 +1134,7 @@
     window.selectDocCheck = function (type, val) {
       const id = type === "report" ? "fReportStatus" : "fCoatingDataStatus", gid = type === "report" ? "reportBtnGroup" : "coatingBtnGroup";
       const next = document.getElementById(id).value === val ? "" : val;
-      document.getElementById(id).value = next;
-      updateDocCheckButtons(gid, next);
+      document.getElementById(id).value = next; updateDocCheckButtons(gid, next);
     };
     function updateDocCheckButtons(gid, active) {
       document.querySelectorAll(`#${gid} .doc-check-btn`).forEach(btn => {
@@ -1262,26 +1148,45 @@
       const b = [];
       if (r.packingStatus === "포장 완료") b.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-teal-600 text-white">📦 포장 완료</span>`);
       else if (r.packingStatus === "포장 미완료") b.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">⏳ 포장 미완료</span>`);
+      if (r.photoUpdateStatus === "사진 업데이트 완료") b.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-600 text-white">📷 사진 업데이트 완료</span>`);
+      else if (r.photoUpdateStatus === "사진 미완료") b.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">📷 사진 미완료</span>`);
       if (r.reportStatus && r.reportStatus !== "해당없음") b.push(r.reportStatus === "성적서 완료" ? `<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-blue-600 text-white">성적서 완료</span>` : r.reportStatus === "성적서 미완료" ? `<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">성적서 미완료</span>` : `<span class="inline-block text-[11px] font-semibold px-2 py-0.5 rounded bg-white text-slate-500 border border-slate-300">성적서 없음</span>`);
       if (r.coatingDataStatus && r.coatingDataStatus !== "해당없음") b.push(r.coatingDataStatus === "코팅데이터 있음" ? `<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-purple-700 text-white">코팅데이터 있음</span>` : r.coatingDataStatus === "코팅데이터 대기" ? `<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">코팅데이터 대기</span>` : `<span class="inline-block text-[11px] font-semibold px-2 py-0.5 rounded bg-white text-slate-500 border border-slate-300">코팅데이터 없음</span>`);
       return b.length > 0 ? `<div class="flex flex-wrap gap-1">${b.join("")}</div>` : `<span class="text-slate-400 text-xs">-</span>`;
     }
 
     function getFilteredRecords() {
-      const kw = document.getElementById("filterKeyword").value.trim().toLowerCase(), cat = document.getElementById("filterCategory").value, st = document.getElementById("filterStatus").value, pk = document.getElementById("filterPacking").value, wk = document.getElementById("filterWorker").value.trim().toLowerCase(), dFrom = document.getElementById("filterDateFrom").value, dTo = document.getElementById("filterDateTo").value, todayStr = new Date().toISOString().slice(0, 10);
+      const kw = document.getElementById("filterKeyword").value.trim().toLowerCase();
+      const titleFilter = document.getElementById("filterTitleType").value;
+      const st = document.getElementById("filterStatus").value;
+      const pk = document.getElementById("filterPacking").value;
+      const photoSt = document.getElementById("filterPhotoStatus").value;
+      const wk = document.getElementById("filterWorker").value.trim().toLowerCase();
+      const dateField = document.getElementById("filterDateType").value || "completedDate";
+      const dFrom = document.getElementById("filterDateFrom").value;
+      const dTo = document.getElementById("filterDateTo").value;
+      const todayStr = new Date().toISOString().slice(0, 10);
+
       return records.filter(r => {
         if (quickFilterMode === "TODAY" && r.workDate !== todayStr) return false;
         if (["진행 중", "완료", "보류"].includes(quickFilterMode) && r.status !== quickFilterMode) return false;
         if (quickFilterMode === "PACK_DONE" && r.packingStatus !== "포장 완료") return false;
-        if (cat && r.category !== cat) return false;
+        if (titleFilter && !(r.title || "").includes(titleFilter)) return false;
         if (st && r.status !== st) return false;
         if (pk && r.packingStatus !== pk) return false;
+        if (photoSt && (r.photoUpdateStatus || "해당없음") !== photoSt) return false;
         if (wk && !`${r.worker || ""} ${r.packer || ""}`.toLowerCase().includes(wk)) return false;
-        if (dFrom && r.workDate < dFrom) return false;
-        if (dTo && r.workDate > dTo) return false;
+
+        if (dFrom || dTo) {
+          const targetDate = dateField === "completedDate" ? (r.completedDate || "") : (r.workDate || "");
+          if (!targetDate) return false;
+          if (dFrom && targetDate < dFrom) return false;
+          if (dTo && targetDate > dTo) return false;
+        }
+
         if (kw) {
           const subNames = Array.isArray(r.subItems) ? r.subItems.map(s => s.name).join(" ") : "";
-          const hay = [r.lotNo, r.client, r.productName, r.partNo, subNames, r.workNo, r.title, r.worker, r.packer, r.packingStatus, r.packingNote, r.workDate, r.completedDate, r.description, r.result, r.remarks, r.reportStatus, r.coatingDataStatus, formatQtyInline(r)].join(" ").toLowerCase();
+          const hay = [r.lotNo, r.client, r.productName, r.partNo, subNames, r.workNo, r.title, r.worker, r.packer, r.packingStatus, r.photoUpdateStatus, r.packingNote, r.workDate, r.completedDate, r.description, r.result, r.remarks, r.reportStatus, r.coatingDataStatus, formatQtyInline(r)].join(" ").toLowerCase();
           if (!hay.includes(kw)) return false;
         }
         return true;
@@ -1302,7 +1207,8 @@
 
     window.resetFilters = function () {
       quickFilterMode = "ALL";
-      ["filterKeyword", "filterCategory", "filterStatus", "filterPacking", "filterWorker", "filterDateFrom", "filterDateTo"].forEach(id => document.getElementById(id).value = "");
+      ["filterKeyword", "filterTitleType", "filterStatus", "filterPacking", "filterPhotoStatus", "filterWorker", "filterDateFrom", "filterDateTo"].forEach(id => document.getElementById(id).value = "");
+      document.getElementById("filterDateType").value = "completedDate";
       quickFilter("ALL");
     };
 
@@ -1345,11 +1251,7 @@
       ["list", "calendar", "defect", "trace", "stats"].forEach(t => {
         document.getElementById(`view-${t}`).classList.toggle("hidden", t !== tab);
         const btn = document.getElementById(`tab-${t}`);
-        if (t === tab) {
-          btn.className = "tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-bold bg-slate-900 text-white transition" + (t === "calendar" ? " flex items-center justify-center gap-1" : "");
-        } else {
-          btn.className = "tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition" + (t === "calendar" ? " flex items-center justify-center gap-1" : "");
-        }
+        btn.className = (t === tab ? "tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-bold bg-slate-900 text-white transition" : "tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition") + (t === "calendar" ? " flex items-center justify-center gap-1" : "");
       });
       if (tab === "calendar") renderCalendarView();
       if (tab === "defect") renderDefectDashboard();
@@ -1472,16 +1374,24 @@
         document.getElementById("fCoatingDataStatus").value = (!record.coatingDataStatus || record.coatingDataStatus === "해당없음") ? "" : record.coatingDataStatus;
         document.getElementById("fDescription").value = record.description || ""; document.getElementById("fJudgment").value = record.judgment || "해당없음"; document.getElementById("fResult").value = record.result || ""; document.getElementById("fRemarks").value = record.remarks || ""; document.getElementById("fPackingStatus").value = record.packingStatus || "해당없음"; document.getElementById("fPacker").value = record.packer || ""; document.getElementById("fPackingNote").value = record.packingNote || "";
         tempDocs = [...(record.files || [])]; tempPhotos = [...(await loadRecordPhotos(record))];
+        document.getElementById("fPhotoUpdateStatus").value = record.photoUpdateStatus || (tempPhotos.length > 0 ? "사진 업데이트 완료" : "해당없음");
       } else {
         const today = new Date().toISOString().slice(0, 10), seq = String(records.filter(r => r.workDate === today).length + 1).padStart(3, "0");
-        document.getElementById("formModalTitle").textContent = "새 품질 업무 등록"; document.getElementById("editRecordId").value = ""; document.getElementById("fWorkDate").value = today; document.getElementById("fCompletedDate").value = ""; document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`; document.getElementById("fStatus").value = "진행 중"; document.getElementById("fReportStatus").value = ""; document.getElementById("fCoatingDataStatus").value = ""; document.getElementById("fPackingStatus").value = "해당없음"; document.getElementById("fPacker").value = ""; document.getElementById("fPackingNote").value = "";
+        document.getElementById("formModalTitle").textContent = "새 품질 업무 등록"; document.getElementById("editRecordId").value = ""; document.getElementById("fWorkDate").value = today; document.getElementById("fCompletedDate").value = ""; document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`; document.getElementById("fStatus").value = "진행 중"; document.getElementById("fReportStatus").value = ""; document.getElementById("fCoatingDataStatus").value = ""; document.getElementById("fPackingStatus").value = "해당없음"; document.getElementById("fPacker").value = ""; document.getElementById("fPackingNote").value = ""; document.getElementById("fPhotoUpdateStatus").value = "해당없음";
         buildSubItemsRows([]); toggleSubItemsSection(false);
       }
-      syncTitleQuickButtons(); updateLiveDefectPreview(); updateDocCheckButtons("reportBtnGroup", document.getElementById("fReportStatus").value); updateDocCheckButtons("coatingBtnGroup", document.getElementById("fCoatingDataStatus").value); updatePackingButtons(document.getElementById("fPackingStatus").value); renderAttachmentsPreview();
+      syncTitleQuickButtons(); updateLiveDefectPreview(); updateDocCheckButtons("reportBtnGroup", document.getElementById("fReportStatus").value); updateDocCheckButtons("coatingBtnGroup", document.getElementById("fCoatingDataStatus").value); updatePackingButtons(document.getElementById("fPackingStatus").value); updatePhotoStatusButtons(document.getElementById("fPhotoUpdateStatus").value); renderAttachmentsPreview();
       document.getElementById("formModal").classList.remove("hidden"); pushModalHistory("formModal");
     };
 
-    window.handlePhotoSelect = async function (e) { for (const f of Array.from(e.target.files || [])) tempPhotos.push(await compressImage(f, 960, 0.7)); renderAttachmentsPreview(); e.target.value = ""; };
+    window.handlePhotoSelect = async function (e) {
+      const files = Array.from(e.target.files || []);
+      for (const f of files) tempPhotos.push(await compressImage(f, 960, 0.7));
+      if (tempPhotos.length > 0 && document.getElementById("fPhotoUpdateStatus").value === "해당없음") {
+        selectPhotoUpdateStatus("사진 업데이트 완료");
+      }
+      renderAttachmentsPreview(); e.target.value = "";
+    };
     function compressImage(file, maxWidth, quality) {
       return new Promise(res => { const r = new FileReader(); r.onload = ev => { const img = new Image(); img.onload = () => { const c = document.createElement("canvas"); let w = img.width, h = img.height; if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; } c.width = w; c.height = h; c.getContext("2d").drawImage(img, 0, 0, w, h); res(c.toDataURL("image/jpeg", quality)); }; img.src = ev.target.result; }; r.readAsDataURL(file); });
     }
@@ -1525,7 +1435,7 @@
       const btn = document.getElementById("submitBtn"); btn.disabled = true; btn.textContent = tempPhotos.length > 0 ? `사진 ${tempPhotos.length}장 분할 저장 중...` : "저장 중...";
       const editId = document.getElementById("editRecordId").value, id = editId || ("rec_" + Date.now()), statusVal = document.getElementById("fStatus").value;
       let completedDateVal = document.getElementById("fCompletedDate").value; if (statusVal === "완료" && !completedDateVal) completedDateVal = new Date().toISOString().slice(0, 10);
-      const payload = { id, workDate: document.getElementById("fWorkDate").value, completedDate: completedDateVal, workNo: document.getElementById("fWorkNo").value, status: statusVal, category: document.getElementById("fCategory").value, worker: document.getElementById("fWorker").value.trim(), title: document.getElementById("fTitle").value.trim(), lotNo: document.getElementById("fLotNo").value.trim(), client: document.getElementById("fClient").value.trim(), productName: document.getElementById("fProductName").value.trim(), partNo: document.getElementById("fPartNo").value.trim(), qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect, subItems, reportStatus, coatingDataStatus, description: document.getElementById("fDescription").value.trim(), judgment: document.getElementById("fJudgment").value, result: document.getElementById("fResult").value.trim(), remarks: document.getElementById("fRemarks").value.trim(), packingStatus: document.getElementById("fPackingStatus").value || "해당없음", packer: document.getElementById("fPacker").value.trim(), packingNote: document.getElementById("fPackingNote").value.trim(), photos: [], photoCount: tempPhotos.length, photoBytes: tempPhotos.reduce((a, s) => a + getByteLength(s), 0), files: tempDocs, updatedAt: Date.now() };
+      const payload = { id, workDate: document.getElementById("fWorkDate").value, completedDate: completedDateVal, workNo: document.getElementById("fWorkNo").value, status: statusVal, category: document.getElementById("fCategory").value, worker: document.getElementById("fWorker").value.trim(), title: document.getElementById("fTitle").value.trim(), lotNo: document.getElementById("fLotNo").value.trim(), client: document.getElementById("fClient").value.trim(), productName: document.getElementById("fProductName").value.trim(), partNo: document.getElementById("fPartNo").value.trim(), qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect, subItems, reportStatus, coatingDataStatus, description: document.getElementById("fDescription").value.trim(), judgment: document.getElementById("fJudgment").value, result: document.getElementById("fResult").value.trim(), remarks: document.getElementById("fRemarks").value.trim(), packingStatus: document.getElementById("fPackingStatus").value || "해당없음", packer: document.getElementById("fPacker").value.trim(), packingNote: document.getElementById("fPackingNote").value.trim(), photoUpdateStatus: document.getElementById("fPhotoUpdateStatus").value || "해당없음", photos: [], photoCount: tempPhotos.length, photoBytes: tempPhotos.reduce((a, s) => a + getByteLength(s), 0), files: tempDocs, updatedAt: Date.now() };
       try {
         if (db) { await savePhotosToSubcollection(id, tempPhotos); await setDoc(doc(db, "zenops_quality_records", id), payload); }
         else { const lp = { ...payload, photos: [...tempPhotos] }, idx = records.findIndex(r => r.id === id); if (idx >= 0) records[idx] = lp; else records.unshift(lp); localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); renderAll(); }
@@ -1539,9 +1449,10 @@
       document.getElementById("dWorkNo").textContent = `${r.workNo} · ${docSizeText}`; document.getElementById("dCategory").textContent = r.category;
       const filesHtml = (r.files && r.files.length > 0) ? `<div><div class="text-xs font-bold text-slate-700 mb-2">📎 연결된 성적서 / 데이터 파일 (${r.files.length}건)</div><div class="space-y-1.5">${r.files.map(f => `<div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-xs"><span class="font-medium text-slate-800 truncate">${esc(f.name)} <span class="text-slate-400">(${esc(f.size)})</span></span>${f.dataUrl ? `<a href="${f.dataUrl}" download="${esc(f.name)}" class="text-purple-700 font-bold shrink-0 ml-2">다운로드</a>` : `<span class="text-slate-400 text-[11px]">파일명 기록됨</span>`}</div>`).join("")}</div></div>` : "";
       const packBadgeText = r.packingStatus === "포장 완료" ? `<strong class="text-teal-700">📦 포장 완료</strong>` : r.packingStatus === "포장 미완료" ? `<strong class="text-amber-700">⏳ 포장 미완료</strong>` : `<strong class="text-slate-500">해당없음</strong>`;
+      const photoUpdateText = r.photoUpdateStatus === "사진 업데이트 완료" ? `<strong class="text-emerald-700">📷 사진 업데이트 완료</strong>` : r.photoUpdateStatus === "사진 미완료" ? `<strong class="text-amber-700">⏳ 사진 미완료</strong>` : `<strong class="text-slate-500">해당없음</strong>`;
       const initialPhotosArea = pCnt > 0 ? `<div id="detailPhotosContainer" class="pt-1"><div class="text-xs font-bold text-slate-500 py-4 text-center bg-slate-50 rounded-xl border border-slate-200 animate-pulse">📷 첨부 현장 사진 ${pCnt}장 불러오는 중...</div></div>` : "";
 
-      document.getElementById("detailBody").innerHTML = `<div class="flex items-start justify-between gap-2"><h4 class="text-lg font-extrabold text-slate-900 leading-snug break-words">${esc(r.title)}</h4><div class="shrink-0">${statusBadge(r.status)}</div></div>${renderQtyCards(r)}${renderDetailSubItemsTable(r)}<div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs"><div><span class="text-slate-400 block">작업일자</span><strong class="text-slate-800">${esc(r.workDate)}</strong></div><div><span class="text-slate-400 block">작업완료날짜</span><strong class="${r.completedDate ? "text-emerald-700" : "text-slate-400"}">${esc(r.completedDate || "-")}</strong></div><div><span class="text-slate-400 block">판정 결과</span><strong class="text-purple-800">${esc(r.judgment || "해당없음")}</strong></div><div><span class="text-slate-400 block">검사 / 작업 담당자</span><strong class="text-slate-800">${esc(r.worker)}</strong></div><div><span class="text-slate-400 block">포장 담당자</span><strong class="text-teal-700">${esc(r.packer || "-")}</strong></div><div><span class="text-slate-400 block">포장 여부 (출하)</span>${packBadgeText}</div><div><span class="text-slate-400 block">관리번호 / Lot</span><strong class="text-indigo-700 break-all">${esc(r.lotNo || "-")}</strong></div><div><span class="text-slate-400 block">고객사 / 외주업체</span><strong class="text-slate-800 break-words">${esc(r.client || "-")}</strong></div><div><span class="text-slate-400 block">제품명 (품명)</span><strong class="text-slate-800 break-words">${esc(r.productName || "-")}</strong></div><div><span class="text-slate-400 block">품번 (Part No.)</span><strong class="text-slate-800 break-all">${esc(r.partNo || "-")}</strong></div><div><span class="text-slate-400 block">성적서 유무</span><strong class="text-blue-700">${esc(r.reportStatus || "해당없음")}</strong></div><div><span class="text-slate-400 block">코팅데이터 유무</span><strong class="text-purple-700">${esc(r.coatingDataStatus || "해당없음")}</strong></div></div>${r.description ? `<div><div class="text-xs font-bold text-slate-700 mb-1">작업 및 검사 상세내용</div><div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-800 break-all whitespace-pre-line leading-relaxed">${esc(r.description)}</div></div>` : ""}${r.result ? `<div><div class="text-xs font-bold text-slate-700 mb-1">검사 및 작업 결과</div><div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-emerald-950 font-medium break-all whitespace-pre-line leading-relaxed">${esc(r.result)}</div></div>` : ""}${r.remarks ? `<div><div class="text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모</div><div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-amber-950 break-all whitespace-pre-line leading-relaxed">${esc(r.remarks)}</div></div>` : ""}${r.packingNote ? `<div><div class="text-xs font-bold text-teal-900 mb-1">📦 포장 / 출하 비고 (작업자 코멘트)</div><div class="bg-teal-50/80 p-3 rounded-xl border border-teal-200 text-teal-950 break-all whitespace-pre-line leading-relaxed">${esc(r.packingNote)}</div></div>` : ""}${initialPhotosArea}${filesHtml}`;
+      document.getElementById("detailBody").innerHTML = `<div class="flex items-start justify-between gap-2"><h4 class="text-lg font-extrabold text-slate-900 leading-snug break-words">${esc(r.title)}</h4><div class="shrink-0">${statusBadge(r.status)}</div></div>${renderQtyCards(r)}${renderDetailSubItemsTable(r)}<div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs"><div><span class="text-slate-400 block">작업일자</span><strong class="text-slate-800">${esc(r.workDate)}</strong></div><div><span class="text-slate-400 block">작업완료날짜</span><strong class="${r.completedDate ? "text-emerald-700" : "text-slate-400"}">${esc(r.completedDate || "-")}</strong></div><div><span class="text-slate-400 block">판정 결과</span><strong class="text-purple-800">${esc(r.judgment || "해당없음")}</strong></div><div><span class="text-slate-400 block">검사 / 작업 담당자</span><strong class="text-slate-800">${esc(r.worker)}</strong></div><div><span class="text-slate-400 block">포장 담당자</span><strong class="text-teal-700">${esc(r.packer || "-")}</strong></div><div><span class="text-slate-400 block">포장 여부 (출하)</span>${packBadgeText}</div><div><span class="text-slate-400 block">관리번호 / Lot</span><strong class="text-indigo-700 break-all">${esc(r.lotNo || "-")}</strong></div><div><span class="text-slate-400 block">고객사 / 외주업체</span><strong class="text-slate-800 break-words">${esc(r.client || "-")}</strong></div><div><span class="text-slate-400 block">제품명 (품명)</span><strong class="text-slate-800 break-words">${esc(r.productName || "-")}</strong></div><div><span class="text-slate-400 block">품번 (Part No.)</span><strong class="text-slate-800 break-all">${esc(r.partNo || "-")}</strong></div><div><span class="text-slate-400 block">성적서 유무</span><strong class="text-blue-700">${esc(r.reportStatus || "해당없음")}</strong></div><div><span class="text-slate-400 block">코팅데이터 유무</span><strong class="text-purple-700">${esc(r.coatingDataStatus || "해당없음")}</strong></div><div><span class="text-slate-400 block">사진 업데이트 여부</span>${photoUpdateText}</div></div>${r.description ? `<div><div class="text-xs font-bold text-slate-700 mb-1">작업 및 검사 상세내용</div><div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-800 break-all whitespace-pre-line leading-relaxed">${esc(r.description)}</div></div>` : ""}${r.result ? `<div><div class="text-xs font-bold text-slate-700 mb-1">검사 및 작업 결과</div><div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-emerald-950 font-medium break-all whitespace-pre-line leading-relaxed">${esc(r.result)}</div></div>` : ""}${r.remarks ? `<div><div class="text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모</div><div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-amber-950 break-all whitespace-pre-line leading-relaxed">${esc(r.remarks)}</div></div>` : ""}${r.packingNote ? `<div><div class="text-xs font-bold text-teal-900 mb-1">📦 포장 / 출하 비고 (작업자 코멘트)</div><div class="bg-teal-50/80 p-3 rounded-xl border border-teal-200 text-teal-950 break-all whitespace-pre-line leading-relaxed">${esc(r.packingNote)}</div></div>` : ""}${initialPhotosArea}${filesHtml}`;
       document.getElementById("detailModal").classList.remove("hidden"); pushModalHistory("detailModal");
 
       if (pCnt > 0) {
@@ -1578,11 +1489,11 @@
     window.openSettingsModal = () => { updateStorageUI(); document.getElementById("settingsModal").classList.remove("hidden"); pushModalHistory("settingsModal"); };
 
     window.exportCSV = function () {
-      const headers = ["작업일자", "작업완료날짜", "고유번호", "관리번호", "고객사/외주업체", "제품명", "품번", "업무분류", "진행상태", "검사담당자", "포장여부", "포장담당자", "포장비고", "업무제목", "작업완료(ea)", "입고수량(ea)", "납품수량(ea)", "재고수량(ea)", "불량수량(ea)", "불량률(%)", "세부품목내역", "성적서유무", "코팅데이터유무", "작업내용", "판정", "검사결과", "특이사항"];
+      const headers = ["작업일자", "작업완료날짜", "고유번호", "관리번호", "고객사/외주업체", "제품명", "품번", "업무분류", "진행상태", "검사담당자", "포장여부", "포장담당자", "포장비고", "사진업데이트여부", "업무제목", "작업완료(ea)", "입고수량(ea)", "납품수량(ea)", "재고수량(ea)", "불량수량(ea)", "불량률(%)", "세부품목내역", "성적서유무", "코팅데이터유무", "작업내용", "판정", "검사결과", "특이사항"];
       const rows = getFilteredRecords().map(r => {
         const d = calcRecordDefectInfo(r), rs = (d && d.base > 0) ? d.rate.toFixed(1) + "%" : "0.0%";
         const st = Array.isArray(r.subItems) && r.subItems.length > 0 ? r.subItems.map(s => `${s.no}.${s.name}(작업/입고:${s.workQty || 0}, 재고:${s.stockQty || 0}, 불량:${s.defectQty || 0}, 납품:${s.deliveredQty || 0})`).join(" / ") : "";
-        return [r.workDate, r.completedDate || "", r.workNo, r.lotNo || "", r.client || "", r.productName || "", r.partNo || "", r.category, r.status, r.worker, r.packingStatus || "해당없음", r.packer || "", (r.packingNote || "").replace(/\n/g, " "), r.title, getWorkDoneVal(r), r.qtyIncoming ?? "", r.qtyDelivered ?? "", r.qtyStock ?? "", r.qtyDefect ?? "", rs, st, r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음", (r.description || "").replace(/\n/g, " "), r.judgment || "", (r.result || "").replace(/\n/g, " "), (r.remarks || "").replace(/\n/g, " ")].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
+        return [r.workDate, r.completedDate || "", r.workNo, r.lotNo || "", r.client || "", r.productName || "", r.partNo || "", r.category, r.status, r.worker, r.packingStatus || "해당없음", r.packer || "", (r.packingNote || "").replace(/\n/g, " "), r.photoUpdateStatus || "해당없음", r.title, getWorkDoneVal(r), r.qtyIncoming ?? "", r.qtyDelivered ?? "", r.qtyStock ?? "", r.qtyDefect ?? "", rs, st, r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음", (r.description || "").replace(/\n/g, " "), r.judgment || "", (r.result || "").replace(/\n/g, " "), (r.remarks || "").replace(/\n/g, " ")].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
       });
       const blob = new Blob(["\uFEFF" + [headers.join(","), ...rows].join("\n")], { type: "text/csv;charset=utf-8;" }), a = document.createElement("a");
       a.href = URL.createObjectURL(blob); a.download = `ZENOPS_품질팀_업무이력_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
