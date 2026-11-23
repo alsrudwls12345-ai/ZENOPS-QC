@@ -133,7 +133,7 @@
             <thead>
               <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600">
                 <th class="py-3 px-3.5">작업일자 · 완료일</th><th class="py-3 px-3.5">관리번호 · 업체명</th><th class="py-3 px-3.5">제품명 · 품번</th><th class="py-3 px-3.5">업무 분류</th>
-                <th class="py-3 px-3.5">업무 제목 / 수량 · 불량률</th><th class="py-3 px-3.5">서류 · 포장 · 사진</th><th class="py-3 px-3.5">검사 / 포장 담당</th><th class="py-3 px-3.5">첨부</th><th class="py-3 px-3.5">상태</th>
+                <th class="py-3 px-3.5">업무 제목 / 수량 · 재입고</th><th class="py-3 px-3.5">서류 · 포장 · 사진</th><th class="py-3 px-3.5">검사 / 포장 담당</th><th class="py-3 px-3.5">첨부</th><th class="py-3 px-3.5">상태</th>
               </tr>
             </thead>
             <tbody id="desktopTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -169,7 +169,7 @@
 
     <section id="view-defect" class="hidden space-y-4 animate-fade">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div><h2 class="text-base font-bold text-slate-900">수량 현황 및 공정 · 외주 업체별 불량률 집계표</h2><p class="text-xs text-slate-500 mt-0.5">수입검사(입고수량 기준) 및 사내 공정(작업완료 기준) 불량률을 자동 산출합니다.</p></div>
+        <div><h2 class="text-base font-bold text-slate-900">수량 현황 및 공정 · 외주 업체별 불량률 집계표</h2><p class="text-xs text-slate-500 mt-0.5">수입검사(입고수량 기준) 및 사내 공정(작업완료 기준) 불량률을 자동 산출합니다. (재입고 2차·3차분 자동 합산)</p></div>
         <div class="flex flex-wrap items-center gap-1.5">
           <button type="button" onclick="setDefectPeriod('ALL')" id="dp-ALL" class="dp-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white">전체 기간</button>
           <button type="button" onclick="setDefectPeriod('MONTH')" id="dp-MONTH" class="dp-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">이번 달</button>
@@ -200,7 +200,7 @@
 
     <section id="view-trace" class="hidden space-y-4 animate-fade">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-        <div><h2 class="text-base font-bold text-slate-900">관리번호 / 품번 / 제품별 공정 타임라인 추적</h2><p class="text-xs text-slate-500 mt-0.5">입고검사 → 세정 → 코팅 → Zygo 측정 → 포장 · 출고까지 특정 관리번호 또는 품번의 전체 이력을 시간순으로 추적합니다.</p></div>
+        <div><h2 class="text-base font-bold text-slate-900">관리번호 / 품번 / 제품별 공정 타임라인 추적</h2><p class="text-xs text-slate-500 mt-0.5">입고검사 → 재가공 재입고 → 세정 → 코팅 → Zygo 측정 → 포장 · 출고까지 특정 관리번호 또는 품번의 전체 이력을 시간순으로 추적합니다.</p></div>
         <div class="flex flex-col sm:flex-row gap-2"><input type="text" id="traceInput" oninput="renderTrace()" placeholder="관리번호(Lot No), 품번(예: 111-1), 또는 제품명을 입력하세요..." class="flex-1 text-sm border border-slate-300 rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-700" /><div id="traceQuickChips" class="flex flex-wrap gap-1.5 items-center"></div></div>
       </div>
       <div id="traceTimelineContainer" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"></div>
@@ -243,6 +243,11 @@
         <input type="hidden" id="fCoatingDataStatus" value="" />
         <input type="hidden" id="fPackingStatus" value="해당없음" />
         <input type="hidden" id="fPhotoUpdateStatus" value="해당없음" />
+
+        <div id="reworkBanner" class="hidden bg-indigo-50 border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs text-indigo-900 font-bold flex items-center justify-between gap-2">
+          <span id="reworkBannerText">🔄 기존 불량 발생 건에 대한 재연마·재가공 재입고 추가등록입니다.</span>
+          <span class="text-[11px] font-normal text-indigo-700 shrink-0">저장 시 원본 목록 아래로 자동 연결됩니다</span>
+        </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div><label class="block text-xs font-bold text-slate-700 mb-1">작업일자 <span class="text-rose-600">*</span></label><input type="date" id="fWorkDate" required class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" /></div>
@@ -477,9 +482,10 @@
         <button onclick="requestCloseModal('detailModal')" class="text-slate-400 hover:text-white text-xl px-2">✕</button>
       </div>
       <div id="detailBody" class="p-5 overflow-y-auto space-y-4 text-sm"></div>
-      <div class="px-5 py-3.5 bg-slate-100 border-t border-slate-200 flex items-center justify-between shrink-0">
+      <div class="px-5 py-3.5 bg-slate-100 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
         <button onclick="openDeleteConfirm()" class="px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">이력 삭제...</button>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
+          <button id="detailReworkBtn" onclick="triggerReworkFromDetail()" class="hidden px-3.5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-sm">+ 재입고 추가등록</button>
           <button onclick="editCurrentRecord()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-sm">✏️ 수정하기</button>
           <button onclick="requestCloseModal('detailModal')" class="px-5 py-2.5 rounded-xl text-xs font-bold border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 shadow-sm">닫기</button>
         </div>
@@ -591,6 +597,7 @@
     let zoomScale = 1, panX = 0, panY = 0, isDragging = false, dragStartX = 0, dragStartY = 0, initialPinchDist = 0, initialPinchScale = 1, lastTapTime = 0;
     let modalStack = [], isHandlingPopState = false, lastBackPressTime = 0, toastTimer = null;
     let calendarEvents = [], calendarNames = [], selectedCalendarFilter = "ALL", calRangeMode = "ALL", selectedCalEvent = null;
+    let expandedReworkParents = new Set(), activeParentIdForRework = "";
 
     const THEMES = [{ id: "purple", label: "퍼플 기본", className: "" }, { id: "blue", label: "제놉스 블루", className: "theme-blue" }, { id: "dark", label: "제놉스 다크", className: "theme-dark" }];
 
@@ -606,7 +613,6 @@
       localStorage.setItem(THEME_CFG_KEY, next.id); applySavedTheme(); showToast(`화면 테마 변경: ${next.label}`);
     };
 
-    // 구글 캘린더 HTML 태그(<ul><li>, <br>, <p>, &nbsp;)를 깔끔한 줄바꿈과 글머리 기호(•)로 변환
     function formatCalDescription(raw) {
       if (!raw) return "";
       let s = String(raw);
@@ -705,7 +711,6 @@
       }).join("");
     };
 
-    // 캘린더 일정 상세 팝업 열기 / 수정 모드 전환 / 구글 캘린더 저장
     window.openCalDetailModal = function (eventId) {
       const ev = calendarEvents.find(e => e.id === eventId); if (!ev) return;
       selectedCalEvent = ev;
@@ -1076,9 +1081,72 @@
       return b.length > 0 ? `<div class="flex flex-wrap gap-1">${b.join("")}</div>` : `<span class="text-slate-400 text-xs">-</span>`;
     }
 
+    function getChildRecords(parentId) {
+      return records
+        .filter(c => c.parentRecordId === parentId)
+        .sort((a, b) => (a.workDate || "").localeCompare(b.workDate || "") || (a.updatedAt || 0) - (b.updatedAt || 0));
+    }
+
+    window.toggleReworkExpand = function (parentId) {
+      if (expandedReworkParents.has(parentId)) expandedReworkParents.delete(parentId);
+      else expandedReworkParents.add(parentId);
+      renderAll();
+    };
+
+    window.openReworkModal = async function (parentId) {
+      const parent = records.find(r => r.id === parentId);
+      if (!parent) return;
+      const siblings = getChildRecords(parentId);
+      const nextRound = siblings.length + 1;
+      const latestSource = siblings.length > 0 ? siblings[siblings.length - 1] : parent;
+
+      await openFormModal(null);
+      activeParentIdForRework = parentId;
+
+      const banner = document.getElementById("reworkBanner");
+      banner.classList.remove("hidden");
+      document.getElementById("reworkBannerText").textContent = `🔄 [${parent.title}] 불량건 재연마·재가공 ${nextRound}차 재입고 추가등록`;
+
+      document.getElementById("formModalTitle").textContent = `🔄 재연마·재가공 ${nextRound}차 재입고 추가등록`;
+      document.getElementById("fCategory").value = parent.category || "입고/출고/공정검사";
+      document.getElementById("fTitle").value = `${parent.title} (${nextRound}차 재가공 재입고)`;
+      syncTitleQuickButtons();
+      document.getElementById("fLotNo").value = parent.lotNo || "";
+      document.getElementById("fClient").value = parent.client || "";
+      document.getElementById("fVendor").value = parent.vendor || "";
+      document.getElementById("fProductName").value = parent.productName || "";
+      document.getElementById("fPartNo").value = parent.partNo || "";
+
+      const defectQty = toNum(latestSource.qtyDefect);
+      if (defectQty > 0) {
+        if (isIncomingInspectionTitle(parent) || parent.category === "입고/출고/공정검사") {
+          document.getElementById("fQtyIncoming").value = defectQty;
+        } else {
+          document.getElementById("fQtyWorkDone").value = defectQty;
+        }
+      }
+
+      const defectSubs = Array.isArray(latestSource.subItems) ? latestSource.subItems.filter(s => toNum(s.defectQty) > 0) : [];
+      if (defectSubs.length > 0) {
+        buildSubItemsRows(defectSubs.map((s, idx) => ({ no: idx + 1, name: s.name, workQty: toNum(s.defectQty), stockQty: "", defectQty: "", deliveredQty: "" })));
+        toggleSubItemsSection(true);
+      }
+      updateLiveDefectPreview();
+      showToast(`불량분 ${defectQty > 0 ? defectQty + "ea " : ""}재입고 추가등록 정보가 자동 입력되었습니다.`);
+    };
+
+    window.triggerReworkFromDetail = function () {
+      const r = records.find(x => x.id === selectedRecordId);
+      if (!r) return;
+      const rootId = r.parentRecordId || r.id;
+      requestCloseModal("detailModal");
+      setTimeout(() => openReworkModal(rootId), 60);
+    };
+
     function getFilteredRecords() {
       const kw = document.getElementById("filterKeyword").value.trim().toLowerCase(), titleFilter = document.getElementById("filterTitleType").value, st = document.getElementById("filterStatus").value, pk = document.getElementById("filterPacking").value, photoSt = document.getElementById("filterPhotoStatus").value, wk = document.getElementById("filterWorker").value.trim().toLowerCase(), dateField = document.getElementById("filterDateType").value || "completedDate", dFrom = document.getElementById("filterDateFrom").value, dTo = document.getElementById("filterDateTo").value, todayStr = new Date().toISOString().slice(0, 10);
       return records.filter(r => {
+        if (r.parentRecordId && records.some(p => p.id === r.parentRecordId)) return false;
         if (quickFilterMode === "TODAY" && r.workDate !== todayStr) return false;
         if (["진행 중", "완료", "보류"].includes(quickFilterMode) && r.status !== quickFilterMode) return false;
         if (quickFilterMode === "PACK_DONE" && r.packingStatus !== "포장 완료") return false;
@@ -1086,7 +1154,7 @@
         if (st && r.status !== st) return false;
         if (pk && r.packingStatus !== pk) return false;
         if (photoSt === "사진 업데이트 완료" && r.photoUpdateStatus !== "사진 업데이트 완료") return false;
-if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이트 완료") return false;
+        if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이트 완료") return false;
         if (wk && !`${r.worker || ""} ${r.packer || ""}`.toLowerCase().includes(wk)) return false;
         if (dFrom || dTo) {
           const targetDate = dateField === "completedDate" ? (r.completedDate || "") : (r.workDate || "");
@@ -1095,8 +1163,12 @@ if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이�
           if (dTo && targetDate > dTo) return false;
         }
         if (kw) {
-          const subNames = Array.isArray(r.subItems) ? r.subItems.map(s => s.name).join(" ") : "";
-          const hay = [r.lotNo, r.client, r.vendor, r.productName, r.partNo, subNames, r.workNo, r.title, r.worker, r.packer, r.packingStatus, r.photoUpdateStatus, r.packingNote, r.workDate, r.completedDate, r.description, r.result, r.remarks, r.reportStatus, r.coatingDataStatus, formatQtyInline(r)].join(" ").toLowerCase();
+          const children = getChildRecords(r.id);
+          const allRelated = [r, ...children];
+          const hay = allRelated.map(item => {
+            const subNames = Array.isArray(item.subItems) ? item.subItems.map(s => s.name).join(" ") : "";
+            return [item.lotNo, item.client, item.vendor, item.productName, item.partNo, subNames, item.workNo, item.title, item.worker, item.packer, item.packingStatus, item.photoUpdateStatus, item.packingNote, item.workDate, item.completedDate, item.description, item.result, item.remarks, item.reportStatus, item.coatingDataStatus, formatQtyInline(item)].join(" ");
+          }).join(" ").toLowerCase();
           if (!hay.includes(kw)) return false;
         }
         return true;
@@ -1139,12 +1211,66 @@ if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이�
         tbody.innerHTML = filtered.map(r => {
           const ql = formatQtyInline(r), sub = ql || r.result || r.description || "-", pCnt = getRecordPhotoCount(r);
           const orgLine = [r.client, r.vendor ? `외주:${r.vendor}` : ""].filter(Boolean).join(" · ");
-          return `<tr onclick="openDetailModal('${r.id}')" class="hover:bg-purple-50/50 cursor-pointer transition"><td class="py-3 px-3.5 whitespace-nowrap"><div class="font-bold text-slate-800">${esc(r.workDate)}</div>${r.completedDate ? `<div class="text-[11px] font-bold text-emerald-700">완료: ${esc(r.completedDate)}</div>` : `<div class="text-[11px] font-mono text-slate-400">${esc(r.workNo)}</div>`}</td><td class="py-3 px-3.5 text-xs">${r.lotNo || orgLine ? `<div class="font-bold text-indigo-700">${esc(r.lotNo || "-")}</div><div class="text-slate-600 mt-0.5">${esc(orgLine || "-")}</div>` : `<span class="text-slate-400">-</span>`}</td><td class="py-3 px-3.5 text-xs max-w-[180px]">${r.productName || r.partNo ? `<div class="font-semibold text-slate-800 truncate">${esc(r.productName || "-")}</div><div class="text-slate-500 mt-0.5">${esc(r.partNo || "-")}</div>` : `<span class="text-slate-400">-</span>`}</td><td class="py-3 px-3.5 whitespace-nowrap"><span class="text-xs font-semibold px-2 py-1 rounded-md bg-slate-100 text-slate-700">${esc(r.category)}</span></td><td class="py-3 px-3.5 max-w-xs"><div class="font-bold text-slate-900 truncate">${esc(r.title)}</div><div class="text-xs ${ql ? "text-purple-800 font-semibold" : "text-slate-500"} truncate mt-0.5">${esc(sub)}</div></td><td class="py-3 px-3.5">${renderDocAndPackingBadges(r)}${r.packingNote ? `<div class="text-[11px] text-teal-800 truncate max-w-[180px] mt-1">📝 ${esc(r.packingNote)}</div>` : ""}</td><td class="py-3 px-3.5 text-xs whitespace-nowrap"><div class="font-bold text-slate-700">검사: ${esc(r.worker)}</div>${r.packer ? `<div class="text-teal-700 font-semibold mt-0.5">포장: ${esc(r.packer)}</div>` : ""}</td><td class="py-3 px-3.5 text-xs whitespace-nowrap text-slate-500">${pCnt > 0 ? `📷 ${pCnt} ` : ""}${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}${!(pCnt || r.files?.length) ? "-" : ""}</td><td class="py-3 px-3.5 whitespace-nowrap">${statusBadge(r.status)}</td></tr>`;
+          const children = getChildRecords(r.id);
+          const hasAnyDefect = toNum(r.qtyDefect) > 0 || children.some(c => toNum(c.qtyDefect) > 0);
+          const isExp = expandedReworkParents.has(r.id);
+
+          const actionBtns = (hasAnyDefect || children.length > 0) ? `<div class="flex flex-wrap items-center gap-1.5 mt-1.5" onclick="event.stopPropagation()">
+            ${hasAnyDefect ? `<button type="button" onclick="openReworkModal('${r.id}')" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition">+ 재입고 추가등록</button>` : ""}
+            ${children.length > 0 ? `<button type="button" onclick="toggleReworkExpand('${r.id}')" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition">📂 재입고 내역 ${children.length}건 ${isExp ? "접기 ▴" : "보기 ▾"}</button>` : ""}
+          </div>` : "";
+
+          const baseStock = toNum(r.qtyStock), childStock = children.reduce((s, c) => s + toNum(c.qtyStock), 0);
+          const baseDeliv = toNum(r.qtyDelivered), childDeliv = children.reduce((s, c) => s + toNum(c.qtyDelivered), 0);
+          const subRowsHtml = (isExp && children.length > 0) ? `<tr class="bg-indigo-50/40 border-b border-indigo-100"><td colspan="9" class="py-2.5 px-4">
+            <div class="bg-white rounded-xl border border-indigo-200/80 p-3 space-y-2 shadow-sm">
+              <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-slate-100 text-xs">
+                <span class="font-extrabold text-indigo-900">🔄 재연마 · 재가공 재입고 이력 (${children.length}차분)</span>
+                <span class="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">누적 양품(재고): 1차 ${baseStock.toLocaleString()}ea + 재입고 ${childStock.toLocaleString()}ea = 총 ${(baseStock + childStock).toLocaleString()}ea${(baseDeliv + childDeliv) > 0 ? ` · 누적 납품: ${(baseDeliv + childDeliv).toLocaleString()}ea` : ""}</span>
+              </div>
+              <div class="divide-y divide-slate-100">
+                ${children.map((c, idx) => `<div onclick="openDetailModal('${c.id}')" class="py-2 px-2 flex flex-wrap items-center justify-between gap-2 hover:bg-purple-50/60 rounded-lg cursor-pointer transition text-xs">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 shrink-0">${idx + 1}차 재입고</span>
+                    <span class="font-bold text-slate-700 shrink-0">${esc(c.workDate)}</span>
+                    <span class="font-bold text-slate-900 truncate">${esc(c.title)}</span>
+                    <span class="text-purple-800 font-semibold shrink-0">${esc(formatQtyInline(c) || "-")}</span>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-slate-500">검사: ${esc(c.worker)}</span>
+                    ${renderDocAndPackingBadges(c)}
+                    ${statusBadge(c.status)}
+                  </div>
+                </div>`).join("")}
+              </div>
+            </div>
+          </td></tr>` : "";
+
+          return `<tr onclick="openDetailModal('${r.id}')" class="hover:bg-purple-50/50 cursor-pointer transition"><td class="py-3 px-3.5 whitespace-nowrap"><div class="font-bold text-slate-800">${esc(r.workDate)}</div>${r.completedDate ? `<div class="text-[11px] font-bold text-emerald-700">완료: ${esc(r.completedDate)}</div>` : `<div class="text-[11px] font-mono text-slate-400">${esc(r.workNo)}</div>`}</td><td class="py-3 px-3.5 text-xs">${r.lotNo || orgLine ? `<div class="font-bold text-indigo-700">${esc(r.lotNo || "-")}</div><div class="text-slate-600 mt-0.5">${esc(orgLine || "-")}</div>` : `<span class="text-slate-400">-</span>`}</td><td class="py-3 px-3.5 text-xs max-w-[180px]">${r.productName || r.partNo ? `<div class="font-semibold text-slate-800 truncate">${esc(r.productName || "-")}</div><div class="text-slate-500 mt-0.5">${esc(r.partNo || "-")}</div>` : `<span class="text-slate-400">-</span>`}</td><td class="py-3 px-3.5 whitespace-nowrap"><span class="text-xs font-semibold px-2 py-1 rounded-md bg-slate-100 text-slate-700">${esc(r.category)}</span></td><td class="py-3 px-3.5 max-w-xs"><div class="font-bold text-slate-900 truncate">${esc(r.title)}</div><div class="text-xs ${ql ? "text-purple-800 font-semibold" : "text-slate-500"} truncate mt-0.5">${esc(sub)}</div>${actionBtns}</td><td class="py-3 px-3.5">${renderDocAndPackingBadges(r)}${r.packingNote ? `<div class="text-[11px] text-teal-800 truncate max-w-[180px] mt-1">📝 ${esc(r.packingNote)}</div>` : ""}</td><td class="py-3 px-3.5 text-xs whitespace-nowrap"><div class="font-bold text-slate-700">검사: ${esc(r.worker)}</div>${r.packer ? `<div class="text-teal-700 font-semibold mt-0.5">포장: ${esc(r.packer)}</div>` : ""}</td><td class="py-3 px-3.5 text-xs whitespace-nowrap text-slate-500">${pCnt > 0 ? `📷 ${pCnt} ` : ""}${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}${!(pCnt || r.files?.length) ? "-" : ""}</td><td class="py-3 px-3.5 whitespace-nowrap">${statusBadge(r.status)}</td></tr>${subRowsHtml}`;
         }).join("");
 
         mobileList.innerHTML = filtered.map(r => {
           const ql = formatQtyInline(r), hasTr = r.lotNo || r.client || r.vendor || r.productName || r.partNo, pCnt = getRecordPhotoCount(r);
-          return `<div onclick="openDetailModal('${r.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 space-y-2"><div class="flex items-center justify-between gap-2"><span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(r.category)}</span>${statusBadge(r.status)}</div><div class="font-bold text-slate-900 text-sm leading-snug break-words">${esc(r.title)}</div>${hasTr ? `<div class="text-xs bg-slate-50 px-2.5 py-2 rounded-lg border border-slate-200/80 space-y-1">${(r.lotNo || r.client || r.vendor) ? `<div class="flex flex-wrap items-center justify-between gap-1">${r.lotNo ? `<span class="font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/80">관리번호: ${esc(r.lotNo)}</span>` : `<span></span>`}<div class="flex flex-wrap items-center gap-1">${r.client ? `<span class="font-bold text-slate-700">${esc(r.client)}</span>` : ""}${r.vendor ? `<span class="font-bold text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">외주: ${esc(r.vendor)}</span>` : ""}</div></div>` : ""}${(r.productName || r.partNo) ? `<div class="text-slate-600 break-words leading-relaxed">${r.productName ? `<span>품명: <strong class="text-slate-800">${esc(r.productName)}</strong></span>` : ""}${(r.productName && r.partNo) ? ` · ` : ""}${r.partNo ? `<span>품번: <strong class="text-slate-800">${esc(r.partNo)}</strong></span>` : ""}</div>` : ""}</div>` : ""}${ql ? `<div class="text-xs font-bold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200/70">📦 ${esc(ql)}</div>` : ""}<div>${renderDocAndPackingBadges(r)}</div>${r.packingNote ? `<div class="text-xs text-teal-900 bg-teal-50/80 px-2.5 py-1.5 rounded-lg border border-teal-200/80 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}${(r.result || r.description) ? `<p class="text-xs text-slate-500 line-clamp-2 break-all">${esc(r.result || r.description)}</p>` : ""}<div class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-100"><span>작업: ${esc(r.workDate)}${r.completedDate ? ` · <strong class="text-emerald-700">완료: ${esc(r.completedDate)}</strong>` : ""} · 검사: <strong class="text-slate-700">${esc(r.worker)}</strong>${r.packer ? ` · 포장: <strong class="text-teal-700">${esc(r.packer)}</strong>` : ""}</span><span>${pCnt > 0 ? `📷 ${pCnt} ` : ""}${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}</span></div></div>`;
+          const children = getChildRecords(r.id);
+          const hasAnyDefect = toNum(r.qtyDefect) > 0 || children.some(c => toNum(c.qtyDefect) > 0);
+          const isExp = expandedReworkParents.has(r.id);
+          const baseStock = toNum(r.qtyStock), childStock = children.reduce((s, c) => s + toNum(c.qtyStock), 0);
+
+          const mActionBtns = (hasAnyDefect || children.length > 0) ? `<div class="flex flex-wrap items-center gap-1.5 pt-1" onclick="event.stopPropagation()">
+            ${hasAnyDefect ? `<button type="button" onclick="openReworkModal('${r.id}')" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">+ 재입고 추가등록</button>` : ""}
+            ${children.length > 0 ? `<button type="button" onclick="toggleReworkExpand('${r.id}')" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">📂 재입고 내역 ${children.length}건 ${isExp ? "접기 ▴" : "보기 ▾"}</button>` : ""}
+          </div>` : "";
+
+          const mSubList = (isExp && children.length > 0) ? `<div onclick="event.stopPropagation()" class="bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-200 space-y-2">
+            <div class="text-[11px] font-extrabold text-emerald-800 bg-white px-2.5 py-1 rounded-lg border border-emerald-200">누적 양품: ${(baseStock + childStock).toLocaleString()}ea (1차 ${baseStock} + 재입고 ${childStock})</div>
+            ${children.map((c, idx) => `<div onclick="openDetailModal('${c.id}')" class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1 text-xs">
+              <div class="flex items-center justify-between"><span class="font-extrabold text-indigo-700">${idx + 1}차 재입고 · ${esc(c.workDate)}</span>${statusBadge(c.status)}</div>
+              <div class="font-bold text-slate-900">${esc(c.title)}</div>
+              <div class="text-purple-800 font-semibold">${esc(formatQtyInline(c) || "-")} · 검사: ${esc(c.worker)}</div>
+            </div>`).join("")}
+          </div>` : "";
+
+          return `<div onclick="openDetailModal('${r.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 space-y-2"><div class="flex items-center justify-between gap-2"><span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(r.category)}</span>${statusBadge(r.status)}</div><div class="font-bold text-slate-900 text-sm leading-snug break-words">${esc(r.title)}</div>${hasTr ? `<div class="text-xs bg-slate-50 px-2.5 py-2 rounded-lg border border-slate-200/80 space-y-1">${(r.lotNo || r.client || r.vendor) ? `<div class="flex flex-wrap items-center justify-between gap-1">${r.lotNo ? `<span class="font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/80">관리번호: ${esc(r.lotNo)}</span>` : `<span></span>`}<div class="flex flex-wrap items-center gap-1">${r.client ? `<span class="font-bold text-slate-700">${esc(r.client)}</span>` : ""}${r.vendor ? `<span class="font-bold text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">외주: ${esc(r.vendor)}</span>` : ""}</div></div>` : ""}${(r.productName || r.partNo) ? `<div class="text-slate-600 break-words leading-relaxed">${r.productName ? `<span>품명: <strong class="text-slate-800">${esc(r.productName)}</strong></span>` : ""}${(r.productName && r.partNo) ? ` · ` : ""}${r.partNo ? `<span>품번: <strong class="text-slate-800">${esc(r.partNo)}</strong></span>` : ""}</div>` : ""}</div>` : ""}${ql ? `<div class="text-xs font-bold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200/70">📦 ${esc(ql)}</div>` : ""}${mActionBtns}${mSubList}<div>${renderDocAndPackingBadges(r)}</div>${r.packingNote ? `<div class="text-xs text-teal-900 bg-teal-50/80 px-2.5 py-1.5 rounded-lg border border-teal-200/80 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}${(r.result || r.description) ? `<p class="text-xs text-slate-500 line-clamp-2 break-all">${esc(r.result || r.description)}</p>` : ""}<div class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-100"><span>작업: ${esc(r.workDate)}${r.completedDate ? ` · <strong class="text-emerald-700">완료: ${esc(r.completedDate)}</strong>` : ""} · 검사: <strong class="text-slate-700">${esc(r.worker)}</strong>${r.packer ? ` · 포장: <strong class="text-teal-700">${esc(r.packer)}</strong>` : ""}</span><span>${pCnt > 0 ? `📷 ${pCnt} ` : ""}${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}</span></div></div>`;
         }).join("");
       }
       if (currentTab === "defect") renderDefectDashboard();
@@ -1240,8 +1366,8 @@ if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이�
       const uniqueLots = [...new Set(records.map(r => r.lotNo || r.partNo).filter(Boolean))].slice(0, 6);
       document.getElementById("traceQuickChips").innerHTML = uniqueLots.map(p => `<button onclick="document.getElementById('traceInput').value='${esc(p)}'; renderTrace();" class="text-xs px-2.5 py-1 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-800 font-semibold border border-purple-200">#${esc(p)}</button>`).join("");
       const q = document.getElementById("traceInput").value.trim().toLowerCase(), container = document.getElementById("traceTimelineContainer");
-      const matched = records.filter(r => !q ? (r.lotNo || r.partNo || r.productName) : [r.lotNo, r.partNo, r.productName, r.client].some(v => (v || "").toLowerCase().includes(q))).sort((a, b) => (a.workDate || "").localeCompare(b.workDate || "") || (a.updatedAt || 0) - (b.updatedAt || 0));
-      container.innerHTML = matched.length === 0 ? `<p class="text-center text-sm text-slate-400 py-8">일치하는 관리번호 또는 품번 이력이 없습니다.</p>` : `<div class="relative border-l-2 border-purple-300 ml-3 space-y-6">${matched.map(r => { const ql = formatQtyInline(r); return `<div onclick="openDetailModal('${r.id}')" class="relative pl-6 cursor-pointer group"><span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-purple-700 border-2 border-white shadow"></span><div class="bg-slate-50 group-hover:bg-purple-50/60 p-3.5 rounded-xl border border-slate-200 transition"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2"><span class="text-xs font-bold text-purple-800">${esc(r.workDate)}</span>${r.completedDate ? `<span class="text-xs font-bold text-emerald-700">(완료: ${esc(r.completedDate)})</span>` : ""}<span class="text-xs font-semibold px-2 py-0.5 rounded bg-white border border-slate-200">${esc(r.category)}</span>${r.lotNo ? `<span class="text-xs font-bold text-indigo-700">[${esc(r.lotNo)}]</span>` : ""}</div>${statusBadge(r.status)}</div><div class="font-bold text-slate-900 text-sm">${esc(r.title)}</div>${ql ? `<div class="text-xs font-bold text-purple-800 mt-1">📦 ${esc(ql)}</div>` : ""}<div class="mt-1">${renderDocAndPackingBadges(r)}</div>${r.packingNote ? `<div class="text-xs text-teal-800 mt-1 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}${(r.result || r.description) ? `<div class="text-xs text-slate-600 mt-1 break-all whitespace-pre-line">${esc(r.result || r.description)}</div>` : ""}<div class="text-[11px] text-slate-400 mt-1.5">관리번호: ${esc(r.lotNo || "-")} · 업체: ${esc(r.client || "-")} · 검사: ${esc(r.worker)}${r.packer ? ` · 포장: ${esc(r.packer)}` : ""}</div></div></div>`; }).join("")}</div>`;
+      const matched = records.filter(r => !q ? (r.lotNo || r.partNo || r.productName) : [r.lotNo, r.partNo, r.productName, r.client, r.vendor].some(v => (v || "").toLowerCase().includes(q))).sort((a, b) => (a.workDate || "").localeCompare(b.workDate || "") || (a.updatedAt || 0) - (b.updatedAt || 0));
+      container.innerHTML = matched.length === 0 ? `<p class="text-center text-sm text-slate-400 py-8">일치하는 관리번호 또는 품번 이력이 없습니다.</p>` : `<div class="relative border-l-2 border-purple-300 ml-3 space-y-6">${matched.map(r => { const ql = formatQtyInline(r); return `<div onclick="openDetailModal('${r.id}')" class="relative pl-6 cursor-pointer group"><span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full ${r.parentRecordId ? "bg-indigo-600" : "bg-purple-700"} border-2 border-white shadow"></span><div class="bg-slate-50 group-hover:bg-purple-50/60 p-3.5 rounded-xl border border-slate-200 transition"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2"><span class="text-xs font-bold text-purple-800">${esc(r.workDate)}</span>${r.completedDate ? `<span class="text-xs font-bold text-emerald-700">(완료: ${esc(r.completedDate)})</span>` : ""}<span class="text-xs font-semibold px-2 py-0.5 rounded bg-white border border-slate-200">${esc(r.category)}</span>${r.parentRecordId ? `<span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">🔄 재입고 추가건</span>` : ""}${r.lotNo ? `<span class="text-xs font-bold text-indigo-700">[${esc(r.lotNo)}]</span>` : ""}</div>${statusBadge(r.status)}</div><div class="font-bold text-slate-900 text-sm">${esc(r.title)}</div>${ql ? `<div class="text-xs font-bold text-purple-800 mt-1">📦 ${esc(ql)}</div>` : ""}<div class="mt-1">${renderDocAndPackingBadges(r)}</div>${r.packingNote ? `<div class="text-xs text-teal-800 mt-1 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}${(r.result || r.description) ? `<div class="text-xs text-slate-600 mt-1 break-all whitespace-pre-line">${esc(r.result || r.description)}</div>` : ""}<div class="text-[11px] text-slate-400 mt-1.5">관리번호: ${esc(r.lotNo || "-")} · 고객사: ${esc(r.client || "-")} · 외주: ${esc(r.vendor || "-")} · 검사: ${esc(r.worker)}${r.packer ? ` · 포장: ${esc(r.packer)}` : ""}</div></div></div>`; }).join("")}</div>`;
     };
 
     window.renderStats = function () {
@@ -1282,8 +1408,16 @@ if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이�
 
     window.openFormModal = async function (record = null) {
       document.getElementById("recordForm").reset(); tempPhotos = []; tempDocs = [];
+      activeParentIdForRework = record ? (record.parentRecordId || "") : "";
+      document.getElementById("reworkBanner").classList.add("hidden");
+
       if (record) {
-        document.getElementById("formModalTitle").textContent = "품질 업무 이력 수정"; document.getElementById("editRecordId").value = record.id; document.getElementById("fWorkDate").value = record.workDate; document.getElementById("fCompletedDate").value = record.completedDate || ""; document.getElementById("fWorkNo").value = record.workNo; document.getElementById("fStatus").value = record.status; document.getElementById("fCategory").value = record.category; document.getElementById("fWorker").value = record.worker; document.getElementById("fTitle").value = record.title; document.getElementById("fLotNo").value = record.lotNo || ""; document.getElementById("fClient").value = record.client || ""; document.getElementById("fProductName").value = record.productName || ""; document.getElementById("fPartNo").value = record.partNo || ""; document.getElementById("fVendor").value = record.vendor || "";
+        document.getElementById("formModalTitle").textContent = record.parentRecordId ? "재입고 추가 업무 이력 수정" : "품질 업무 이력 수정";
+        if (record.parentRecordId) {
+          document.getElementById("reworkBanner").classList.remove("hidden");
+          document.getElementById("reworkBannerText").textContent = "🔄 재연마·재가공 재입고 추가등록 이력을 수정 중입니다.";
+        }
+        document.getElementById("editRecordId").value = record.id; document.getElementById("fWorkDate").value = record.workDate; document.getElementById("fCompletedDate").value = record.completedDate || ""; document.getElementById("fWorkNo").value = record.workNo; document.getElementById("fStatus").value = record.status; document.getElementById("fCategory").value = record.category; document.getElementById("fWorker").value = record.worker; document.getElementById("fTitle").value = record.title; document.getElementById("fLotNo").value = record.lotNo || ""; document.getElementById("fClient").value = record.client || ""; document.getElementById("fVendor").value = record.vendor || ""; document.getElementById("fProductName").value = record.productName || ""; document.getElementById("fPartNo").value = record.partNo || "";
         document.getElementById("fQtyWorkDone").value = getWorkDoneVal(record); document.getElementById("fQtyIncoming").value = record.qtyIncoming ?? ""; document.getElementById("fQtyDelivered").value = record.qtyDelivered ?? ""; document.getElementById("fQtyStock").value = record.qtyStock ?? ""; document.getElementById("fQtyDefect").value = record.qtyDefect ?? "";
         const subs = Array.isArray(record.subItems) ? record.subItems : []; buildSubItemsRows(subs); toggleSubItemsSection(subs.length > 0);
         document.getElementById("fReportStatus").value = (!record.reportStatus || record.reportStatus === "해당없음") ? "" : record.reportStatus;
@@ -1349,11 +1483,16 @@ if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이�
       const btn = document.getElementById("submitBtn"); btn.disabled = true; btn.textContent = tempPhotos.length > 0 ? `사진 ${tempPhotos.length}장 분할 저장 중...` : "저장 중...";
       const editId = document.getElementById("editRecordId").value, id = editId || ("rec_" + Date.now()), statusVal = document.getElementById("fStatus").value;
       let completedDateVal = document.getElementById("fCompletedDate").value; if (statusVal === "완료" && !completedDateVal) completedDateVal = new Date().toISOString().slice(0, 10);
-      const payload = { id, workDate: document.getElementById("fWorkDate").value, completedDate: completedDateVal, workNo: document.getElementById("fWorkNo").value, status: statusVal, category: document.getElementById("fCategory").value, worker: document.getElementById("fWorker").value.trim(), title: document.getElementById("fTitle").value.trim(), lotNo: document.getElementById("fLotNo").value.trim(), client: document.getElementById("fClient").value.trim(), vendor: document.getElementById("fVendor").value.trim(), productName: document.getElementById("fProductName").value.trim(), partNo: document.getElementById("fPartNo").value.trim(), qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect, subItems, reportStatus, coatingDataStatus, description: document.getElementById("fDescription").value.trim(), judgment: document.getElementById("fJudgment").value, result: document.getElementById("fResult").value.trim(), remarks: document.getElementById("fRemarks").value.trim(), packingStatus: document.getElementById("fPackingStatus").value || "해당없음", packer: document.getElementById("fPacker").value.trim(), packingNote: document.getElementById("fPackingNote").value.trim(), photoUpdateStatus: document.getElementById("fPhotoUpdateStatus").value || "해당없음", photos: [], photoCount: tempPhotos.length, photoBytes: tempPhotos.reduce((a, s) => a + getByteLength(s), 0), files: tempDocs, updatedAt: Date.now() };
+      const existingParentId = editId ? (records.find(x => x.id === editId)?.parentRecordId || "") : "";
+      const parentRecordId = activeParentIdForRework || existingParentId || "";
+
+      const payload = { id, parentRecordId, workDate: document.getElementById("fWorkDate").value, completedDate: completedDateVal, workNo: document.getElementById("fWorkNo").value, status: statusVal, category: document.getElementById("fCategory").value, worker: document.getElementById("fWorker").value.trim(), title: document.getElementById("fTitle").value.trim(), lotNo: document.getElementById("fLotNo").value.trim(), client: document.getElementById("fClient").value.trim(), vendor: document.getElementById("fVendor").value.trim(), productName: document.getElementById("fProductName").value.trim(), partNo: document.getElementById("fPartNo").value.trim(), qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect, subItems, reportStatus, coatingDataStatus, description: document.getElementById("fDescription").value.trim(), judgment: document.getElementById("fJudgment").value, result: document.getElementById("fResult").value.trim(), remarks: document.getElementById("fRemarks").value.trim(), packingStatus: document.getElementById("fPackingStatus").value || "해당없음", packer: document.getElementById("fPacker").value.trim(), packingNote: document.getElementById("fPackingNote").value.trim(), photoUpdateStatus: document.getElementById("fPhotoUpdateStatus").value || "해당없음", photos: [], photoCount: tempPhotos.length, photoBytes: tempPhotos.reduce((a, s) => a + getByteLength(s), 0), files: tempDocs, updatedAt: Date.now() };
       try {
         if (db) { await savePhotosToSubcollection(id, tempPhotos); await setDoc(doc(db, "zenops_quality_records", id), payload); }
         else { const lp = { ...payload, photos: [...tempPhotos] }, idx = records.findIndex(r => r.id === id); if (idx >= 0) records[idx] = lp; else records.unshift(lp); localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); renderAll(); }
-        requestCloseModal("formModal"); showToast("업무 이력과 사진이 안전하게 저장되었습니다.");
+        if (parentRecordId) expandedReworkParents.add(parentRecordId);
+        activeParentIdForRework = "";
+        requestCloseModal("formModal"); showToast(parentRecordId ? "재입고 추가등록 이력이 원본 목록 아래에 저장되었습니다." : "업무 이력과 사진이 안전하게 저장되었습니다.");
       } catch (err) { alert("저장 오류: " + err.message); } finally { btn.disabled = false; btn.textContent = "업무 이력 저장"; }
     };
 
@@ -1361,12 +1500,36 @@ if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이�
       const r = records.find(item => item.id === id); if (!r) return; selectedRecordId = id;
       const pCnt = getRecordPhotoCount(r), docSizeText = formatBytes(getByteLength(JSON.stringify(r)) + (Array.isArray(r.photos) && r.photos.length > 0 ? 0 : getRecordPhotoBytes(r)));
       document.getElementById("dWorkNo").textContent = `${r.workNo} · ${docSizeText}`; document.getElementById("dCategory").textContent = r.category;
+
+      const rootId = r.parentRecordId || r.id;
+      const rootRec = records.find(x => x.id === rootId) || r;
+      const children = getChildRecords(rootId);
+      const showReworkBtn = toNum(rootRec.qtyDefect) > 0 || children.some(c => toNum(c.qtyDefect) > 0) || Boolean(r.parentRecordId);
+      document.getElementById("detailReworkBtn").classList.toggle("hidden", !showReworkBtn);
+
+      const reworkSummaryHtml = (children.length > 0 || r.parentRecordId) ? `<div class="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-200 space-y-2 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="font-extrabold text-indigo-950">🔄 재연마 · 재가공 연결 이력 (총 ${children.length + 1}차)</span>
+          <span class="font-bold text-emerald-700">누적 양품: ${(toNum(rootRec.qtyStock) + children.reduce((s, c) => s + toNum(c.qtyStock), 0)).toLocaleString()} ea</span>
+        </div>
+        <div class="space-y-1">
+          <div onclick="openDetailModal('${rootRec.id}')" class="px-2.5 py-1.5 rounded-lg border cursor-pointer flex items-center justify-between ${rootRec.id === r.id ? "bg-purple-100 border-purple-400 font-bold" : "bg-white border-slate-200 hover:bg-purple-50"}">
+            <span>[1차 원본] ${esc(rootRec.workDate)} · ${esc(rootRec.title)}</span>
+            <span class="text-purple-800 font-semibold">${esc(formatQtyInline(rootRec) || "-")}</span>
+          </div>
+          ${children.map((c, idx) => `<div onclick="openDetailModal('${c.id}')" class="px-2.5 py-1.5 rounded-lg border cursor-pointer flex items-center justify-between ${c.id === r.id ? "bg-purple-100 border-purple-400 font-bold" : "bg-white border-slate-200 hover:bg-purple-50"}">
+            <span>[${idx + 1}차 재입고] ${esc(c.workDate)} · ${esc(c.title)}</span>
+            <span class="text-purple-800 font-semibold">${esc(formatQtyInline(c) || "-")}</span>
+          </div>`).join("")}
+        </div>
+      </div>` : "";
+
       const filesHtml = (r.files && r.files.length > 0) ? `<div><div class="text-xs font-bold text-slate-700 mb-2">📎 연결된 성적서 / 데이터 파일 (${r.files.length}건)</div><div class="space-y-1.5">${r.files.map(f => `<div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-xs"><span class="font-medium text-slate-800 truncate">${esc(f.name)} <span class="text-slate-400">(${esc(f.size)})</span></span>${f.dataUrl ? `<a href="${f.dataUrl}" download="${esc(f.name)}" class="text-purple-700 font-bold shrink-0 ml-2">다운로드</a>` : `<span class="text-slate-400 text-[11px]">파일명 기록됨</span>`}</div>`).join("")}</div></div>` : "";
       const packBadgeText = r.packingStatus === "포장 완료" ? `<strong class="text-teal-700">📦 포장 완료</strong>` : r.packingStatus === "포장 미완료" ? `<strong class="text-amber-700">⏳ 포장 미완료</strong>` : `<strong class="text-slate-500">해당없음</strong>`;
       const photoUpdateText = r.photoUpdateStatus === "사진 업데이트 완료" ? `<strong class="text-emerald-700">📷 사진 업데이트 완료</strong>` : r.photoUpdateStatus === "사진 미완료" ? `<strong class="text-amber-700">⏳ 사진 미완료</strong>` : `<strong class="text-slate-500">해당없음</strong>`;
       const initialPhotosArea = pCnt > 0 ? `<div id="detailPhotosContainer" class="pt-1"><div class="text-xs font-bold text-slate-500 py-4 text-center bg-slate-50 rounded-xl border border-slate-200 animate-pulse">📷 첨부 현장 사진 ${pCnt}장 불러오는 중...</div></div>` : "";
 
-      document.getElementById("detailBody").innerHTML = `<div class="flex items-start justify-between gap-2"><h4 class="text-lg font-extrabold text-slate-900 leading-snug break-words">${esc(r.title)}</h4><div class="shrink-0">${statusBadge(r.status)}</div></div>${renderQtyCards(r)}${renderDetailSubItemsTable(r)}<div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs"><div><span class="text-slate-400 block">작업일자</span><strong class="text-slate-800">${esc(r.workDate)}</strong></div><div><span class="text-slate-400 block">작업완료날짜</span><strong class="${r.completedDate ? "text-emerald-700" : "text-slate-400"}">${esc(r.completedDate || "-")}</strong></div><div><span class="text-slate-400 block">판정 결과</span><strong class="text-purple-800">${esc(r.judgment || "해당없음")}</strong></div><div><span class="text-slate-400 block">검사 / 작업 담당자</span><strong class="text-slate-800">${esc(r.worker)}</strong></div><div><span class="text-slate-400 block">포장 담당자</span><strong class="text-teal-700">${esc(r.packer || "-")}</strong></div><div><span class="text-slate-400 block">포장 여부 (출하)</span>${packBadgeText}</div><div><span class="text-slate-400 block">관리번호 / Lot</span><strong class="text-indigo-700 break-all">${esc(r.lotNo || "-")}</strong></div><div><span class="text-slate-400 block">고객사 (납품처)</span><strong class="text-slate-800 break-words">${esc(r.client || "-")}</strong></div><div><span class="text-slate-400 block">외주(협력)업체명</span><strong class="text-purple-800 break-words">${esc(r.vendor || "-")}</strong></div><div><span class="text-slate-400 block">제품명 (품명)</span><strong class="text-slate-800 break-words">${esc(r.productName || "-")}</strong></div><div><span class="text-slate-400 block">품번 (Part No.)</span><strong class="text-slate-800 break-all">${esc(r.partNo || "-")}</strong></div><div><span class="text-slate-400 block">성적서 유무</span><strong class="text-blue-700">${esc(r.reportStatus || "해당없음")}</strong></div><div><span class="text-slate-400 block">코팅데이터 유무</span><strong class="text-purple-700">${esc(r.coatingDataStatus || "해당없음")}</strong></div><div><span class="text-slate-400 block">사진 업데이트 여부</span>${photoUpdateText}</div></div>${r.description ? `<div><div class="text-xs font-bold text-slate-700 mb-1">작업 및 검사 상세내용</div><div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-800 break-all whitespace-pre-line leading-relaxed">${esc(r.description)}</div></div>` : ""}${r.result ? `<div><div class="text-xs font-bold text-slate-700 mb-1">검사 및 작업 결과</div><div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-emerald-950 font-medium break-all whitespace-pre-line leading-relaxed">${esc(r.result)}</div></div>` : ""}${r.remarks ? `<div><div class="text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모</div><div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-amber-950 break-all whitespace-pre-line leading-relaxed">${esc(r.remarks)}</div></div>` : ""}${r.packingNote ? `<div><div class="text-xs font-bold text-teal-900 mb-1">📦 포장 / 출하 비고 (작업자 코멘트)</div><div class="bg-teal-50/80 p-3 rounded-xl border border-teal-200 text-teal-950 break-all whitespace-pre-line leading-relaxed">${esc(r.packingNote)}</div></div>` : ""}${initialPhotosArea}${filesHtml}`;
+      document.getElementById("detailBody").innerHTML = `<div class="flex items-start justify-between gap-2"><h4 class="text-lg font-extrabold text-slate-900 leading-snug break-words">${esc(r.title)}</h4><div class="shrink-0">${statusBadge(r.status)}</div></div>${reworkSummaryHtml}${renderQtyCards(r)}${renderDetailSubItemsTable(r)}<div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs"><div><span class="text-slate-400 block">작업일자</span><strong class="text-slate-800">${esc(r.workDate)}</strong></div><div><span class="text-slate-400 block">작업완료날짜</span><strong class="${r.completedDate ? "text-emerald-700" : "text-slate-400"}">${esc(r.completedDate || "-")}</strong></div><div><span class="text-slate-400 block">판정 결과</span><strong class="text-purple-800">${esc(r.judgment || "해당없음")}</strong></div><div><span class="text-slate-400 block">검사 / 작업 담당자</span><strong class="text-slate-800">${esc(r.worker)}</strong></div><div><span class="text-slate-400 block">포장 담당자</span><strong class="text-teal-700">${esc(r.packer || "-")}</strong></div><div><span class="text-slate-400 block">포장 여부 (출하)</span>${packBadgeText}</div><div><span class="text-slate-400 block">관리번호 / Lot</span><strong class="text-indigo-700 break-all">${esc(r.lotNo || "-")}</strong></div><div><span class="text-slate-400 block">고객사 (납품처)</span><strong class="text-slate-800 break-words">${esc(r.client || "-")}</strong></div><div><span class="text-slate-400 block">외주(협력)업체명</span><strong class="text-purple-800 break-words">${esc(r.vendor || "-")}</strong></div><div><span class="text-slate-400 block">제품명 (품명)</span><strong class="text-slate-800 break-words">${esc(r.productName || "-")}</strong></div><div><span class="text-slate-400 block">품번 (Part No.)</span><strong class="text-slate-800 break-all">${esc(r.partNo || "-")}</strong></div><div><span class="text-slate-400 block">성적서 유무</span><strong class="text-blue-700">${esc(r.reportStatus || "해당없음")}</strong></div><div><span class="text-slate-400 block">코팅데이터 유무</span><strong class="text-purple-700">${esc(r.coatingDataStatus || "해당없음")}</strong></div><div><span class="text-slate-400 block">사진 업데이트 여부</span>${photoUpdateText}</div></div>${r.description ? `<div><div class="text-xs font-bold text-slate-700 mb-1">작업 및 검사 상세내용</div><div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-800 break-all whitespace-pre-line leading-relaxed">${esc(r.description)}</div></div>` : ""}${r.result ? `<div><div class="text-xs font-bold text-slate-700 mb-1">검사 및 작업 결과</div><div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-emerald-950 font-medium break-all whitespace-pre-line leading-relaxed">${esc(r.result)}</div></div>` : ""}${r.remarks ? `<div><div class="text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모</div><div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-amber-950 break-all whitespace-pre-line leading-relaxed">${esc(r.remarks)}</div></div>` : ""}${r.packingNote ? `<div><div class="text-xs font-bold text-teal-900 mb-1">📦 포장 / 출하 비고 (작업자 코멘트)</div><div class="bg-teal-50/80 p-3 rounded-xl border border-teal-200 text-teal-950 break-all whitespace-pre-line leading-relaxed">${esc(r.packingNote)}</div></div>` : ""}${initialPhotosArea}${filesHtml}`;
       document.getElementById("detailModal").classList.remove("hidden"); pushModalHistory("detailModal");
 
       if (pCnt > 0) {
@@ -1403,11 +1566,13 @@ if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이�
     window.openSettingsModal = () => { updateStorageUI(); document.getElementById("settingsModal").classList.remove("hidden"); pushModalHistory("settingsModal"); };
 
     window.exportCSV = function () {
-      const headers = ["작업일자", "작업완료날짜", "고유번호", "관리번호", "고객사/외주업체", "제품명", "품번", "업무분류", "진행상태", "검사담당자", "포장여부", "포장담당자", "포장비고", "사진업데이트여부", "업무제목", "작업완료(ea)", "입고수량(ea)", "납품수량(ea)", "재고수량(ea)", "불량수량(ea)", "불량률(%)", "세부품목내역", "성적서유무", "코팅데이터유무", "작업내용", "판정", "검사결과", "특이사항"];
-      const rows = getFilteredRecords().map(r => {
+      const headers = ["작업일자", "작업완료날짜", "차수구분", "고유번호", "관리번호", "고객사", "외주업체", "제품명", "품번", "업무분류", "진행상태", "검사담당자", "포장여부", "포장담당자", "포장비고", "사진업데이트여부", "업무제목", "작업완료(ea)", "입고수량(ea)", "납품수량(ea)", "재고수량(ea)", "불량수량(ea)", "불량률(%)", "세부품목내역", "성적서유무", "코팅데이터유무", "작업내용", "판정", "검사결과", "특이사항"];
+      const allSorted = [...records].sort((a, b) => (b.workDate || "").localeCompare(a.workDate || "") || (b.updatedAt || 0) - (a.updatedAt || 0));
+      const rows = allSorted.map(r => {
         const d = calcRecordDefectInfo(r), rs = (d && d.base > 0) ? d.rate.toFixed(1) + "%" : "0.0%";
+        const roundLabel = r.parentRecordId ? "재입고 추가건" : "원본(1차)";
         const st = Array.isArray(r.subItems) && r.subItems.length > 0 ? r.subItems.map(s => `${s.no}.${s.name}(작업/입고:${s.workQty || 0}, 재고:${s.stockQty || 0}, 불량:${s.defectQty || 0}, 납품:${s.deliveredQty || 0})`).join(" / ") : "";
-        return [r.workDate, r.completedDate || "", r.workNo, r.lotNo || "", r.client || "", (r.productName || "").replace(/\n/g, " "), r.partNo || "", r.category, r.status, r.worker, r.packingStatus || "해당없음", r.packer || "", (r.packingNote || "").replace(/\n/g, " "), r.photoUpdateStatus || "해당없음", r.title, getWorkDoneVal(r), r.qtyIncoming ?? "", r.qtyDelivered ?? "", r.qtyStock ?? "", r.qtyDefect ?? "", rs, st, r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음", (r.description || "").replace(/\n/g, " "), r.judgment || "", (r.result || "").replace(/\n/g, " "), (r.remarks || "").replace(/\n/g, " ")].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
+        return [r.workDate, r.completedDate || "", roundLabel, r.workNo, r.lotNo || "", r.client || "", r.vendor || "", (r.productName || "").replace(/\n/g, " "), r.partNo || "", r.category, r.status, r.worker, r.packingStatus || "해당없음", r.packer || "", (r.packingNote || "").replace(/\n/g, " "), r.photoUpdateStatus || "해당없음", r.title, getWorkDoneVal(r), r.qtyIncoming ?? "", r.qtyDelivered ?? "", r.qtyStock ?? "", r.qtyDefect ?? "", rs, st, r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음", (r.description || "").replace(/\n/g, " "), r.judgment || "", (r.result || "").replace(/\n/g, " "), (r.remarks || "").replace(/\n/g, " ")].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
       });
       const blob = new Blob(["\uFEFF" + [headers.join(","), ...rows].join("\n")], { type: "text/csv;charset=utf-8;" }), a = document.createElement("a");
       a.href = URL.createObjectURL(blob); a.download = `ZENOPS_품질팀_업무이력_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
