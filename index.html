@@ -18,7 +18,6 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .animate-fade { animation: fadeIn 0.2s ease-out forwards; }
 
-    /* 제놉스 블루 테마 */
     body.theme-blue { background-color: #eef2f7; }
     body.theme-blue header { background: linear-gradient(90deg, #071326 0%, #0d2244 100%) !important; border-bottom: 1px solid #1e3a6e; }
     body.theme-blue .bg-purple-700, body.theme-blue .bg-purple-800 { background-color: #0284c7 !important; }
@@ -27,7 +26,6 @@
     body.theme-blue .border-purple-700, body.theme-blue .border-purple-200, body.theme-blue .border-purple-300 { border-color: #0284c7 !important; }
     body.theme-blue .bg-purple-50, body.theme-blue .bg-purple-50\/70, body.theme-blue .bg-purple-50\/60 { background-color: #f0f9ff !important; }
 
-    /* 제놉스 다크 테마 */
     body.theme-dark { background-color: #070b14; color: #e2e8f0; }
     body.theme-dark header { background: linear-gradient(90deg, #050811 0%, #0b1326 100%) !important; border-bottom: 1px solid #1e293b; }
     body.theme-dark .bg-white { background-color: #0f172a !important; color: #e2e8f0 !important; border-color: #1e293b !important; }
@@ -118,13 +116,19 @@
       </button>
     </section>
 
+    <!-- 뷰 전환 네비게이션 탭 (구글 캘린더 일정 탭 포함) -->
     <nav class="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm flex gap-1 overflow-x-auto scrollbar-hide">
-      <button onclick="switchTab('list')" id="tab-list" class="tab-btn flex-1 min-w-[105px] py-2 px-3 rounded-lg text-xs sm:text-sm font-bold bg-slate-900 text-white transition">📋 업무 이력 조회</button>
-      <button onclick="switchTab('defect')" id="tab-defect" class="tab-btn flex-1 min-w-[125px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">📉 수량 · 불량률 집계</button>
-      <button onclick="switchTab('trace')" id="tab-trace" class="tab-btn flex-1 min-w-[125px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">🔍 제품/품번별 추적</button>
-      <button onclick="switchTab('stats')" id="tab-stats" class="tab-btn flex-1 min-w-[105px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">📊 월별 업무 현황</button>
+      <button onclick="switchTab('list')" id="tab-list" class="tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-bold bg-slate-900 text-white transition">📋 업무 이력 조회</button>
+      <button onclick="switchTab('calendar')" id="tab-calendar" class="tab-btn flex-1 min-w-[125px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition flex items-center justify-center gap-1">
+        <span>📅 캘린더 일정</span>
+        <span id="calTabBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 text-indigo-800 font-bold">0</span>
+      </button>
+      <button onclick="switchTab('defect')" id="tab-defect" class="tab-btn flex-1 min-w-[120px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">📉 수량 · 불량률 집계</button>
+      <button onclick="switchTab('trace')" id="tab-trace" class="tab-btn flex-1 min-w-[120px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">🔍 제품/품번별 추적</button>
+      <button onclick="switchTab('stats')" id="tab-stats" class="tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">📊 월별 업무 현황</button>
     </nav>
 
+    <!-- [뷰 1] 업무 이력 조회 -->
     <section id="view-list" class="space-y-4 animate-fade">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
         <div class="flex flex-col sm:flex-row gap-2">
@@ -203,6 +207,50 @@
       </div>
     </section>
 
+    <!-- [뷰 2] 구글 캘린더 실시간 일정 동기화 뷰 -->
+    <section id="view-calendar" class="hidden space-y-4 animate-fade">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>📅 구글 캘린더 실시간 출고 · 생산 일정</span>
+              <span id="calSyncStatusBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">동기화 대기</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">전사 공유 구글 캘린더 일정을 실시간으로 불러옵니다. 각 일정의 [＋ 업무 등록]을 누르면 정보가 자동 입력됩니다.</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span id="calLastUpdatedText" class="text-[11px] text-slate-400"></span>
+            <button type="button" onclick="fetchGoogleCalendarEvents(true)" id="calRefreshBtn"
+              class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition">
+              <span>🔄</span><span>새로고침</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 캘린더 기간 필터 & 키워드 검색 -->
+        <div class="flex flex-col sm:flex-row gap-2">
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="setCalRangeFilter('TODAY')" id="cr-TODAY" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">오늘 일정</button>
+            <button type="button" onclick="setCalRangeFilter('TOMORROW')" id="cr-TOMORROW" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">내일 일정</button>
+            <button type="button" onclick="setCalRangeFilter('WEEK')" id="cr-WEEK" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">향후 7일</button>
+            <button type="button" onclick="setCalRangeFilter('ALL')" id="cr-ALL" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white">전체 일정</button>
+          </div>
+          <div class="relative flex-1">
+            <input type="text" id="calSearchInput" oninput="renderCalendarView()" placeholder="캘린더 일정 검색 (예: 출고대기, 아큐레이저, 관리번호, 품번)..."
+              class="w-full pl-8 pr-3 py-1.5 text-xs sm:text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-700" />
+            <span class="absolute left-2.5 top-2 text-slate-400 text-xs">🔎</span>
+          </div>
+        </div>
+
+        <!-- 개별 캘린더 필터 칩 (s2 ns, 생산관리, 최영웅 대리님 등 자동 생성) -->
+        <div id="calSourceChips" class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs"></div>
+      </div>
+
+      <!-- 날짜별 캘린더 일정 리스트 컨테이너 -->
+      <div id="calendarTimelineList" class="space-y-4"></div>
+    </section>
+
+    <!-- [뷰 3] 수량 · 불량률 및 외주 업체별 집계 대시보드 -->
     <section id="view-defect" class="hidden space-y-4 animate-fade">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -271,6 +319,7 @@
       </div>
     </section>
 
+    <!-- [뷰 4] 제품 / 품번별 전 공정 이력 추적 -->
     <section id="view-trace" class="hidden space-y-4 animate-fade">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
         <div>
@@ -285,6 +334,7 @@
       <div id="traceTimelineContainer" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"></div>
     </section>
 
+    <!-- [뷰 5] 월별 업무 현황 및 포장(출하) 통계 대시보드 -->
     <section id="view-stats" class="hidden space-y-4 animate-fade">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div class="bg-teal-50/80 p-4 rounded-xl border border-teal-200 shadow-sm flex items-center justify-between">
@@ -566,7 +616,7 @@
   <div id="settingsModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade">
       <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
-        <h3 class="text-base font-bold">⚙ 클라우드 용량 현황 · 보안 · 백업</h3>
+        <h3 class="text-base font-bold">⚙ 클라우드 용량 현황 · 캘린더 · 보안 · 백업</h3>
         <button onclick="requestCloseModal('settingsModal')" class="text-slate-400 hover:text-white text-xl">✕</button>
       </div>
       <div class="p-5 overflow-y-auto space-y-5 text-xs sm:text-sm">
@@ -587,8 +637,8 @@
           </div>
         </div>
         <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-1">
-          <div class="font-bold text-emerald-900 flex items-center justify-between text-xs"><span>☁️ 사진 분할 저장 모드 활성화됨</span><span id="cloudBadge" class="text-[11px] px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold">연결 완료 (zenops-2c8c6)</span></div>
-          <p class="text-[11px] text-emerald-800 leading-relaxed">사진이 개별 조각 문서로 자동 분할 저장되므로 게시글당 1MB 제한 없이 등록할 수 있습니다.</p>
+          <div class="font-bold text-emerald-900 flex items-center justify-between text-xs"><span>📅 구글 캘린더 & 클라우드 실시간 연동</span><span class="text-[11px] px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold">연결 완료</span></div>
+          <p class="text-[11px] text-emerald-800 leading-relaxed">구글 캘린더 앱 스크립트 브릿지와 Firestore DB가 내장되어 팀원 전원에게 실시간 동기화됩니다.</p>
         </div>
         <div class="pt-1 space-y-2">
           <div class="font-bold text-slate-900 text-xs">사내 접속 보안 PIN 잠금 (선택 사항)</div>
@@ -645,6 +695,9 @@
       appId: "1:999431475162:web:6135272673ebe30a4a3ae3"
     };
 
+    // 배포된 구글 캘린더 연동 Apps Script Web App URL
+    const CALENDAR_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyOU38i7fUGcrs33BQMAeY6jnAmyStLTAC47ykYPooZ0i-F6EanRnFXs1F4tiDsGGloPA/exec";
+
     const STORAGE_KEY = "zenops_qc_records_v2";
     const PIN_CFG_KEY = "zenops_qc_pin_cfg";
     const THEME_CFG_KEY = "zenops_qc_theme";
@@ -654,6 +707,12 @@
     let defectPeriodMode = "ALL", vendorScopeMode = "INCOMING", lightboxPhotos = [], lightboxIndex = 0;
     let zoomScale = 1, panX = 0, panY = 0, isDragging = false, dragStartX = 0, dragStartY = 0, initialPinchDist = 0, initialPinchScale = 1, lastTapTime = 0;
     let modalStack = [], isHandlingPopState = false, lastBackPressTime = 0, toastTimer = null;
+
+    // 구글 캘린더 상태 변수
+    let calendarEvents = [];
+    let calendarNames = [];
+    let selectedCalendarFilter = "ALL";
+    let calRangeMode = "ALL";
 
     const THEMES = [
       { id: "purple", label: "퍼플 기본", className: "" },
@@ -675,6 +734,223 @@
       localStorage.setItem(THEME_CFG_KEY, next.id);
       applySavedTheme();
       showToast(`화면 테마 변경: ${next.label}`);
+    };
+
+    // ========================================================
+    // 구글 캘린더 실시간 동기화 & 원클릭 업무 등록 파서
+    // ========================================================
+    window.fetchGoogleCalendarEvents = async function (manual = false) {
+      const badge = document.getElementById("calSyncStatusBadge");
+      const btn = document.getElementById("calRefreshBtn");
+      if (badge) { badge.textContent = "불러오는 중..."; badge.className = "text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold"; }
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch(`${CALENDAR_SCRIPT_URL}?before=7&after=30`);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        calendarEvents = Array.isArray(data.events) ? data.events : [];
+        calendarNames = Array.isArray(data.calendars) ? data.calendars : [];
+
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const todayCount = calendarEvents.filter(e => e.date === todayStr).length;
+        const tabBadge = document.getElementById("calTabBadge");
+        if (tabBadge) tabBadge.textContent = todayCount > 0 ? `오늘 ${todayCount}` : `${calendarEvents.length}`;
+
+        if (badge) { badge.textContent = `연동 완료 (${calendarEvents.length}건)`; badge.className = "text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold"; }
+        const nowTime = new Date().toTimeString().slice(0, 5);
+        document.getElementById("calLastUpdatedText").textContent = `최근 동기화: ${nowTime}`;
+        renderCalendarView();
+        if (manual) showToast(`구글 캘린더 최신 일정 ${calendarEvents.length}건을 불러왔습니다.`);
+      } catch (err) {
+        console.error("캘린더 로드 오류:", err);
+        if (badge) { badge.textContent = "연결 확인 필요"; badge.className = "text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold"; }
+        document.getElementById("calendarTimelineList").innerHTML = `
+          <div class="bg-white p-8 rounded-xl border border-rose-200 text-center space-y-2">
+            <div class="text-2xl">⚠️</div>
+            <p class="text-sm font-bold text-slate-800">캘린더 일정을 불러오지 못했습니다.</p>
+            <p class="text-xs text-slate-500">네트워크 연결을 확인하거나 우측 상단 [새로고침] 버튼을 다시 눌러주세요.</p>
+          </div>
+        `;
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    };
+
+    window.setCalRangeFilter = function (mode) {
+      calRangeMode = mode;
+      ["TODAY", "TOMORROW", "WEEK", "ALL"].forEach(m => {
+        const b = document.getElementById(`cr-${m}`);
+        if (b) b.className = m === mode ? "cr-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white" : "cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200";
+      });
+      renderCalendarView();
+    };
+
+    window.setCalSourceFilter = function (calName) {
+      selectedCalendarFilter = calName;
+      renderCalendarView();
+    };
+
+    function getKoreanDayLabel(dateStr) {
+      const days = ["일", "월", "화", "수", "목", "금", "토"];
+      const d = new Date(dateStr + "T00:00:00");
+      if (isNaN(d.getTime())) return dateStr;
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const tmrStr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+      const tag = dateStr === todayStr ? " · 오늘" : dateStr === tmrStr ? " · 내일" : "";
+      return `${dateStr} (${days[d.getDay()]}요일)${tag}`;
+    }
+
+    window.renderCalendarView = function () {
+      const chipsEl = document.getElementById("calSourceChips");
+      const allSources = ["ALL", ...calendarNames];
+      chipsEl.innerHTML = `<span class="text-slate-400 font-semibold mr-1">캘린더 선택:</span>` + allSources.map(name => {
+        const isSel = selectedCalendarFilter === name;
+        const label = name === "ALL" ? `전체 캘린더 (${calendarEvents.length})` : `${name} (${calendarEvents.filter(e => e.calendar === name).length})`;
+        return `<button type="button" onclick="setCalSourceFilter('${esc(name)}')" class="px-2.5 py-1 rounded-full text-xs font-bold border transition ${isSel ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}">${esc(label)}</button>`;
+      }).join("");
+
+      const kw = (document.getElementById("calSearchInput")?.value || "").trim().toLowerCase();
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+      const tmrStr = new Date(now.getTime() + 86400000).toISOString().slice(0, 10);
+      const weekStr = new Date(now.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+
+      const filtered = calendarEvents.filter(ev => {
+        if (selectedCalendarFilter !== "ALL" && ev.calendar !== selectedCalendarFilter) return false;
+        if (calRangeMode === "TODAY" && ev.date !== todayStr) return false;
+        if (calRangeMode === "TOMORROW" && ev.date !== tmrStr) return false;
+        if (calRangeMode === "WEEK" && (ev.date < todayStr || ev.date > weekStr)) return false;
+        if (kw) {
+          const hay = `${ev.title} ${ev.calendar} ${ev.description} ${ev.date}`.toLowerCase();
+          if (!hay.includes(kw)) return false;
+        }
+        return true;
+      });
+
+      const container = document.getElementById("calendarTimelineList");
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="bg-white p-10 rounded-xl border border-slate-200 text-center"><div class="text-3xl mb-2">🗓️</div><p class="text-sm font-bold text-slate-700">선택한 조건에 해당하는 캘린더 일정이 없습니다.</p></div>`;
+        return;
+      }
+
+      // 날짜별 그룹화
+      const groups = {};
+      filtered.forEach(ev => {
+        if (!groups[ev.date]) groups[ev.date] = [];
+        groups[ev.date].push(ev);
+      });
+
+      container.innerHTML = Object.entries(groups).map(([dateStr, items]) => {
+        const isToday = dateStr === todayStr;
+        return `
+          <div class="bg-white rounded-xl border ${isToday ? "border-purple-400 ring-1 ring-purple-200" : "border-slate-200"} shadow-sm overflow-hidden">
+            <div class="px-4 py-2.5 ${isToday ? "bg-purple-50 text-purple-950" : "bg-slate-50 text-slate-800"} border-b border-slate-200 flex items-center justify-between">
+              <span class="text-xs sm:text-sm font-extrabold">${esc(getKoreanDayLabel(dateStr))}</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600">${items.length}건</span>
+            </div>
+            <div class="divide-y divide-slate-100">
+              ${items.map((ev, idx) => {
+                const isWait = ev.title.includes("출고대기") || ev.title.includes("출고예정");
+                return `
+                  <div class="p-3.5 hover:bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition">
+                    <div class="min-w-0 space-y-1">
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                          <span class="w-2 h-2 rounded-full inline-block" style="background-color:${esc(ev.color)}"></span>
+                          ${esc(ev.calendar)}
+                        </span>
+                        <span class="text-[11px] font-mono text-slate-400">${esc(ev.time)}</span>
+                        ${isWait ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">출고 관련</span>` : ""}
+                      </div>
+                      <div class="text-xs sm:text-sm font-bold text-slate-900 break-words leading-snug">${esc(ev.title)}</div>
+                      ${ev.description ? `<div class="text-[11px] text-slate-500 line-clamp-1">${esc(ev.description)}</div>` : ""}
+                    </div>
+                    <button type="button" onclick="createRecordFromCalendarEvent('${esc(ev.id)}')"
+                      class="shrink-0 self-start sm:self-center flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs transition">
+                      <span>＋</span><span>업무 등록</span>
+                    </button>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      }).join("");
+    };
+
+    // 캘린더 일정 제목을 자동 파싱하여 업무 등록 폼에 채우기
+    // 예: "(출고대기) 5386SE23CD 261311 아큐레이저 - 50.8mmØ x 9.0mmThk, UVFS... 10ea"
+    function parseCalendarEventTitle(rawTitle) {
+      let text = String(rawTitle || "").trim();
+      let prefixTag = "";
+      const tagMatch = text.match(/^\(([^)]+)\)\s*/);
+      if (tagMatch) {
+        prefixTag = tagMatch[1];
+        text = text.slice(tagMatch[0].length).trim();
+      }
+
+      // 끝부분 수량(예: 10ea, 200ea) 추출
+      let qty = "";
+      const qtyMatch = text.match(/(\d+)\s*ea\s*$/i);
+      if (qtyMatch) {
+        qty = Number(qtyMatch[1]);
+        text = text.slice(0, qtyMatch.index).trim();
+      }
+
+      // '-' 기준으로 좌측(관리번호 + 고객사), 우측(제품명 + 품번) 분리
+      let leftPart = text, rightPart = "";
+      const dashIdx = text.indexOf(" - ");
+      if (dashIdx >= 0) {
+        leftPart = text.slice(0, dashIdx).trim();
+        rightPart = text.slice(dashIdx + 3).trim();
+      }
+
+      // 좌측에서 관리번호(영문숫자 코드 2덩어리 또는 1덩어리)와 고객사 분리
+      let lotNo = "", client = "";
+      const leftTokens = leftPart.split(/\s+/);
+      if (leftTokens.length >= 3 && /^[A-Z0-9-]+$/i.test(leftTokens[0]) && /^[A-Z0-9-]+$/i.test(leftTokens[1])) {
+        lotNo = `${leftTokens[0]} ${leftTokens[1]}`;
+        client = leftTokens.slice(2).join(" ");
+      } else if (leftTokens.length >= 2 && /^[A-Z0-9-]+$/i.test(leftTokens[0])) {
+        lotNo = leftTokens[0];
+        client = leftTokens.slice(1).join(" ");
+      } else {
+        client = leftPart;
+      }
+
+      // 우측에서 마지막 영문+숫자+하이픈 코드를 품번으로 추정
+      let productName = rightPart, partNo = "";
+      if (rightPart) {
+        const rTokens = rightPart.split(/\s+/);
+        const lastTok = rTokens[rTokens.length - 1];
+        if (rTokens.length >= 2 && /[0-9]/.test(lastTok) && /^[A-Z0-9-]+$/i.test(lastTok)) {
+          partNo = lastTok;
+          productName = rTokens.slice(0, -1).join(" ");
+        }
+      }
+
+      return { prefixTag, lotNo, client, productName, partNo, qty };
+    }
+
+    window.createRecordFromCalendarEvent = async function (eventId) {
+      const ev = calendarEvents.find(e => e.id === eventId);
+      if (!ev) return;
+
+      await openFormModal(null);
+      const parsed = parseCalendarEventTitle(ev.title);
+
+      document.getElementById("fWorkDate").value = ev.date || new Date().toISOString().slice(0, 10);
+      document.getElementById("fLotNo").value = parsed.lotNo;
+      document.getElementById("fClient").value = parsed.client;
+      document.getElementById("fProductName").value = parsed.productName;
+      document.getElementById("fPartNo").value = parsed.partNo;
+      if (parsed.qty !== "") {
+        document.getElementById("fQtyIncoming").value = parsed.qty;
+      }
+      document.getElementById("fRemarks").value = `[캘린더 일정: ${ev.calendar}] ${ev.title}${ev.description ? "\n" + ev.description : ""}`;
+      updateLiveDefectPreview();
+      showToast("캘린더 일정 정보가 자동으로 입력되었습니다.");
     };
 
     function getByteLength(str) { return new TextEncoder().encode(String(str || "")).length; }
@@ -863,6 +1139,7 @@
       setupMobileBackNavigation();
       setupLightboxGestures();
       checkPinLockOnLoad();
+      fetchGoogleCalendarEvents(false);
       try {
         const app = initializeApp(DEFAULT_FIREBASE_CONFIG);
         db = getFirestore(app);
@@ -1065,10 +1342,16 @@
 
     window.switchTab = function (tab) {
       currentTab = tab;
-      ["list", "defect", "trace", "stats"].forEach(t => {
+      ["list", "calendar", "defect", "trace", "stats"].forEach(t => {
         document.getElementById(`view-${t}`).classList.toggle("hidden", t !== tab);
-        document.getElementById(`tab-${t}`).className = t === tab ? "tab-btn flex-1 min-w-[105px] py-2 px-3 rounded-lg text-xs sm:text-sm font-bold bg-slate-900 text-white transition" : "tab-btn flex-1 min-w-[105px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition";
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === tab) {
+          btn.className = "tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-bold bg-slate-900 text-white transition" + (t === "calendar" ? " flex items-center justify-center gap-1" : "");
+        } else {
+          btn.className = "tab-btn flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition" + (t === "calendar" ? " flex items-center justify-center gap-1" : "");
+        }
       });
+      if (tab === "calendar") renderCalendarView();
       if (tab === "defect") renderDefectDashboard();
       if (tab === "trace") renderTrace();
       if (tab === "stats") renderStats();
