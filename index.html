@@ -1084,7 +1084,8 @@
         if (titleFilter && !(r.title || "").includes(titleFilter)) return false;
         if (st && r.status !== st) return false;
         if (pk && r.packingStatus !== pk) return false;
-        if (photoSt && (r.photoUpdateStatus || "해당없음") !== photoSt) return false;
+        if (photoSt === "사진 업데이트 완료" && r.photoUpdateStatus !== "사진 업데이트 완료") return false;
+if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이트 완료") return false;
         if (wk && !`${r.worker || ""} ${r.packer || ""}`.toLowerCase().includes(wk)) return false;
         if (dFrom || dTo) {
           const targetDate = dateField === "completedDate" ? (r.completedDate || "") : (r.workDate || "");
