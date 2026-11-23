@@ -732,22 +732,23 @@
       if (!selectedCalEvent) return;
       const btn = document.getElementById("calSaveEditBtn");
       btn.disabled = true; btn.textContent = "구글 캘린더 반영 중...";
-      const payload = {
+      const params = new URLSearchParams({
+        action: "update",
         calendar: selectedCalEvent.calendar,
         id: selectedCalEvent.id,
         date: document.getElementById("ceDate").value,
         title: document.getElementById("ceTitle").value.trim(),
         description: document.getElementById("ceDescription").value
-      };
+      });
       try {
-        const res = await fetch(CALENDAR_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+        const res = await fetch(`${CALENDAR_SCRIPT_URL}?${params.toString()}`);
         const result = await res.json();
-        if (!result.ok) throw new Error(result.error || "수정 권한이 없거나 오류가 발생했습니다.");
+        if (!result.ok) throw new Error(result.error || "수정 중 오류가 발생했습니다.");
         showToast("구글 캘린더 일정이 수정되었습니다.");
         requestCloseModal("calDetailModal");
         await fetchGoogleCalendarEvents(false);
       } catch (err) {
-        alert("캘린더 수정 오류: " + err.message + "\n(공유받은 캘린더의 경우 구글 캘린더에서 '일정 변경' 권한이 필요합니다.)");
+        alert("캘린더 수정 오류: " + err.message);
       } finally {
         btn.disabled = false; btn.textContent = "구글 캘린더에 저장";
       }
