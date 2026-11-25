@@ -111,7 +111,7 @@
           </select>
           <select id="filterStatus" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700"><option value="">전체 진행상태</option><option value="진행 중">진행 중</option><option value="완료">완료</option><option value="보류">보류</option></select>
           <select id="filterPacking" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700"><option value="">전체 포장여부</option><option value="포장 완료">📦 포장 완료</option><option value="포장 미완료">⏳ 포장 미완료</option></select>
-          <select id="filterPhotoStatus" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700"><option value="">전체 사진여부</option><option value="사진 업데이트 완료">📷 사진 업데이트 완료</option><option value="사진 미완료">⏳ 사진 미완료</option></select>
+          <select id="filterPhotoStatus" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700"><option value="">전체 사진여부</option><option value="사진 업데이트 완료">📷 사진 업데이트 완료</option><option value="사진 미완료">⏳ 사진 미완료</option><option value="해당없음">➖ 사진 해당없음</option></select>
           <input type="text" id="filterWorker" oninput="renderAll()" placeholder="검사 / 포장 담당자" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
           <select id="filterDateType" onchange="renderAll()" class="text-xs sm:text-sm border border-emerald-300 bg-emerald-50/60 font-bold text-emerald-900 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600"><option value="completedDate">📅 완료일 기준</option><option value="workDate">🗓 작업일 기준</option></select>
           <input type="date" id="filterDateFrom" onchange="renderAll()" title="시작일" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
@@ -283,7 +283,7 @@
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
           <div class="text-xs font-bold text-slate-700">제품 및 추적 정보 (관리번호 → 고객사 → 외주업체 → 품명 → 품번)</div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div><label class="block text-[11px] font-bold text-indigo-700 mb-1">1. 관리번호 / Lot No.</label><input type="text" id="fLotNo" placeholder="예: 5553NO04LA 261456" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" /></div>
+            <div><label class="block text-[11px] font-bold text-indigo-700 mb-1">1. 관리번호 / Lot No.</label><input type="text" id="fLotNo" oninput="checkDuplicateLotNoLive()" placeholder="예: 5553NO04LA 261456" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" /><p id="lotDuplicateHint" class="hidden text-[11px] font-bold text-amber-700 mt-1"></p></div>
             <div><label class="block text-[11px] font-bold text-slate-600 mb-1">2. 고객사 (납품처)</label><input type="text" id="fClient" placeholder="예: 인레이저, 인엘씨테크놀러지" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" /></div>
             <div><label class="block text-[11px] font-bold text-purple-800 mb-1">3. 외주(협력)업체명 <span class="font-normal text-purple-600">· 불량률 집계</span></label><input type="text" id="fVendor" placeholder="예: 프라임광학, 프리시젼" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" /></div>
             <div class="sm:col-span-2">
@@ -1160,7 +1160,8 @@
         if (st && r.status !== st) return false;
         if (pk && r.packingStatus !== pk) return false;
         if (photoSt === "사진 업데이트 완료" && r.photoUpdateStatus !== "사진 업데이트 완료") return false;
-        if (photoSt === "사진 미완료" && r.photoUpdateStatus === "사진 업데이트 완료") return false;
+        if (photoSt === "사진 미완료" && r.photoUpdateStatus !== "사진 미완료") return false;
+        if (photoSt === "해당없음" && (r.photoUpdateStatus || "해당없음") !== "해당없음") return false;
         if (wk && !`${r.worker || ""} ${r.packer || ""}`.toLowerCase().includes(wk)) return false;
         if (dFrom || dTo) {
           const targetDate = dateField === "completedDate" ? (r.completedDate || "") : (r.workDate || "");
@@ -1412,6 +1413,22 @@
       if (el) el.textContent = tempPhotos.length > 0 ? `✨ 사진 ${tempPhotos.length}장 (${formatBytes(pb)}) · 분할 저장 모드` : `✨ 사진 개별 분할 저장 적용 (1MB 제한 해제)`;
     }
 
+    window.checkDuplicateLotNoLive = function () {
+      const hintEl = document.getElementById("lotDuplicateHint");
+      if (!hintEl) return;
+      const val = (document.getElementById("fLotNo")?.value || "").trim();
+      const editId = document.getElementById("editRecordId")?.value || "";
+      if (!val) { hintEl.classList.add("hidden"); hintEl.textContent = ""; return; }
+      const dups = records.filter(x => x.id !== editId && (x.lotNo || "").trim().toLowerCase() === val.toLowerCase());
+      if (dups.length > 0) {
+        hintEl.textContent = `⚠️ 동일 관리번호 ${dups.length}건 존재 (저장 시 중복 확인 안내창 표시)`;
+        hintEl.classList.remove("hidden");
+      } else {
+        hintEl.classList.add("hidden");
+        hintEl.textContent = "";
+      }
+    };
+
     window.openFormModal = async function (record = null) {
       document.getElementById("recordForm").reset(); tempPhotos = []; tempDocs = [];
       activeParentIdForRework = record ? (record.parentRecordId || "") : "";
@@ -1436,7 +1453,7 @@
         document.getElementById("formModalTitle").textContent = "새 품질 업무 등록"; document.getElementById("editRecordId").value = ""; document.getElementById("fWorkDate").value = today; document.getElementById("fCompletedDate").value = ""; document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`; document.getElementById("fStatus").value = "진행 중"; document.getElementById("fReportStatus").value = ""; document.getElementById("fCoatingDataStatus").value = ""; document.getElementById("fPackingStatus").value = ""; document.getElementById("fPacker").value = ""; document.getElementById("fPackingNote").value = ""; document.getElementById("fPhotoUpdateStatus").value = ""; document.getElementById("fVendor").value = "";
         buildSubItemsRows([]); toggleSubItemsSection(false);
       }
-      syncTitleQuickButtons(); updateLiveDefectPreview(); updateDocCheckButtons("reportBtnGroup", document.getElementById("fReportStatus").value); updateDocCheckButtons("coatingBtnGroup", document.getElementById("fCoatingDataStatus").value); updatePackingButtons(document.getElementById("fPackingStatus").value); updatePhotoStatusButtons(document.getElementById("fPhotoUpdateStatus").value); renderAttachmentsPreview();
+      checkDuplicateLotNoLive(); syncTitleQuickButtons(); updateLiveDefectPreview(); updateDocCheckButtons("reportBtnGroup", document.getElementById("fReportStatus").value); updateDocCheckButtons("coatingBtnGroup", document.getElementById("fCoatingDataStatus").value); updatePackingButtons(document.getElementById("fPackingStatus").value); updatePhotoStatusButtons(document.getElementById("fPhotoUpdateStatus").value); renderAttachmentsPreview();
       document.getElementById("formModal").classList.remove("hidden"); pushModalHistory("formModal");
     };
 
@@ -1490,8 +1507,22 @@
       const photoUpdateStatus = document.getElementById("fPhotoUpdateStatus").value.trim();
       if (!photoUpdateStatus) { alert("필수 항목 안내: [현장 사진 및 성적서/데이터 첨부] 영역에서 '사진 여부 확인' 버튼을 선택해 주세요."); document.getElementById("photoStatusSection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
 
+      const editId = document.getElementById("editRecordId").value;
+      const lotNoVal = document.getElementById("fLotNo").value.trim();
+      if (lotNoVal) {
+        const dupList = records.filter(x => x.id !== editId && (x.lotNo || "").trim().toLowerCase() === lotNoVal.toLowerCase());
+        if (dupList.length > 0) {
+          const previewText = dupList.slice(0, 3).map(d => `• ${d.workDate} | ${d.title}`).join("\n");
+          const ok = confirm(`⚠️ 중복 관리번호 안내\n\n입력하신 관리번호 [${lotNoVal}]는 이미 ${dupList.length}건 등록되어 있습니다.\n${previewText}${dupList.length > 3 ? `\n외 ${dupList.length - 3}건` : ""}\n\n중복된 관리번호로 그대로 등록을 진행할까요?`);
+          if (!ok) {
+            document.getElementById("fLotNo").focus();
+            return;
+          }
+        }
+      }
+
       const btn = document.getElementById("submitBtn"); btn.disabled = true; btn.textContent = tempPhotos.length > 0 ? `사진 ${tempPhotos.length}장 분할 저장 중...` : "저장 중...";
-      const editId = document.getElementById("editRecordId").value, id = editId || ("rec_" + Date.now()), statusVal = document.getElementById("fStatus").value;
+      const id = editId || ("rec_" + Date.now()), statusVal = document.getElementById("fStatus").value;
       let completedDateVal = document.getElementById("fCompletedDate").value; if (statusVal === "완료" && !completedDateVal) completedDateVal = new Date().toISOString().slice(0, 10);
       const existingParentId = editId ? (records.find(x => x.id === editId)?.parentRecordId || "") : "";
       const parentRecordId = activeParentIdForRework || existingParentId || "";
