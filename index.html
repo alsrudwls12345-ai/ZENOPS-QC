@@ -1456,7 +1456,7 @@
             </div>`).join("")}
           </div>` : "";
 
-          return `<div onclick="openDetailModal('${r.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 space-y-2"><div class="flex items-center justify-between gap-2"><span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(normalizeCategory(r.category))}</span><div class="flex items-center gap-1.5">${statusBadge(r.status)}${toNum(r.qtyStock) > 0 ? `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-extrabold border ${r.stockTransferred ? "bg-sky-100 text-sky-800 border-sky-300" : "bg-amber-50 text-amber-800 border-amber-300"}">${r.stockTransferred ? "☑ 이관완료" : "☐ 생기이관"}</button>` : ""}</div></div><div class="font-bold text-slate-900 text-sm leading-snug break-words">${esc(r.title)}</div>${hasTr ? `<div class="text-xs bg-slate-50 px-2.5 py-2 rounded-lg border border-slate-200/80 space-y-1">${(r.lotNo || r.client || r.vendor) ? `<div class="flex flex-wrap items-center justify-between gap-1">${r.lotNo ? `<span class="font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/80">관리번호: ${esc(r.lotNo)}</span>` : `<span></span>`}<div class="flex flex-wrap items-center gap-1">${r.client ? `<span class="font-bold text-slate-700">${esc(r.client)}</span>` : ""}${r.vendor ? `<span class="font-bold text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">외주: ${esc(r.vendor)}</span>` : ""}</div></div>` : ""}${(r.productName || r.partNo) ? `<div class="text-slate-600 break-words leading-relaxed">${r.productName ? `<span>품명: <strong class="text-slate-800">${esc(r.productName)}</strong></span>` : ""}${(r.productName && r.partNo) ? ` · ` : ""}${r.partNo ? `<span>품번: <strong class="text-slate-800">${esc(r.partNo)}</strong></span>` : ""}</div>` : ""}</div>` : ""}${ql ? `<div class="text-xs font-bold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200/70">📦 ${esc(ql)}</div>` : ""}${mActionBtns}${mSubList}<div>${renderDocAndPackingBadges(r)}</div>${r.packingNote ? `<div class="text-xs text-teal-900 bg-teal-50/80 px-2.5 py-1.5 rounded-lg border border-teal-200/80 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}${(r.result || r.description) ? `<p class="text-xs text-slate-500 line-clamp-2 break-all">${esc(r.result || r.description)}</p>` : ""}<div class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-100"><span>작업: ${esc(r.workDate)}${r.completedDate ? ` · <strong class="text-emerald-700">완료: ${esc(r.completedDate)}</strong>` : ""} · ${r.worker === "작업예정" ? `<strong class="text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">🗓️ 작업예정</strong>` : `검사: <strong class="text-slate-700">${esc(r.worker)}</strong>`}${r.packer ? ` · 포장: <strong class="text-teal-700">${esc(r.packer)}</strong>` : ""}</span><span>${pCnt > 0 ? `📷 ${pCnt} ` : ""}${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}</span></div></div>`;
+          return `<div onclick="openDetailModal('${r.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 space-y-2"><div class="flex items-center justify-between gap-2"><span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(normalizeCategory(r.category))}</span><div class="flex items-center gap-1.5">${statusBadge(r.status)}${toNum(r.qtyStock) > 0 ? `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-extrabold border ${r.stockTransferred ? "bg-sky-100 text-sky-800 border-sky-300" : "bg-amber-50 text-amber-800 border-amber-300"}">${r.stockTransferred ? "☑ 이관완료" : "☐ 재고이관"}</button>` : ""}</div></div><div class="font-bold text-slate-900 text-sm leading-snug break-words">${esc(r.title)}</div>${hasTr ? `<div class="text-xs bg-slate-50 px-2.5 py-2 rounded-lg border border-slate-200/80 space-y-1">${(r.lotNo || r.client || r.vendor) ? `<div class="flex flex-wrap items-center justify-between gap-1">${r.lotNo ? `<span class="font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/80">관리번호: ${esc(r.lotNo)}</span>` : `<span></span>`}<div class="flex flex-wrap items-center gap-1">${r.client ? `<span class="font-bold text-slate-700">${esc(r.client)}</span>` : ""}${r.vendor ? `<span class="font-bold text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">외주: ${esc(r.vendor)}</span>` : ""}</div></div>` : ""}${(r.productName || r.partNo) ? `<div class="text-slate-600 break-words leading-relaxed">${r.productName ? `<span>품명: <strong class="text-slate-800">${esc(r.productName)}</strong></span>` : ""}${(r.productName && r.partNo) ? ` · ` : ""}${r.partNo ? `<span>품번: <strong class="text-slate-800">${esc(r.partNo)}</strong></span>` : ""}</div>` : ""}</div>` : ""}${ql ? `<div class="text-xs font-bold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200/70">📦 ${esc(ql)}</div>` : ""}${mActionBtns}${mSubList}<div>${renderDocAndPackingBadges(r)}</div>${r.packingNote ? `<div class="text-xs text-teal-900 bg-teal-50/80 px-2.5 py-1.5 rounded-lg border border-teal-200/80 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}${(r.result || r.description) ? `<p class="text-xs text-slate-500 line-clamp-2 break-all">${esc(r.result || r.description)}</p>` : ""}<div class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-100"><span>작업: ${esc(r.workDate)}${r.completedDate ? ` · <strong class="text-emerald-700">완료: ${esc(r.completedDate)}</strong>` : ""} · ${r.worker === "작업예정" ? `<strong class="text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">🗓️ 작업예정</strong>` : `검사: <strong class="text-slate-700">${esc(r.worker)}</strong>`}${r.packer ? ` · 포장: <strong class="text-teal-700">${esc(r.packer)}</strong>` : ""}</span><span>${pCnt > 0 ? `📷 ${pCnt} ` : ""}${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}</span></div></div>`;
         }).join("");
       }
       if (currentTab === "defect") renderDefectDashboard();
@@ -1473,7 +1473,7 @@
       if (done) {
         return `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" title="클릭 시 생기 이관완료 해제" class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-sky-800 border border-sky-300 hover:bg-sky-200 transition whitespace-nowrap"><span>☑</span><span>생기 이관완료</span></button>`;
       }
-      return `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" title="생산관리부서로 재고 ${stk}ea 이관 완료 체크" class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition whitespace-nowrap"><span>☐</span><span>생기 이관</span></button>`;
+      return `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" title="생산관리부서로 재고 ${stk}ea 이관 완료 체크" class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition whitespace-nowrap"><span>☐</span><span>재고 이관</span></button>`;
     }
 
     window.toggleStockTransfer = async function (recordId) {
@@ -1929,8 +1929,7 @@
     }
 
     function replaceParagraphTextKeepFirstRunStyle(paraXml, newText) {
-      const escaped = escapeXmlText(newText);
-      const xmlSpaceAttr = /^\s|\s$/.test(newText) ? ' xml:space="preserve"' : '';
+      const escaped = escapeXmlText(String(newText ?? ""));
       let firstRunReplaced = false;
       return paraXml.replace(/<w:r\b[^>]*>([\s\S]*?)<\/w:r>/g, (runMatch, runInner) => {
         if (!/<w:t\b/.test(runInner)) return runMatch;
@@ -1938,7 +1937,7 @@
           firstRunReplaced = true;
           const rPrMatch = runInner.match(/<w:rPr\b[^>]*>[\s\S]*?<\/w:rPr>/);
           const rPr = rPrMatch ? rPrMatch[0] : "";
-          return `<w:r>${rPr}<w:t${xmlSpaceAttr}>${escaped}</w:t></w:r>`;
+          return `<w:r>${rPr}<w:t xml:space="preserve">${escaped}</w:t></w:r>`;
         }
         return "";
       });
@@ -2052,11 +2051,11 @@
           .map(v => String(v || "").replace(/[\/:*?"<>|]/g, " ").replace(/\s+/g, " ").trim())
           .filter(Boolean);
         const safeLot = (rawParts.join("_") || fields.certNoText || r.workNo || "성적서")
-          .replace(/[^a-zA-Z0-9가-힣-_\s().Øλ~-]/g, "_")
+          .replace(/[^a-zA-Z0-9가-힣-_\s().~-]/g, "_")
           .replace(/_{2,}/g, "_")
           .trim()
-          .slice(0, 120);
-        const fileName = `${safeLot}.docx`;
+          .slice(0, 110);
+        const fileName = `${safeLot || "성적서"}.docx`;
         const url = URL.createObjectURL(outBlob);
         const a = document.createElement("a");
         a.href = url;
