@@ -241,8 +241,8 @@
         <input type="hidden" id="editRecordId" />
         <input type="hidden" id="fReportStatus" value="" />
         <input type="hidden" id="fCoatingDataStatus" value="" />
-        <input type="hidden" id="fPackingStatus" value="해당없음" />
-        <input type="hidden" id="fPhotoUpdateStatus" value="해당없음" />
+        <input type="hidden" id="fPackingStatus" value="" />
+        <input type="hidden" id="fPhotoUpdateStatus" value="" />
 
         <div id="reworkBanner" class="hidden bg-indigo-50 border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs text-indigo-900 font-bold flex items-center justify-between gap-2">
           <span id="reworkBannerText">🔄 기존 불량 발생 건에 대한 재연마·재가공 재입고 추가등록입니다.</span>
@@ -372,11 +372,11 @@
 
         <div><label class="block text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모 <span class="text-[11px] font-normal text-slate-400">(줄바꿈 가능)</span></label><textarea id="fRemarks" rows="2" placeholder="예: Doe 코팅제품 외경 사이즈만 확인 면세정" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea></div>
 
-        <div class="bg-teal-50/70 p-3.5 rounded-xl border border-teal-200 space-y-3">
+        <div id="packingSection" class="bg-teal-50/70 p-3.5 rounded-xl border border-teal-200 space-y-3">
           <div class="flex items-center justify-between"><span class="text-xs font-bold text-teal-950">📦 출하 · 포장 완료 및 담당자 확인</span><span class="text-[11px] text-teal-700">포장 완료 시 출하 통계에 자동 반영</span></div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <span class="block text-[11px] font-bold text-slate-600 mb-1.5">포장 여부</span>
+              <span class="block text-[11px] font-bold text-slate-600 mb-1.5">포장 여부 <span class="text-rose-600 font-extrabold">*</span> <span class="font-normal text-slate-400">(필수 선택)</span></span>
               <div class="grid grid-cols-3 gap-1.5" id="packingBtnGroup">
                 <button type="button" data-val="포장 완료" onclick="selectPackingStatus('포장 완료')" class="pack-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">포장 완료</button>
                 <button type="button" data-val="포장 미완료" onclick="selectPackingStatus('포장 미완료')" class="pack-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">미완료</button>
@@ -391,7 +391,7 @@
           <div><label class="block text-[11px] font-bold text-teal-900 mb-1">포장 / 출하 비고 (작업자 코멘트 · 자동 줄내림)</label><textarea id="fPackingNote" rows="2" placeholder="포장 상태, 실리카겔 동봉 여부, 박스 수량, 출하 특이사항 등을 입력하세요." class="w-full bg-white border border-teal-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-600 focus:outline-none"></textarea></div>
         </div>
 
-        <div class="bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 space-y-3">
+        <div id="photoStatusSection" class="bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-1">
             <span class="text-xs font-bold text-purple-900">현장 사진 및 성적서/데이터 첨부</span>
             <span id="formPhotoCountBadge" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">✨ 사진 개별 분할 저장 적용 (1MB 제한 해제)</span>
@@ -401,7 +401,7 @@
             <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">📎 성적서 / Zygo 데이터 / 도면 파일</label><input type="file" id="fDocInput" multiple onchange="handleDocSelect(event)" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-700 file:text-white hover:file:bg-slate-800 cursor-pointer" /></div>
           </div>
           <div class="bg-white p-3 rounded-xl border border-purple-200/80 space-y-1.5">
-            <span class="block text-[11px] font-bold text-slate-700">📷 사진 여부 확인 <span class="font-normal text-slate-400">(사진 첨부 시 자동 체크 · 메인보드 배지 표시)</span></span>
+            <span class="block text-[11px] font-bold text-slate-700">📷 사진 여부 확인 <span class="text-rose-600 font-extrabold">*</span> <span class="font-normal text-slate-400">(필수 선택 · 사진 첨부 시 자동 체크)</span></span>
             <div class="grid grid-cols-3 gap-1.5" id="photoStatusBtnGroup">
               <button type="button" data-val="사진 업데이트 완료" onclick="selectPhotoUpdateStatus('사진 업데이트 완료')" class="photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">✅ 사진 업데이트 완료</button>
               <button type="button" data-val="사진 미완료" onclick="selectPhotoUpdateStatus('사진 미완료')" class="photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 transition">⏳ 사진 미완료</button>
@@ -431,7 +431,6 @@
         <button onclick="requestCloseModal('calDetailModal')" class="text-slate-400 hover:text-white text-xl px-2">✕</button>
       </div>
 
-      <!-- 보기 모드 -->
       <div id="calViewModeBody" class="p-5 overflow-y-auto space-y-4 text-sm">
         <div>
           <span class="text-[11px] font-bold text-slate-400 block mb-1">일정 제목</span>
@@ -443,7 +442,6 @@
         </div>
       </div>
 
-      <!-- 수정 모드 -->
       <div id="calEditModeBody" class="hidden p-5 overflow-y-auto space-y-3 text-sm">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">일정 날짜</label>
@@ -999,7 +997,11 @@
       });
     };
 
-    window.selectPackingStatus = val => { document.getElementById("fPackingStatus").value = val; updatePackingButtons(val); };
+    window.selectPackingStatus = val => {
+      const next = document.getElementById("fPackingStatus").value === val ? "" : val;
+      document.getElementById("fPackingStatus").value = next;
+      updatePackingButtons(next);
+    };
     function updatePackingButtons(activeVal) {
       document.querySelectorAll("#packingBtnGroup .pack-check-btn").forEach(btn => {
         const v = btn.getAttribute("data-val");
@@ -1008,7 +1010,11 @@
       });
     }
 
-    window.selectPhotoUpdateStatus = val => { document.getElementById("fPhotoUpdateStatus").value = val; updatePhotoStatusButtons(val); };
+    window.selectPhotoUpdateStatus = val => {
+      const next = document.getElementById("fPhotoUpdateStatus").value === val ? "" : val;
+      document.getElementById("fPhotoUpdateStatus").value = next;
+      updatePhotoStatusButtons(next);
+    };
     function updatePhotoStatusButtons(activeVal) {
       document.querySelectorAll("#photoStatusBtnGroup .photo-check-btn").forEach(btn => {
         const v = btn.getAttribute("data-val");
@@ -1422,12 +1428,12 @@
         const subs = Array.isArray(record.subItems) ? record.subItems : []; buildSubItemsRows(subs); toggleSubItemsSection(subs.length > 0);
         document.getElementById("fReportStatus").value = (!record.reportStatus || record.reportStatus === "해당없음") ? "" : record.reportStatus;
         document.getElementById("fCoatingDataStatus").value = (!record.coatingDataStatus || record.coatingDataStatus === "해당없음") ? "" : record.coatingDataStatus;
-        document.getElementById("fDescription").value = record.description || ""; document.getElementById("fJudgment").value = record.judgment || "해당없음"; document.getElementById("fResult").value = record.result || ""; document.getElementById("fRemarks").value = record.remarks || ""; document.getElementById("fPackingStatus").value = record.packingStatus || "해당없음"; document.getElementById("fPacker").value = record.packer || ""; document.getElementById("fPackingNote").value = record.packingNote || "";
+        document.getElementById("fDescription").value = record.description || ""; document.getElementById("fJudgment").value = record.judgment || "해당없음"; document.getElementById("fResult").value = record.result || ""; document.getElementById("fRemarks").value = record.remarks || ""; document.getElementById("fPackingStatus").value = record.packingStatus || ""; document.getElementById("fPacker").value = record.packer || ""; document.getElementById("fPackingNote").value = record.packingNote || "";
         tempDocs = [...(record.files || [])]; tempPhotos = [...(await loadRecordPhotos(record))];
-        document.getElementById("fPhotoUpdateStatus").value = record.photoUpdateStatus || (tempPhotos.length > 0 ? "사진 업데이트 완료" : "해당없음");
+        document.getElementById("fPhotoUpdateStatus").value = record.photoUpdateStatus || (tempPhotos.length > 0 ? "사진 업데이트 완료" : "");
       } else {
         const today = new Date().toISOString().slice(0, 10), seq = String(records.filter(r => r.workDate === today).length + 1).padStart(3, "0");
-        document.getElementById("formModalTitle").textContent = "새 품질 업무 등록"; document.getElementById("editRecordId").value = ""; document.getElementById("fWorkDate").value = today; document.getElementById("fCompletedDate").value = ""; document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`; document.getElementById("fStatus").value = "진행 중"; document.getElementById("fReportStatus").value = ""; document.getElementById("fCoatingDataStatus").value = ""; document.getElementById("fPackingStatus").value = "해당없음"; document.getElementById("fPacker").value = ""; document.getElementById("fPackingNote").value = ""; document.getElementById("fPhotoUpdateStatus").value = "해당없음"; document.getElementById("fVendor").value = "";
+        document.getElementById("formModalTitle").textContent = "새 품질 업무 등록"; document.getElementById("editRecordId").value = ""; document.getElementById("fWorkDate").value = today; document.getElementById("fCompletedDate").value = ""; document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`; document.getElementById("fStatus").value = "진행 중"; document.getElementById("fReportStatus").value = ""; document.getElementById("fCoatingDataStatus").value = ""; document.getElementById("fPackingStatus").value = ""; document.getElementById("fPacker").value = ""; document.getElementById("fPackingNote").value = ""; document.getElementById("fPhotoUpdateStatus").value = ""; document.getElementById("fVendor").value = "";
         buildSubItemsRows([]); toggleSubItemsSection(false);
       }
       syncTitleQuickButtons(); updateLiveDefectPreview(); updateDocCheckButtons("reportBtnGroup", document.getElementById("fReportStatus").value); updateDocCheckButtons("coatingBtnGroup", document.getElementById("fCoatingDataStatus").value); updatePackingButtons(document.getElementById("fPackingStatus").value); updatePhotoStatusButtons(document.getElementById("fPhotoUpdateStatus").value); renderAttachmentsPreview();
@@ -1437,7 +1443,7 @@
     window.handlePhotoSelect = async function (e) {
       const files = Array.from(e.target.files || []);
       for (const f of files) tempPhotos.push(await compressImage(f, 960, 0.7));
-      if (tempPhotos.length > 0 && document.getElementById("fPhotoUpdateStatus").value === "해당없음") selectPhotoUpdateStatus("사진 업데이트 완료");
+      if (tempPhotos.length > 0 && !document.getElementById("fPhotoUpdateStatus").value) selectPhotoUpdateStatus("사진 업데이트 완료");
       renderAttachmentsPreview(); e.target.value = "";
     };
     function compressImage(file, maxWidth, quality) {
@@ -1477,8 +1483,12 @@
       }
       if (![qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect].some(v => v !== "")) { alert("필수 항목 안내: [수량 현황] 항목 중 최소 1개 이상 숫자를 입력해 주세요."); document.getElementById("qtySection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
       const reportStatus = document.getElementById("fReportStatus").value.trim(), coatingDataStatus = document.getElementById("fCoatingDataStatus").value.trim();
-      if (!reportStatus) { alert("필수 항목 안내: [성적서 유무] 버튼을 선택해 주세요."); return; }
-      if (!coatingDataStatus) { alert("필수 항목 안내: [코팅데이터 유무] 버튼을 선택해 주세요."); return; }
+      if (!reportStatus) { alert("필수 항목 안내: [성적서 유무] 버튼을 선택해 주세요."); document.getElementById("docCheckSection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      if (!coatingDataStatus) { alert("필수 항목 안내: [코팅데이터 유무] 버튼을 선택해 주세요."); document.getElementById("docCheckSection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      const packingStatus = document.getElementById("fPackingStatus").value.trim();
+      if (!packingStatus) { alert("필수 항목 안내: [출하 · 포장 완료] 영역에서 '포장 여부' 버튼을 선택해 주세요."); document.getElementById("packingSection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      const photoUpdateStatus = document.getElementById("fPhotoUpdateStatus").value.trim();
+      if (!photoUpdateStatus) { alert("필수 항목 안내: [현장 사진 및 성적서/데이터 첨부] 영역에서 '사진 여부 확인' 버튼을 선택해 주세요."); document.getElementById("photoStatusSection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
 
       const btn = document.getElementById("submitBtn"); btn.disabled = true; btn.textContent = tempPhotos.length > 0 ? `사진 ${tempPhotos.length}장 분할 저장 중...` : "저장 중...";
       const editId = document.getElementById("editRecordId").value, id = editId || ("rec_" + Date.now()), statusVal = document.getElementById("fStatus").value;
@@ -1486,7 +1496,7 @@
       const existingParentId = editId ? (records.find(x => x.id === editId)?.parentRecordId || "") : "";
       const parentRecordId = activeParentIdForRework || existingParentId || "";
 
-      const payload = { id, parentRecordId, workDate: document.getElementById("fWorkDate").value, completedDate: completedDateVal, workNo: document.getElementById("fWorkNo").value, status: statusVal, category: document.getElementById("fCategory").value, worker: document.getElementById("fWorker").value.trim(), title: document.getElementById("fTitle").value.trim(), lotNo: document.getElementById("fLotNo").value.trim(), client: document.getElementById("fClient").value.trim(), vendor: document.getElementById("fVendor").value.trim(), productName: document.getElementById("fProductName").value.trim(), partNo: document.getElementById("fPartNo").value.trim(), qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect, subItems, reportStatus, coatingDataStatus, description: document.getElementById("fDescription").value.trim(), judgment: document.getElementById("fJudgment").value, result: document.getElementById("fResult").value.trim(), remarks: document.getElementById("fRemarks").value.trim(), packingStatus: document.getElementById("fPackingStatus").value || "해당없음", packer: document.getElementById("fPacker").value.trim(), packingNote: document.getElementById("fPackingNote").value.trim(), photoUpdateStatus: document.getElementById("fPhotoUpdateStatus").value || "해당없음", photos: [], photoCount: tempPhotos.length, photoBytes: tempPhotos.reduce((a, s) => a + getByteLength(s), 0), files: tempDocs, updatedAt: Date.now() };
+      const payload = { id, parentRecordId, workDate: document.getElementById("fWorkDate").value, completedDate: completedDateVal, workNo: document.getElementById("fWorkNo").value, status: statusVal, category: document.getElementById("fCategory").value, worker: document.getElementById("fWorker").value.trim(), title: document.getElementById("fTitle").value.trim(), lotNo: document.getElementById("fLotNo").value.trim(), client: document.getElementById("fClient").value.trim(), vendor: document.getElementById("fVendor").value.trim(), productName: document.getElementById("fProductName").value.trim(), partNo: document.getElementById("fPartNo").value.trim(), qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect, subItems, reportStatus, coatingDataStatus, description: document.getElementById("fDescription").value.trim(), judgment: document.getElementById("fJudgment").value, result: document.getElementById("fResult").value.trim(), remarks: document.getElementById("fRemarks").value.trim(), packingStatus, packer: document.getElementById("fPacker").value.trim(), packingNote: document.getElementById("fPackingNote").value.trim(), photoUpdateStatus, photos: [], photoCount: tempPhotos.length, photoBytes: tempPhotos.reduce((a, s) => a + getByteLength(s), 0), files: tempDocs, updatedAt: Date.now() };
       try {
         if (db) { await savePhotosToSubcollection(id, tempPhotos); await setDoc(doc(db, "zenops_quality_records", id), payload); }
         else { const lp = { ...payload, photos: [...tempPhotos] }, idx = records.findIndex(r => r.id === id); if (idx >= 0) records[idx] = lp; else records.unshift(lp); localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); renderAll(); }
