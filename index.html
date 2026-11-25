@@ -1,3 +1,8 @@
+
+
+
+HTML 아이콘
+index
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -2047,7 +2052,15 @@
         });
 
         const safeLot = (fields.certNoText || r.workNo || "성적서").replace(/[^a-zA-Z0-9가-힣-_\s]/g, "").trim();
-        const fileName = `성적서_${safeLot}.docx`;
+        const rawParts = [fields.projCode, fields.remarksText, fields.descText]
+          .map(v => String(v || "").replace(/[\/:*?"<>|]/g, " ").replace(/\s+/g, " ").trim())
+          .filter(Boolean);
+        const safeLot = (rawParts.join("_") || fields.certNoText || r.workNo || "성적서")
+          .replace(/[^a-zA-Z0-9가-힣-_\s().Øλ~-]/g, "_")
+          .replace(/_{2,}/g, "_")
+          .trim()
+          .slice(0, 120);
+        const fileName = `${safeLot}.docx`;
         const url = URL.createObjectURL(outBlob);
         const a = document.createElement("a");
         a.href = url;
