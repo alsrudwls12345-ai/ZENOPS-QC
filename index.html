@@ -787,15 +787,15 @@
       await openFormModal(null);
       const parsed = parseCalendarEventTitle(ev.title);
       const cleanDesc = formatCalDescription(ev.description);
-      document.getElementById("fWorkDate").value = ev.date || new Date().toISOString().slice(0, 10);
+      document.getElementById("fWorkDate").value = new Date().toISOString().slice(0, 10);
       document.getElementById("fLotNo").value = parsed.lotNo;
       document.getElementById("fClient").value = parsed.client;
       document.getElementById("fProductName").value = parsed.productName;
       document.getElementById("fPartNo").value = parsed.partNo;
       if (parsed.qty !== "") document.getElementById("fQtyIncoming").value = parsed.qty;
-      document.getElementById("fRemarks").value = `[캘린더 일정: ${ev.calendar}] ${ev.title}${cleanDesc ? "\n" + cleanDesc : ""}`;
+      document.getElementById("fRemarks").value = `[캘린더 일정: ${ev.calendar}${ev.date ? ` · ${ev.date}` : ""}] ${ev.title}${cleanDesc ? "\n" + cleanDesc : ""}`;
       updateLiveDefectPreview();
-      showToast("캘린더 일정 정보가 자동으로 입력되었습니다.");
+      showToast("당일 날짜 기준으로 캘린더 일정 정보가 입력되었습니다.");
     };
 
     function getByteLength(str) { return new TextEncoder().encode(String(str || "")).length; }
