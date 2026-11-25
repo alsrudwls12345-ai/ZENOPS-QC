@@ -149,22 +149,51 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h2 class="text-base font-bold text-slate-900 flex items-center gap-2"><span>📅 구글 캘린더 실시간 출고 · 생산 일정</span><span id="calSyncStatusBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">동기화 대기</span></h2>
-            <p class="text-xs text-slate-500 mt-0.5">일정 카드를 터치하면 전체 메모를 크게 보고 바로 업무 등록 또는 일정 수정을 할 수 있습니다.</p>
+            <p class="text-xs text-slate-500 mt-0.5">향후 6개월(2027년 포함) 일정을 월별 달력 또는 목록형으로 선택해 확인하고 바로 업무 등록할 수 있습니다.</p>
           </div>
-          <div class="flex items-center gap-2 shrink-0"><span id="calLastUpdatedText" class="text-[11px] text-slate-400"></span><button type="button" onclick="fetchGoogleCalendarEvents(true)" id="calRefreshBtn" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition"><span>🔄</span><span>새로고침</span></button></div>
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+              <button type="button" onclick="setCalDisplayMode('MONTH')" id="cdm-MONTH" class="px-2.5 py-1 rounded-md text-xs font-bold bg-purple-700 text-white shadow-xs transition">🗓️ 월별 달력</button>
+              <button type="button" onclick="setCalDisplayMode('LIST')" id="cdm-LIST" class="px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700 hover:bg-white/70 transition">📋 목록형</button>
+            </div>
+            <span id="calLastUpdatedText" class="hidden lg:inline text-[11px] text-slate-400"></span>
+            <button type="button" onclick="fetchGoogleCalendarEvents(true)" id="calRefreshBtn" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition"><span>🔄</span><span>새로고침</span></button>
+          </div>
         </div>
         <div class="flex flex-col sm:flex-row gap-2">
-          <div class="flex flex-wrap gap-1.5">
+          <div id="calListRangeGroup" class="hidden flex-wrap gap-1.5">
             <button type="button" onclick="setCalRangeFilter('TODAY')" id="cr-TODAY" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">오늘 일정</button>
             <button type="button" onclick="setCalRangeFilter('TOMORROW')" id="cr-TOMORROW" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">내일 일정</button>
             <button type="button" onclick="setCalRangeFilter('WEEK')" id="cr-WEEK" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">향후 7일</button>
-            <button type="button" onclick="setCalRangeFilter('ALL')" id="cr-ALL" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white">전체 일정</button>
+            <button type="button" onclick="setCalRangeFilter('ALL')" id="cr-ALL" class="cr-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white">전체(6개월)</button>
           </div>
           <div class="relative flex-1"><input type="text" id="calSearchInput" oninput="renderCalendarView()" placeholder="캘린더 일정 검색 (예: 출고대기, 아큐레이저, 관리번호, 품번)..." class="w-full pl-8 pr-3 py-1.5 text-xs sm:text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-700" /><span class="absolute left-2.5 top-2 text-slate-400 text-xs">🔎</span></div>
         </div>
         <div id="calSourceChips" class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs"></div>
       </div>
-      <div id="calendarTimelineList" class="space-y-4"></div>
+
+      <!-- 월별 달력 뷰 -->
+      <div id="calendarMonthView" class="space-y-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="shiftCalendarMonth(-1)" class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-xs font-bold text-slate-700">◀ 이전 달</button>
+              <button type="button" onclick="resetCalendarMonthToday()" class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-purple-50 border border-purple-200 text-xs font-bold text-purple-800">오늘</button>
+              <button type="button" onclick="shiftCalendarMonth(1)" class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-xs font-bold text-slate-700">다음 달 ▶</button>
+            </div>
+            <h3 id="calMonthTitle" class="text-base sm:text-lg font-extrabold text-slate-900">2026년 11월</h3>
+            <span id="calMonthCountBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-purple-100 text-purple-800">0건</span>
+          </div>
+          <div class="grid grid-cols-7 bg-slate-100 border-b border-slate-200 text-center text-xs font-extrabold py-2">
+            <div class="text-rose-600">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-600">토</div>
+          </div>
+          <div id="calMonthGrid" class="grid grid-cols-7 bg-slate-200 gap-px"></div>
+        </div>
+        <div id="calSelectedDayPanel" class="bg-white rounded-xl border border-purple-200 shadow-sm overflow-hidden"></div>
+      </div>
+
+      <!-- 목록형 뷰 -->
+      <div id="calendarTimelineList" class="hidden space-y-4"></div>
     </section>
 
     <section id="view-defect" class="hidden space-y-4 animate-fade">
@@ -595,6 +624,7 @@
     let zoomScale = 1, panX = 0, panY = 0, isDragging = false, dragStartX = 0, dragStartY = 0, initialPinchDist = 0, initialPinchScale = 1, lastTapTime = 0;
     let modalStack = [], isHandlingPopState = false, lastBackPressTime = 0, toastTimer = null;
     let calendarEvents = [], calendarNames = [], selectedCalendarFilter = "ALL", calRangeMode = "ALL", selectedCalEvent = null;
+    let calDisplayMode = "MONTH", calViewYear = new Date().getFullYear(), calViewMonth = new Date().getMonth(), calSelectedDate = new Date().toISOString().slice(0, 10);
     let expandedReworkParents = new Set(), activeParentIdForRework = "";
 
     const THEMES = [{ id: "purple", label: "퍼플 기본", className: "" }, { id: "blue", label: "제놉스 블루", className: "theme-blue" }, { id: "dark", label: "제놉스 다크", className: "theme-dark" }];
@@ -635,7 +665,7 @@
       if (badge) { badge.textContent = "불러오는 중..."; badge.className = "text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold"; }
       if (btn) btn.disabled = true;
       try {
-        const res = await fetch(`${CALENDAR_SCRIPT_URL}?before=7&after=30`);
+        const res = await fetch(`${CALENDAR_SCRIPT_URL}?before=7&after=185`);
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         calendarEvents = Array.isArray(data.events) ? data.events : [];
@@ -653,6 +683,40 @@
       } finally { if (btn) btn.disabled = false; }
     };
 
+    window.setCalDisplayMode = function (mode) {
+      calDisplayMode = mode;
+      const isMonth = mode === "MONTH";
+      document.getElementById("cdm-MONTH").className = isMonth ? "px-2.5 py-1 rounded-md text-xs font-bold bg-purple-700 text-white shadow-xs transition" : "px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700 hover:bg-white/70 transition";
+      document.getElementById("cdm-LIST").className = !isMonth ? "px-2.5 py-1 rounded-md text-xs font-bold bg-purple-700 text-white shadow-xs transition" : "px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700 hover:bg-white/70 transition";
+      document.getElementById("calendarMonthView").classList.toggle("hidden", !isMonth);
+      document.getElementById("calendarTimelineList").classList.toggle("hidden", isMonth);
+      const rg = document.getElementById("calListRangeGroup");
+      rg.classList.toggle("hidden", isMonth);
+      rg.classList.toggle("flex", !isMonth);
+      renderCalendarView();
+    };
+
+    window.shiftCalendarMonth = function (delta) {
+      const d = new Date(calViewYear, calViewMonth + delta, 1);
+      calViewYear = d.getFullYear();
+      calViewMonth = d.getMonth();
+      calSelectedDate = `${calViewYear}-${String(calViewMonth + 1).padStart(2, "0")}-01`;
+      renderCalendarView();
+    };
+
+    window.resetCalendarMonthToday = function () {
+      const now = new Date();
+      calViewYear = now.getFullYear();
+      calViewMonth = now.getMonth();
+      calSelectedDate = now.toISOString().slice(0, 10);
+      renderCalendarView();
+    };
+
+    window.selectCalendarDay = function (dateStr) {
+      calSelectedDate = dateStr;
+      renderCalendarView();
+    };
+
     window.setCalRangeFilter = function (mode) {
       calRangeMode = mode;
       ["TODAY", "TOMORROW", "WEEK", "ALL"].forEach(m => { const b = document.getElementById(`cr-${m}`); if (b) b.className = m === mode ? "cr-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white" : "cr-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200"; });
@@ -667,20 +731,95 @@
       return `${dateStr} (${days[d.getDay()]}요일)${dateStr === todayStr ? " · 오늘" : dateStr === tmrStr ? " · 내일" : ""}`;
     }
 
+    function renderCalEventRowHtml(ev) {
+      const isWait = ev.title.includes("출고대기") || ev.title.includes("출고예정");
+      const cleanDesc = formatCalDescription(ev.description);
+      return `<div onclick="openCalDetailModal('${esc(ev.id)}')" class="p-3.5 hover:bg-purple-50/40 cursor-pointer flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 transition">
+        <div class="min-w-0 flex-1 space-y-1.5">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700"><span class="w-2 h-2 rounded-full inline-block" style="background-color:${esc(ev.color)}"></span>${esc(ev.calendar)}</span>
+            <span class="text-[11px] font-mono text-slate-400">${esc(ev.time)}</span>
+            ${isWait ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">출고 관련</span>` : ""}
+          </div>
+          <div class="text-xs sm:text-sm font-bold text-slate-900 break-words leading-snug">${esc(ev.title)}</div>
+          ${cleanDesc ? `<div class="text-xs text-slate-600 bg-slate-50/90 px-2.5 py-2 rounded-lg border border-slate-200/70 whitespace-pre-line break-words leading-relaxed">${esc(cleanDesc)}</div>` : ""}
+        </div>
+        <div class="shrink-0 flex items-center gap-1.5 self-start">
+          <button type="button" onclick="event.stopPropagation(); createRecordFromCalendarEvent('${esc(ev.id)}')" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs transition"><span>＋</span><span>업무 등록</span></button>
+        </div>
+      </div>`;
+    }
+
     window.renderCalendarView = function () {
       const chipsEl = document.getElementById("calSourceChips"), allSources = ["ALL", ...calendarNames];
       chipsEl.innerHTML = `<span class="text-slate-400 font-semibold mr-1">캘린더 선택:</span>` + allSources.map(name => {
         const isSel = selectedCalendarFilter === name, label = name === "ALL" ? `전체 캘린더 (${calendarEvents.length})` : `${name} (${calendarEvents.filter(e => e.calendar === name).length})`;
         return `<button type="button" onclick="setCalSourceFilter('${esc(name)}')" class="px-2.5 py-1 rounded-full text-xs font-bold border transition ${isSel ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}">${esc(label)}</button>`;
       }).join("");
+
       const kw = (document.getElementById("calSearchInput")?.value || "").trim().toLowerCase(), now = new Date(), todayStr = now.toISOString().slice(0, 10), tmrStr = new Date(now.getTime() + 86400000).toISOString().slice(0, 10), weekStr = new Date(now.getTime() + 7 * 86400000).toISOString().slice(0, 10);
-      const filtered = calendarEvents.filter(ev => {
+      const baseFiltered = calendarEvents.filter(ev => {
         if (selectedCalendarFilter !== "ALL" && ev.calendar !== selectedCalendarFilter) return false;
+        const cleanDesc = formatCalDescription(ev.description);
+        if (kw && !`${ev.title} ${ev.calendar} ${cleanDesc} ${ev.date}`.toLowerCase().includes(kw)) return false;
+        return true;
+      });
+
+      if (calDisplayMode === "MONTH") {
+        const ymPrefix = `${calViewYear}-${String(calViewMonth + 1).padStart(2, "0")}`;
+        document.getElementById("calMonthTitle").textContent = `${calViewYear}년 ${calViewMonth + 1}월`;
+        const monthEvents = baseFiltered.filter(ev => (ev.date || "").startsWith(ymPrefix));
+        document.getElementById("calMonthCountBadge").textContent = `${monthEvents.length}건`;
+
+        const byDate = {};
+        baseFiltered.forEach(ev => { if (!byDate[ev.date]) byDate[ev.date] = []; byDate[ev.date].push(ev); });
+
+        const firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
+        const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+        const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+        let gridHtml = "";
+        for (let cell = 0; cell < totalCells; cell++) {
+          const dayNum = cell - firstDay + 1;
+          if (dayNum < 1 || dayNum > daysInMonth) {
+            gridHtml += `<div class="bg-slate-50/70 min-h-[76px] sm:min-h-[112px] p-1.5"></div>`;
+            continue;
+          }
+          const dStr = `${ymPrefix}-${String(dayNum).padStart(2, "0")}`;
+          const dayEvs = byDate[dStr] || [];
+          const isToday = dStr === todayStr;
+          const isSel = dStr === calSelectedDate;
+          const dow = cell % 7;
+          const numColor = dow === 0 ? "text-rose-600" : dow === 6 ? "text-blue-600" : "text-slate-800";
+
+          const pillsHtml = dayEvs.slice(0, 3).map(ev => `<div onclick="event.stopPropagation(); openCalDetailModal('${esc(ev.id)}')" title="${esc(ev.title)}" class="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-semibold truncate bg-slate-100 hover:bg-purple-100 text-slate-800 transition"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color:${esc(ev.color)}"></span><span class="truncate">${esc(ev.title)}</span></div>`).join("");
+          const moreHtml = dayEvs.length > 3 ? `<div class="text-[10px] font-bold text-purple-700 px-1">+${dayEvs.length - 3}건 더보기</div>` : "";
+
+          gridHtml += `<div onclick="selectCalendarDay('${dStr}')" class="bg-white hover:bg-purple-50/40 min-h-[76px] sm:min-h-[112px] p-1 sm:p-1.5 flex flex-col gap-1 cursor-pointer transition ${isSel ? "ring-2 ring-inset ring-purple-700 bg-purple-50/30" : ""}">
+            <div class="flex items-center justify-between">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-extrabold ${isToday ? "bg-purple-700 text-white" : numColor}">${dayNum}</span>
+              ${dayEvs.length > 0 ? `<span class="text-[10px] font-bold px-1.5 rounded-full bg-indigo-50 text-indigo-700">${dayEvs.length}</span>` : ""}
+            </div>
+            <div class="space-y-0.5 overflow-hidden">${pillsHtml}${moreHtml}</div>
+          </div>`;
+        }
+        document.getElementById("calMonthGrid").innerHTML = gridHtml;
+
+        const selEvents = byDate[calSelectedDate] || [];
+        const selPanel = document.getElementById("calSelectedDayPanel");
+        selPanel.innerHTML = `<div class="px-4 py-2.5 bg-purple-50 border-b border-purple-200 flex items-center justify-between">
+          <span class="text-xs sm:text-sm font-extrabold text-purple-950">📌 선택한 날짜 일정: ${esc(getKoreanDayLabel(calSelectedDate))}</span>
+          <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-white border border-purple-200 text-purple-800">${selEvents.length}건</span>
+        </div>` + (selEvents.length === 0
+          ? `<div class="p-6 text-center text-xs text-slate-400">해당 날짜에 등록된 캘린더 일정이 없습니다.</div>`
+          : `<div class="divide-y divide-slate-100">${selEvents.map(ev => renderCalEventRowHtml(ev)).join("")}</div>`);
+        return;
+      }
+
+      const filtered = baseFiltered.filter(ev => {
         if (calRangeMode === "TODAY" && ev.date !== todayStr) return false;
         if (calRangeMode === "TOMORROW" && ev.date !== tmrStr) return false;
         if (calRangeMode === "WEEK" && (ev.date < todayStr || ev.date > weekStr)) return false;
-        const cleanDesc = formatCalDescription(ev.description);
-        if (kw && !`${ev.title} ${ev.calendar} ${cleanDesc} ${ev.date}`.toLowerCase().includes(kw)) return false;
         return true;
       });
       const container = document.getElementById("calendarTimelineList");
@@ -688,24 +827,7 @@
       const groups = {}; filtered.forEach(ev => { if (!groups[ev.date]) groups[ev.date] = []; groups[ev.date].push(ev); });
       container.innerHTML = Object.entries(groups).map(([dateStr, items]) => {
         const isToday = dateStr === todayStr;
-        return `<div class="bg-white rounded-xl border ${isToday ? "border-purple-400 ring-1 ring-purple-200" : "border-slate-200"} shadow-sm overflow-hidden"><div class="px-4 py-2.5 ${isToday ? "bg-purple-50 text-purple-950" : "bg-slate-50 text-slate-800"} border-b border-slate-200 flex items-center justify-between"><span class="text-xs sm:text-sm font-extrabold">${esc(getKoreanDayLabel(dateStr))}</span><span class="text-xs font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600">${items.length}건</span></div><div class="divide-y divide-slate-100">${items.map(ev => {
-          const isWait = ev.title.includes("출고대기") || ev.title.includes("출고예정");
-          const cleanDesc = formatCalDescription(ev.description);
-          return `<div onclick="openCalDetailModal('${esc(ev.id)}')" class="p-3.5 hover:bg-purple-50/40 cursor-pointer flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 transition">
-            <div class="min-w-0 flex-1 space-y-1.5">
-              <div class="flex flex-wrap items-center gap-1.5">
-                <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700"><span class="w-2 h-2 rounded-full inline-block" style="background-color:${esc(ev.color)}"></span>${esc(ev.calendar)}</span>
-                <span class="text-[11px] font-mono text-slate-400">${esc(ev.time)}</span>
-                ${isWait ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">출고 관련</span>` : ""}
-              </div>
-              <div class="text-xs sm:text-sm font-bold text-slate-900 break-words leading-snug">${esc(ev.title)}</div>
-              ${cleanDesc ? `<div class="text-xs text-slate-600 bg-slate-50/90 px-2.5 py-2 rounded-lg border border-slate-200/70 whitespace-pre-line break-words leading-relaxed">${esc(cleanDesc)}</div>` : ""}
-            </div>
-            <div class="shrink-0 flex items-center gap-1.5 self-start">
-              <button type="button" onclick="event.stopPropagation(); createRecordFromCalendarEvent('${esc(ev.id)}')" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs transition"><span>＋</span><span>업무 등록</span></button>
-            </div>
-          </div>`;
-        }).join("")}</div></div>`;
+        return `<div class="bg-white rounded-xl border ${isToday ? "border-purple-400 ring-1 ring-purple-200" : "border-slate-200"} shadow-sm overflow-hidden"><div class="px-4 py-2.5 ${isToday ? "bg-purple-50 text-purple-950" : "bg-slate-50 text-slate-800"} border-b border-slate-200 flex items-center justify-between"><span class="text-xs sm:text-sm font-extrabold">${esc(getKoreanDayLabel(dateStr))}</span><span class="text-xs font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600">${items.length}건</span></div><div class="divide-y divide-slate-100">${items.map(ev => renderCalEventRowHtml(ev)).join("")}</div></div>`;
       }).join("");
     };
 
