@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -57,7 +57,7 @@
   </div>
 
   <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-5 h-16 flex items-center justify-between gap-2">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-9 h-9 rounded-lg bg-purple-700 flex items-center justify-center font-extrabold text-base shrink-0 shadow-inner">품</div>
         <div class="min-w-0">
@@ -78,7 +78,7 @@
     </div>
   </header>
 
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 space-y-5">
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-5 py-4 space-y-4">
     <section class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 sm:gap-3">
       <button onclick="quickFilter('ALL')" id="kpi-ALL" class="kpi-card text-left bg-white p-3.5 rounded-xl border-2 border-purple-700 shadow-sm transition hover:shadow"><div class="text-xs font-medium text-slate-500">전체 업무 이력</div><div id="statTotal" class="text-2xl font-extrabold text-slate-900 mt-1">0</div></button>
       <button onclick="quickFilter('TODAY')" id="kpi-TODAY" class="kpi-card text-left bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm transition hover:shadow"><div class="text-xs font-medium text-indigo-600">오늘의 업무</div><div id="statToday" class="text-2xl font-extrabold text-indigo-700 mt-1">0</div></button>
@@ -138,15 +138,15 @@
       </div>
 
       <div class="hidden md:block bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+        <div class="w-full">
+          <table class="w-full table-fixed text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600">
-                <th class="py-3 px-3.5">작업일자 · 완료일</th><th class="py-3 px-3.5">관리번호 · 업체명</th><th class="py-3 px-3.5">제품명 · 품번</th><th class="py-3 px-3.5">업무 분류</th>
-                <th class="py-3 px-3.5">업무 제목 / 수량 · 재입고</th><th class="py-3 px-3.5">서류 · 포장 · 사진</th><th class="py-3 px-3.5">검사 / 포장 담당</th><th class="py-3 px-3.5">첨부</th><th class="py-3 px-3.5">상태</th>
+                <th class="py-2.5 px-2.5 w-[9%]">작업 · 완료일</th><th class="py-2.5 px-2.5 w-[13%]">관리번호 · 업체명</th><th class="py-2.5 px-2.5 w-[15%]">제품명 · 품번</th><th class="py-2.5 px-2 w-[10%]">업무 분류</th>
+                <th class="py-2.5 px-2.5 w-[18%]">업무 제목 / 수량 · 재입고</th><th class="py-2.5 px-2.5 w-[19%]">서류 · 포장 · 사진</th><th class="py-2.5 px-2 w-[8%]">검사 / 포장</th><th class="py-2.5 px-1.5 w-[4%] text-center">첨부</th><th class="py-2.5 px-2 w-[4%] text-center">상태</th>
               </tr>
             </thead>
-            <tbody id="desktopTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+            <tbody id="desktopTableBody" class="divide-y divide-slate-100 text-xs"></tbody>
           </table>
         </div>
       </div>
@@ -1426,7 +1426,7 @@
             </div>
           </td></tr>` : "";
 
-          return `<tr onclick="openDetailModal('${r.id}')" class="hover:bg-purple-50/50 cursor-pointer transition"><td class="py-3 px-3.5 whitespace-nowrap"><div class="font-bold text-slate-800">${esc(r.workDate)}</div>${r.completedDate ? `<div class="text-[11px] font-bold text-emerald-700">완료: ${esc(r.completedDate)}</div>` : `<div class="text-[11px] font-mono text-slate-400">${esc(r.workNo)}</div>`}</td><td class="py-3 px-3.5 text-xs">${r.lotNo || orgLine ? `<div class="font-bold text-indigo-700">${esc(r.lotNo || "-")}</div><div class="text-slate-600 mt-0.5">${esc(orgLine || "-")}</div>` : `<span class="text-slate-400">-</span>`}</td><td class="py-3 px-3.5 text-xs max-w-[180px]">${r.productName || r.partNo ? `<div class="font-semibold text-slate-800 truncate">${esc(r.productName || "-")}</div><div class="text-slate-500 mt-0.5">${esc(r.partNo || "-")}</div>` : `<span class="text-slate-400">-</span>`}</td><td class="py-3 px-3.5 whitespace-nowrap"><span class="text-xs font-semibold px-2 py-1 rounded-md bg-slate-100 text-slate-700">${esc(normalizeCategory(r.category))}</span></td><td class="py-3 px-3.5 max-w-xs"><div class="font-bold text-slate-900 truncate">${esc(r.title)}</div><div class="text-xs ${ql ? "text-purple-800 font-semibold" : "text-slate-500"} truncate mt-0.5">${esc(sub)}</div>${actionBtns}</td><td class="py-3 px-3.5">${renderDocAndPackingBadges(r)}${r.packingNote ? `<div class="text-[11px] text-teal-800 truncate max-w-[180px] mt-1">📝 ${esc(r.packingNote)}</div>` : ""}</td><td class="py-3 px-3.5 text-xs whitespace-nowrap"><div class="font-bold ${r.worker === "작업예정" ? "text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded inline-block" : "text-slate-700"}">${r.worker === "작업예정" ? "🗓️ 작업예정" : `검사: ${esc(r.worker)}`}</div>${r.packer ? `<div class="text-teal-700 font-semibold mt-0.5">포장: ${esc(r.packer)}</div>` : ""}</td><td class="py-3 px-3.5 text-xs whitespace-nowrap text-slate-500">${pCnt > 0 ? `📷 ${pCnt} ` : ""}${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}${!(pCnt || r.files?.length) ? "-" : ""}</td><td class="py-3 px-3.5 whitespace-nowrap">${statusBadge(r.status)}</td></tr>${subRowsHtml}`;
+          return `<tr onclick="openDetailModal('${r.id}')" class="hover:bg-purple-50/50 cursor-pointer transition align-middle"><td class="py-2.5 px-2.5"><div class="font-bold text-slate-800">${esc(r.workDate)}</div>${r.completedDate ? `<div class="text-[11px] font-bold text-emerald-700 mt-0.5">완료: ${esc(r.completedDate)}</div>` : `<div class="text-[10px] font-mono text-slate-400 truncate mt-0.5">${esc(r.workNo)}</div>`}</td><td class="py-2.5 px-2.5 break-words">${r.lotNo || orgLine ? `<div class="font-bold text-indigo-700 leading-snug">${esc(r.lotNo || "-")}</div><div class="text-slate-600 mt-0.5 truncate" title="${esc(orgLine)}">${esc(orgLine || "-")}</div>` : `<span class="text-slate-400">-</span>`}</td><td class="py-2.5 px-2.5">${r.productName || r.partNo ? `<div class="font-semibold text-slate-800 truncate" title="${esc(r.productName || "")}">${esc(r.productName || "-")}</div><div class="text-slate-500 truncate mt-0.5" title="${esc(r.partNo || "")}">${esc(r.partNo || "-")}</div>` : `<span class="text-slate-400">-</span>`}</td><td class="py-2.5 px-2"><span class="inline-block text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 leading-tight break-words">${esc(normalizeCategory(r.category))}</span></td><td class="py-2.5 px-2.5"><div class="font-bold text-slate-900 truncate" title="${esc(r.title)}">${esc(r.title)}</div><div class="text-[11px] ${ql ? "text-purple-800 font-semibold" : "text-slate-500"} truncate mt-0.5" title="${esc(sub)}">${esc(sub)}</div>${actionBtns}</td><td class="py-2.5 px-2.5">${renderDocAndPackingBadges(r)}${r.packingNote ? `<div class="text-[11px] text-teal-800 truncate mt-1" title="${esc(r.packingNote)}">📝 ${esc(r.packingNote)}</div>` : ""}</td><td class="py-2.5 px-2"><div class="font-bold truncate ${r.worker === "작업예정" ? "text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded inline-block" : "text-slate-700"}">${r.worker === "작업예정" ? "🗓️ 작업예정" : `검사: ${esc(r.worker)}`}</div>${r.packer ? `<div class="text-teal-700 font-semibold truncate mt-0.5">포장: ${esc(r.packer)}</div>` : ""}</td><td class="py-2.5 px-1.5 text-center text-[11px] text-slate-500">${pCnt > 0 ? `<div>📷${pCnt}</div>` : ""}${(r.files?.length || 0) > 0 ? `<div>📎${r.files.length}</div>` : ""}${!(pCnt || r.files?.length) ? "-" : ""}</td><td class="py-2.5 px-1.5 text-center">${statusBadge(r.status)}</td></tr>${subRowsHtml}`;
         }).join("");
 
         mobileList.innerHTML = filtered.map(r => {
@@ -1458,7 +1458,7 @@
       if (currentTab === "stats") renderStats();
     };
 
-    function statusBadge(st) { return st === "완료" ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">완료</span>` : st === "보류" ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">보류</span>` : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">진행 중</span>`; }
+    function statusBadge(st) { return st === "완료" ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 whitespace-nowrap">완료</span>` : st === "보류" ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 whitespace-nowrap">보류</span>` : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 whitespace-nowrap">진행 중</span>`; }
 
     window.switchTab = function (tab) {
       currentTab = tab;
