@@ -2056,14 +2056,19 @@
           .trim()
           .slice(0, 110);
         const fileName = `${safeLot || "성적서"}.docx`;
-        const url = URL.createObjectURL(outBlob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        if (window.navigator && typeof window.navigator.msSaveOrOpenBlob === "function") {
+          window.navigator.msSaveOrOpenBlob(outBlob, fileName);
+        } else {
+          const url = URL.createObjectURL(outBlob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          a.rel = "noopener";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }
 
         if (typeof window.showToast === "function") {
           window.showToast(`성적서(${fileName})가 자동 생성되었습니다.`);
@@ -2075,4 +2080,4 @@
   </script>
 </body>
 </html>
-코드에서 처리 및 분석됨
+분석 중
