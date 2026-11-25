@@ -247,7 +247,17 @@
           <p class="text-xs text-slate-400 mb-4">최근 6개월간 전체 업무 처리량과 출하(포장완료) 건수 비교</p><div id="monthlyChart" class="w-full h-64"></div>
         </div>
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5">
-          <div><h3 class="text-sm font-bold text-slate-800 mb-1">업무 분류별 비중</h3><p class="text-xs text-slate-400 mb-3">검사, 세정, Zygo 측정, 코팅, 불량대응 등 유형별 분포</p><div id="categoryBreakdown" class="space-y-3"></div></div>
+          <div>
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+              <h3 id="breakdownTitleHeading" class="text-sm font-bold text-slate-800">업무 제목별 비중</h3>
+              <div class="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+                <button type="button" onclick="setStatsBreakdownMode('TITLE')" id="sbm-TITLE" class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-700 text-white shadow-xs transition">업무 제목별</button>
+                <button type="button" onclick="setStatsBreakdownMode('CATEGORY')" id="sbm-CATEGORY" class="px-2 py-0.5 rounded-md text-[11px] font-semibold text-slate-600 hover:bg-white/70 transition">업무 분류별</button>
+              </div>
+            </div>
+            <p id="breakdownSubtitleDesc" class="text-xs text-slate-400 mb-3">생산·재고·조립·외주 출고품, 수입검사, 측정·분석 등 실제 업무 제목 기준 분포 (복수 선택·재입고 자동 반영)</p>
+            <div id="categoryBreakdown" class="space-y-3"></div>
+          </div>
           <div class="pt-4 border-t border-slate-200"><h3 class="text-sm font-bold text-teal-900 mb-1">🚚 출하 · 포장 업무 비중 분포</h3><p class="text-xs text-slate-400 mb-3">전체 등록 업무 중 출하 포장 완료·대기·일반 공정 비율</p><div id="shipmentBreakdown" class="space-y-3"></div></div>
         </div>
       </div>
@@ -625,7 +635,7 @@
     let modalStack = [], isHandlingPopState = false, lastBackPressTime = 0, toastTimer = null;
     let calendarEvents = [], calendarNames = [], selectedCalendarFilter = "ALL", calRangeMode = "ALL", selectedCalEvent = null;
     let calDisplayMode = "MONTH", calViewYear = new Date().getFullYear(), calViewMonth = new Date().getMonth(), calSelectedDate = new Date().toISOString().slice(0, 10);
-    let expandedReworkParents = new Set(), activeParentIdForRework = "";
+    let expandedReworkParents = new Set(), activeParentIdForRework = "", statsBreakdownMode = "TITLE";
 
     const THEMES = [{ id: "purple", label: "퍼플 기본", className: "" }, { id: "blue", label: "제놉스 블루", className: "theme-blue" }, { id: "dark", label: "제놉스 다크", className: "theme-dark" }];
 
@@ -1499,6 +1509,23 @@
       container.innerHTML = matched.length === 0 ? `<p class="text-center text-sm text-slate-400 py-8">일치하는 관리번호 또는 품번 이력이 없습니다.</p>` : `<div class="relative border-l-2 border-purple-300 ml-3 space-y-6">${matched.map(r => { const ql = formatQtyInline(r); return `<div onclick="openDetailModal('${r.id}')" class="relative pl-6 cursor-pointer group"><span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full ${r.parentRecordId ? "bg-indigo-600" : "bg-purple-700"} border-2 border-white shadow"></span><div class="bg-slate-50 group-hover:bg-purple-50/60 p-3.5 rounded-xl border border-slate-200 transition"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2"><span class="text-xs font-bold text-purple-800">${esc(r.workDate)}</span>${r.completedDate ? `<span class="text-xs font-bold text-emerald-700">(완료: ${esc(r.completedDate)})</span>` : ""}<span class="text-xs font-semibold px-2 py-0.5 rounded bg-white border border-slate-200">${esc(r.category)}</span>${r.parentRecordId ? `<span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">🔄 재입고 추가건</span>` : ""}${r.lotNo ? `<span class="text-xs font-bold text-indigo-700">[${esc(r.lotNo)}]</span>` : ""}</div>${statusBadge(r.status)}</div><div class="font-bold text-slate-900 text-sm">${esc(r.title)}</div>${ql ? `<div class="text-xs font-bold text-purple-800 mt-1">📦 ${esc(ql)}</div>` : ""}<div class="mt-1">${renderDocAndPackingBadges(r)}</div>${r.packingNote ? `<div class="text-xs text-teal-800 mt-1 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}${(r.result || r.description) ? `<div class="text-xs text-slate-600 mt-1 break-all whitespace-pre-line">${esc(r.result || r.description)}</div>` : ""}<div class="text-[11px] text-slate-400 mt-1.5">관리번호: ${esc(r.lotNo || "-")} · 고객사: ${esc(r.client || "-")} · 외주: ${esc(r.vendor || "-")} · 검사: ${esc(r.worker)}${r.packer ? ` · 포장: ${esc(r.packer)}` : ""}</div></div></div>`; }).join("")}</div>`;
     };
 
+    window.setStatsBreakdownMode = function (mode) {
+      statsBreakdownMode = mode;
+      const isTitle = mode === "TITLE";
+      document.getElementById("sbm-TITLE").className = isTitle ? "px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-700 text-white shadow-xs transition" : "px-2 py-0.5 rounded-md text-[11px] font-semibold text-slate-600 hover:bg-white/70 transition";
+      document.getElementById("sbm-CATEGORY").className = !isTitle ? "px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-700 text-white shadow-xs transition" : "px-2 py-0.5 rounded-md text-[11px] font-semibold text-slate-600 hover:bg-white/70 transition";
+      document.getElementById("breakdownTitleHeading").textContent = isTitle ? "업무 제목별 비중" : "업무 분류별 비중";
+      document.getElementById("breakdownSubtitleDesc").textContent = isTitle ? "생산·재고·조립·외주 출고품, 수입검사, 측정·분석 등 실제 업무 제목 기준 분포 (복수 선택·재입고 자동 반영)" : "검사, 세정, Zygo 측정, 코팅, 불량대응 등 공정 분류별 분포";
+      renderStats();
+    };
+
+    window.filterByTitleFromStats = function (titlePreset) {
+      document.getElementById("filterTitleType").value = titlePreset;
+      switchTab("list");
+      renderAll();
+      showToast(`'${titlePreset}' 업무 이력으로 필터링되었습니다.`);
+    };
+
     window.renderStats = function () {
       const now = new Date(), currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
       const packDoneCount = records.filter(r => r.packingStatus === "포장 완료").length, packPendingCount = records.filter(r => r.packingStatus === "포장 미완료").length, packNoneCount = Math.max(0, records.length - packDoneCount - packPendingCount);
@@ -1523,8 +1550,35 @@
       mg.append("text").attr("x", x1("total") + x1.bandwidth() / 2).attr("y", d => y(d.total) - 4).attr("text-anchor", "middle").style("font-size", "10px").style("font-weight", "bold").style("fill", "#581c87").text(d => d.total > 0 ? d.total : "");
       mg.append("text").attr("x", x1("packed") + x1.bandwidth() / 2).attr("y", d => y(d.packed) - 4).attr("text-anchor", "middle").style("font-size", "10px").style("font-weight", "bold").style("fill", "#0f766e").text(d => d.packed > 0 ? d.packed : "");
 
-      const catCounts = {}; records.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; }); const total = records.length || 1;
-      document.getElementById("categoryBreakdown").innerHTML = Object.entries(catCounts).sort((a, b) => b[1] - a[1]).map(([cat, cnt]) => { const pct = Math.round((cnt / total) * 100); return `<div><div class="flex justify-between text-xs font-semibold mb-1"><span class="text-slate-700">${esc(cat)}</span><span class="text-purple-800">${cnt}건 (${pct}%)</span></div><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-purple-700 rounded-full" style="width:${pct}%"></div></div></div>`; }).join("") || `<p class="text-xs text-slate-400">데이터가 없습니다.</p>`;
+      const total = records.length || 1;
+      const breakdownEl = document.getElementById("categoryBreakdown");
+      if (statsBreakdownMode === "TITLE") {
+        const titleCounts = {};
+        records.forEach(r => {
+          const rawTitle = (r.title || "").trim();
+          const matchedPresets = TITLE_PRESETS.filter(p => rawTitle.includes(p));
+          if (matchedPresets.length > 0) {
+            matchedPresets.forEach(p => { titleCounts[p] = (titleCounts[p] || 0) + 1; });
+          } else {
+            const label = rawTitle ? "기타(직접입력)" : "(제목 미기재)";
+            titleCounts[label] = (titleCounts[label] || 0) + 1;
+          }
+        });
+        breakdownEl.innerHTML = Object.entries(titleCounts).sort((a, b) => b[1] - a[1]).map(([tName, cnt]) => {
+          const pct = Math.round((cnt / total) * 100);
+          const isPreset = TITLE_PRESETS.includes(tName);
+          return `<div ${isPreset ? `onclick="filterByTitleFromStats('${esc(tName)}')" title="클릭 시 해당 업무 이력 조회" class="cursor-pointer group"` : ""}>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="text-slate-700 ${isPreset ? "group-hover:text-purple-800 group-hover:underline" : ""}">${esc(tName)}</span>
+              <span class="text-purple-800">${cnt}건 (${pct}%)</span>
+            </div>
+            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-purple-700 rounded-full transition-all" style="width:${Math.min(100, pct)}%"></div></div>
+          </div>`;
+        }).join("") || `<p class="text-xs text-slate-400">데이터가 없습니다.</p>`;
+      } else {
+        const catCounts = {}; records.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
+        breakdownEl.innerHTML = Object.entries(catCounts).sort((a, b) => b[1] - a[1]).map(([cat, cnt]) => { const pct = Math.round((cnt / total) * 100); return `<div><div class="flex justify-between text-xs font-semibold mb-1"><span class="text-slate-700">${esc(cat)}</span><span class="text-purple-800">${cnt}건 (${pct}%)</span></div><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-purple-700 rounded-full" style="width:${pct}%"></div></div></div>`; }).join("") || `<p class="text-xs text-slate-400">데이터가 없습니다.</p>`;
+      }
 
       const shipItems = [{ label: "📦 포장 완료 (출하 준비·완료)", cnt: packDoneCount, barColor: "bg-teal-600", textColor: "text-teal-800" }, { label: "⏳ 포장 미완료 (출하 대기)", cnt: packPendingCount, barColor: "bg-amber-500", textColor: "text-amber-700" }, { label: "📋 일반 공정 · 포장 해당없음", cnt: packNoneCount, barColor: "bg-slate-400", textColor: "text-slate-600" }];
       document.getElementById("shipmentBreakdown").innerHTML = records.length === 0 ? `<p class="text-xs text-slate-400">데이터가 없습니다.</p>` : shipItems.map(item => { const pct = Math.round((item.cnt / total) * 100); return `<div><div class="flex justify-between text-xs font-semibold mb-1"><span class="text-slate-700">${item.label}</span><span class="${item.textColor} font-bold">${item.cnt}건 (${pct}%)</span></div><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full ${item.barColor} rounded-full" style="width:${pct}%"></div></div></div>`; }).join("");
