@@ -120,7 +120,7 @@
             <option value="수입검사">수입검사</option><option value="자이고 측정건">자이고 측정건</option><option value="분광기 측정건">분광기 측정건</option><option value="현미경 측정건">현미경 측정건</option><option value="제품 분석건">제품 분석건</option>
           </select>
           <select id="filterStatus" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700"><option value="">전체 진행상태</option><option value="진행 중">진행 중</option><option value="완료">완료</option><option value="보류">보류</option></select>
-          <select id="filterPacking" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700"><option value="">전체 포장·생기이관</option><option value="포장 완료">📦 포장 완료</option><option value="포장 미완료">⏳ 포장 미완료</option><option value="생기 이관대기">🔄 생기 이관대기</option><option value="생기 이관완료">✅ 생기 이관완료</option></select>
+          <select id="filterPacking" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700"><option value="">전체 포장·재고이관</option><option value="포장 완료">📦 포장 완료</option><option value="포장 미완료">⏳ 포장 미완료</option><option value="재고 이관대기">🔄 재고 이관대기</option><option value="재고 이관완료">✅ 재고 이관완료</option></select>
           <select id="filterPhotoStatus" onchange="renderAll()" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-700"><option value="">전체 사진여부</option><option value="사진 업데이트 완료">📷 사진 업데이트 완료</option><option value="사진 미완료">⏳ 사진 미완료</option><option value="해당없음">➖ 사진 해당없음</option></select>
           <input type="text" id="filterWorker" oninput="renderAll()" placeholder="검사 / 포장 담당자" class="text-xs sm:text-sm border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700" />
           <select id="filterDateType" onchange="renderAll()" class="text-xs sm:text-sm border border-emerald-300 bg-emerald-50/60 font-bold text-emerald-900 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600"><option value="completedDate">📅 완료일 기준</option><option value="workDate">🗓 작업일 기준</option></select>
@@ -208,7 +208,7 @@
 
     <section id="view-defect" class="hidden space-y-4 animate-fade">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div><h2 class="text-base font-bold text-slate-900">수량 현황 및 공정 · 외주 업체별 불량률 집계표</h2><p class="text-xs text-slate-500 mt-0.5">수입검사(입고수량 기준) 및 사내 공정(작업완료 기준) 불량률을 자동 산출합니다. (재입고 2차·3차분 자동 합산)</p></div>
+        <div><h2 class="text-base font-bold text-slate-900">수량 현황 및 공정 · 외주 업체별 불량률 집계표</h2><p class="text-xs text-slate-500 mt-0.5">수입검사(입고수량 기준) 및 사내 공정(작업수량/작업완료 기준) 불량률을 자동 산출합니다. (재입고 2차·3차분 자동 합산)</p></div>
         <div class="flex flex-wrap items-center gap-1.5">
           <button type="button" onclick="setDefectPeriod('ALL')" id="dp-ALL" class="dp-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white">전체 기간</button>
           <button type="button" onclick="setDefectPeriod('MONTH')" id="dp-MONTH" class="dp-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">이번 달</button>
@@ -216,13 +216,14 @@
           <div class="flex items-center gap-1 text-xs"><input type="date" id="defectDateFrom" onchange="setDefectPeriod('CUSTOM')" class="border border-slate-300 rounded-lg px-2 py-1 text-xs" /><span class="text-slate-400">~</span><input type="date" id="defectDateTo" onchange="setDefectPeriod('CUSTOM')" class="border border-slate-300 rounded-lg px-2 py-1 text-xs" /></div>
         </div>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        <div class="bg-white p-3.5 rounded-xl border border-purple-200 shadow-sm"><span class="text-[11px] font-bold text-purple-800 block">총 작업수량</span><strong id="sumWorkQty" class="text-xl font-extrabold text-purple-900 mt-1 block">0 ea</strong></div>
         <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm"><span class="text-[11px] font-bold text-slate-500 block">총 작업완료</span><strong id="sumWorkDone" class="text-xl font-extrabold text-slate-900 mt-1 block">0 ea</strong></div>
         <div class="bg-white p-3.5 rounded-xl border border-blue-200 shadow-sm"><span class="text-[11px] font-bold text-blue-700 block">총 입고수량</span><strong id="sumIncoming" class="text-xl font-extrabold text-blue-700 mt-1 block">0 ea</strong></div>
         <div class="bg-white p-3.5 rounded-xl border border-emerald-200 shadow-sm"><span class="text-[11px] font-bold text-emerald-700 block">총 납품수량</span><strong id="sumDelivered" class="text-xl font-extrabold text-emerald-700 mt-1 block">0 ea</strong></div>
         <div class="bg-white p-3.5 rounded-xl border border-indigo-200 shadow-sm"><span class="text-[11px] font-bold text-indigo-700 block">총 재고수량</span><strong id="sumStock" class="text-xl font-extrabold text-indigo-700 mt-1 block">0 ea</strong></div>
         <div class="bg-white p-3.5 rounded-xl border border-rose-200 shadow-sm"><span class="text-[11px] font-bold text-rose-600 block">총 불량수량</span><strong id="sumDefect" class="text-xl font-extrabold text-rose-600 mt-1 block">0 ea</strong></div>
-        <div class="bg-rose-50 p-3.5 rounded-xl border-2 border-rose-300 shadow-sm"><span class="text-[11px] font-bold text-rose-800 block">전체 평균 불량률</span><strong id="sumDefectRate" class="text-xl font-extrabold text-rose-700 mt-1 block">0.0%</strong><span id="sumBaseInfo" class="text-[10px] text-rose-600/80 block mt-0.5">검사모수 0 ea</span></div>
+        <div class="col-span-2 sm:col-span-2 lg:col-span-1 bg-rose-50 p-3.5 rounded-xl border-2 border-rose-300 shadow-sm"><span class="text-[11px] font-bold text-rose-800 block">전체 평균 불량률</span><strong id="sumDefectRate" class="text-xl font-extrabold text-rose-700 mt-1 block">0.0%</strong><span id="sumBaseInfo" class="text-[10px] text-rose-600/80 block mt-0.5">검사모수 0 ea</span></div>
       </div>
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/70">
@@ -232,8 +233,8 @@
         <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600"><th class="py-3 px-4">순위</th><th class="py-3 px-4">외주 업체 / 협력업체명</th><th class="py-3 px-4 text-right">검사 건수</th><th class="py-3 px-4 text-right">입고(검사)수량</th><th class="py-3 px-4 text-right">불량수량</th><th class="py-3 px-4 text-right">양품률(%)</th><th class="py-3 px-4 w-48">불량률(%)</th></tr></thead><tbody id="vendorDefectTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm"></tbody></table></div>
       </div>
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-slate-200 bg-slate-50/70"><h3 class="text-sm font-extrabold text-slate-900">⚙️ 업무 분류(공정)별 수량 및 불량률 집계표</h3><p class="text-xs text-slate-500 mt-0.5">각 공정별 작업완료, 입고, 납품, 재고, 불량 수량 합계 및 공정 불량률(%)을 비교합니다.</p></div>
-        <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600"><th class="py-3 px-4">업무 분류</th><th class="py-3 px-4 text-right">건수</th><th class="py-3 px-4 text-right">작업완료</th><th class="py-3 px-4 text-right">입고수량</th><th class="py-3 px-4 text-right">납품수량</th><th class="py-3 px-4 text-right">재고수량</th><th class="py-3 px-4 text-right">불량수량</th><th class="py-3 px-4 w-44">공정 불량률(%)</th></tr></thead><tbody id="categoryDefectTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm"></tbody></table></div>
+        <div class="p-4 border-b border-slate-200 bg-slate-50/70"><h3 class="text-sm font-extrabold text-slate-900">⚙️ 업무 분류(공정)별 수량 및 불량률 집계표</h3><p class="text-xs text-slate-500 mt-0.5">각 공정별 작업수량, 작업완료, 입고, 납품, 재고, 불량 수량 합계 및 공정 불량률(%)을 비교합니다.</p></div>
+        <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600"><th class="py-3 px-4">업무 분류</th><th class="py-3 px-4 text-right">건수</th><th class="py-3 px-4 text-right">작업수량</th><th class="py-3 px-4 text-right">작업완료</th><th class="py-3 px-4 text-right">입고수량</th><th class="py-3 px-4 text-right">납품수량</th><th class="py-3 px-4 text-right">재고수량</th><th class="py-3 px-4 text-right">불량수량</th><th class="py-3 px-4 w-44">공정 불량률(%)</th></tr></thead><tbody id="categoryDefectTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm"></tbody></table></div>
       </div>
     </section>
 
@@ -354,12 +355,13 @@
             <span class="text-xs font-bold text-purple-950">📦 수량 현황 <span class="text-rose-600 font-extrabold">*</span> <span class="text-[11px] font-normal text-purple-800">(최소 1개 이상 입력 필수)</span></span>
             <span id="liveDefectPreview" class="text-[11px] font-bold text-rose-600"></span>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
+            <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-purple-800 mb-1">작업수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyWork" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-purple-900 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
             <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-slate-700 mb-1">작업완료</label><div class="flex items-center gap-1"><input type="number" id="fQtyWorkDone" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-slate-900 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
             <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-blue-700 mb-1">입고수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyIncoming" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-blue-700 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
             <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-emerald-700 mb-1">납품수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyDelivered" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-emerald-700 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
             <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-indigo-700 mb-1">재고수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyStock" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-indigo-700 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
-            <div class="col-span-2 sm:col-span-1 bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-rose-600 mb-1">불량수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyDefect" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-rose-600 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
+            <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-rose-600 mb-1">불량수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyDefect" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-rose-600 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
           </div>
 
           <div class="pt-2 border-t border-purple-200/70">
@@ -1198,20 +1200,21 @@
     function isIncomingInspectionTitle(r) { return (r.title || "").trim().includes("수입검사"); }
 
     function calcRecordDefectInfo(r) {
-      const wd = toNum(getWorkDoneVal(r)), inc = toNum(r.qtyIncoming), del = toNum(r.qtyDelivered), def = toNum(r.qtyDefect);
-      const base = isIncomingInspectionTitle(r) ? (inc > 0 ? inc : wd) : (wd > 0 ? wd : (inc > 0 ? inc : del));
+      const wk = toNum(r.qtyWork), wd = toNum(getWorkDoneVal(r)), inc = toNum(r.qtyIncoming), del = toNum(r.qtyDelivered), def = toNum(r.qtyDefect);
+      const base = isIncomingInspectionTitle(r) ? (inc > 0 ? inc : (wk > 0 ? wk : wd)) : (wk > 0 ? wk : (wd > 0 ? wd : (inc > 0 ? inc : del)));
       if (base <= 0 && def <= 0) return null;
       const eff = Math.max(base, def); return { base: eff, defect: def, rate: eff > 0 ? (def / eff) * 100 : 0 };
     }
 
     window.updateLiveDefectPreview = function () {
-      const info = calcRecordDefectInfo({ title: document.getElementById("fTitle").value, qtyWorkDone: document.getElementById("fQtyWorkDone").value, qtyIncoming: document.getElementById("fQtyIncoming").value, qtyDelivered: document.getElementById("fQtyDelivered").value, qtyDefect: document.getElementById("fQtyDefect").value });
+      const info = calcRecordDefectInfo({ title: document.getElementById("fTitle").value, qtyWork: document.getElementById("fQtyWork").value, qtyWorkDone: document.getElementById("fQtyWorkDone").value, qtyIncoming: document.getElementById("fQtyIncoming").value, qtyDelivered: document.getElementById("fQtyDelivered").value, qtyDefect: document.getElementById("fQtyDefect").value });
       document.getElementById("liveDefectPreview").textContent = (info && info.base > 0) ? `불량률: ${info.rate.toFixed(1)}% (${info.defect}/${info.base}ea)` : "단위 ea";
     };
 
-    function hasAnyQty(r) { return [getWorkDoneVal(r), r.qtyIncoming, r.qtyDelivered, r.qtyStock, r.qtyDefect].some(v => v !== undefined && v !== null && String(v).trim() !== ""); }
+    function hasAnyQty(r) { return [r.qtyWork, getWorkDoneVal(r), r.qtyIncoming, r.qtyDelivered, r.qtyStock, r.qtyDefect].some(v => v !== undefined && v !== null && String(v).trim() !== ""); }
     function formatQtyInline(r) {
       const parts = [], wd = getWorkDoneVal(r);
+      if (r.qtyWork !== undefined && r.qtyWork !== null && String(r.qtyWork) !== "") parts.push(`작업수량 ${r.qtyWork}ea`);
       if (wd !== "") parts.push(`작업완료 ${wd}ea`);
       if (r.qtyIncoming !== undefined && r.qtyIncoming !== null && String(r.qtyIncoming) !== "") parts.push(`입고 ${r.qtyIncoming}ea`);
       if (r.qtyDelivered !== undefined && r.qtyDelivered !== null && String(r.qtyDelivered) !== "") parts.push(`납품 ${r.qtyDelivered}ea`);
@@ -1228,7 +1231,7 @@
       const vt = v => (v !== undefined && v !== null && String(v) !== "") ? `${v}ea` : "-";
       const d = calcRecordDefectInfo(r);
       const rb = (d && d.base > 0) ? `<span class="text-xs font-extrabold px-2 py-0.5 rounded-full ${d.defect > 0 ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}">불량률 ${d.rate.toFixed(1)}%</span>` : "";
-      return `<div><div class="flex items-center justify-between mb-1.5"><span class="text-xs font-bold text-slate-700">📦 수량 현황</span>${rb}</div><div class="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center"><div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200"><span class="block text-[11px] text-slate-600 font-semibold">작업완료</span><strong class="text-sm font-extrabold text-slate-900 mt-0.5 block">${esc(vt(getWorkDoneVal(r)))}</strong></div><div class="bg-blue-50/70 p-2.5 rounded-xl border border-blue-200"><span class="block text-[11px] text-blue-700 font-semibold">입고수량</span><strong class="text-sm font-extrabold text-blue-800 mt-0.5 block">${esc(vt(r.qtyIncoming))}</strong></div><div class="bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-200"><span class="block text-[11px] text-emerald-700 font-semibold">납품수량</span><strong class="text-sm font-extrabold text-emerald-800 mt-0.5 block">${esc(vt(r.qtyDelivered))}</strong></div><div class="bg-indigo-50/70 p-2.5 rounded-xl border border-indigo-200"><span class="block text-[11px] text-indigo-700 font-semibold">재고수량</span><strong class="text-sm font-extrabold text-indigo-800 mt-0.5 block">${esc(vt(r.qtyStock))}</strong></div><div class="bg-rose-50/70 p-2.5 rounded-xl border border-rose-200"><span class="block text-[11px] text-rose-600 font-semibold">불량수량</span><strong class="text-sm font-extrabold text-rose-700 mt-0.5 block">${esc(vt(r.qtyDefect))}</strong></div></div></div>`;
+      return `<div><div class="flex items-center justify-between mb-1.5"><span class="text-xs font-bold text-slate-700">📦 수량 현황</span>${rb}</div><div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center"><div class="bg-purple-50/70 p-2.5 rounded-xl border border-purple-200"><span class="block text-[11px] text-purple-800 font-semibold">작업수량</span><strong class="text-sm font-extrabold text-purple-900 mt-0.5 block">${esc(vt(r.qtyWork))}</strong></div><div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200"><span class="block text-[11px] text-slate-600 font-semibold">작업완료</span><strong class="text-sm font-extrabold text-slate-900 mt-0.5 block">${esc(vt(getWorkDoneVal(r)))}</strong></div><div class="bg-blue-50/70 p-2.5 rounded-xl border border-blue-200"><span class="block text-[11px] text-blue-700 font-semibold">입고수량</span><strong class="text-sm font-extrabold text-blue-800 mt-0.5 block">${esc(vt(r.qtyIncoming))}</strong></div><div class="bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-200"><span class="block text-[11px] text-emerald-700 font-semibold">납품수량</span><strong class="text-sm font-extrabold text-emerald-800 mt-0.5 block">${esc(vt(r.qtyDelivered))}</strong></div><div class="bg-indigo-50/70 p-2.5 rounded-xl border border-indigo-200"><span class="block text-[11px] text-indigo-700 font-semibold">재고수량</span><strong class="text-sm font-extrabold text-indigo-800 mt-0.5 block">${esc(vt(r.qtyStock))}</strong></div><div class="bg-rose-50/70 p-2.5 rounded-xl border border-rose-200"><span class="block text-[11px] text-rose-600 font-semibold">불량수량</span><strong class="text-sm font-extrabold text-rose-700 mt-0.5 block">${esc(vt(r.qtyDefect))}</strong></div></div></div>`;
     }
 
     window.selectDocCheck = function (type, val) {
@@ -1331,8 +1334,8 @@
         if (catFilter && normalizeCategory(r.category) !== catFilter) return false;
         if (titleFilter && !(r.title || "").includes(titleFilter)) return false;
         if (st && r.status !== st) return false;
-        if (pk === "생기 이관대기") { if (!(toNum(r.qtyStock) > 0 && !r.stockTransferred)) return false; }
-        else if (pk === "생기 이관완료") { if (!(toNum(r.qtyStock) > 0 && r.stockTransferred)) return false; }
+        if (pk === "재고 이관대기") { if (!(toNum(r.qtyStock) > 0 && !r.stockTransferred)) return false; }
+        else if (pk === "재고 이관완료") { if (!(toNum(r.qtyStock) > 0 && r.stockTransferred)) return false; }
         else if (pk && r.packingStatus !== pk) return false;
         if (photoSt === "사진 업데이트 완료" && r.photoUpdateStatus !== "사진 업데이트 완료") return false;
         if (photoSt === "사진 미완료" && r.photoUpdateStatus !== "사진 미완료") return false;
@@ -1452,7 +1455,7 @@
             </div>`).join("")}
           </div>` : "";
 
-          return `<div onclick="openDetailModal('${r.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 space-y-2"><div class="flex items-center justify-between gap-2"><span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(normalizeCategory(r.category))}</span><div class="flex items-center gap-1.5">${statusBadge(r.status)}${toNum(r.qtyStock) > 0 ? `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-extrabold border ${r.stockTransferred ? "bg-sky-100 text-sky-800 border-sky-300" : "bg-amber-50 text-amber-800 border-amber-300"}">${r.stockTransferred ? "☑ 이관완료" : "☐ 생기이관"}</button>` : ""}</div></div><div class="font-bold text-slate-900 text-sm leading-snug break-words">${esc(r.title)}</div>${hasTr ? `<div class="text-xs bg-slate-50 px-2.5 py-2 rounded-lg border border-slate-200/80 space-y-1">${(r.lotNo || r.client || r.vendor) ? `<div class="flex flex-wrap items-center justify-between gap-1">${r.lotNo ? `<span class="font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/80">관리번호: ${esc(r.lotNo)}</span>` : `<span></span>`}<div class="flex flex-wrap items-center gap-1">${r.client ? `<span class="font-bold text-slate-700">${esc(r.client)}</span>` : ""}${r.vendor ? `<span class="font-bold text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">외주: ${esc(r.vendor)}</span>` : ""}</div></div>` : ""}${(r.productName || r.partNo) ? `<div class="text-slate-600 break-words leading-relaxed">${r.productName ? `<span>품명: <strong class="text-slate-800">${esc(r.productName)}</strong></span>` : ""}${(r.productName && r.partNo) ? ` · ` : ""}${r.partNo ? `<span>품번: <strong class="text-slate-800">${esc(r.partNo)}</strong></span>` : ""}</div>` : ""}</div>` : ""}${ql ? `<div class="text-xs font-bold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200/70">📦 ${esc(ql)}</div>` : ""}${mActionBtns}${mSubList}<div>${renderDocAndPackingBadges(r)}</div>${r.packingNote ? `<div class="text-xs text-teal-900 bg-teal-50/80 px-2.5 py-1.5 rounded-lg border border-teal-200/80 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}${(r.result || r.description) ? `<p class="text-xs text-slate-500 line-clamp-2 break-all">${esc(r.result || r.description)}</p>` : ""}<div class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-100"><span>작업: ${esc(r.workDate)}${r.completedDate ? ` · <strong class="text-emerald-700">완료: ${esc(r.completedDate)}</strong>` : ""} · ${r.worker === "작업예정" ? `<strong class="text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">🗓️ 작업예정</strong>` : `검사: <strong class="text-slate-700">${esc(r.worker)}</strong>`}${r.packer ? ` · 포장: <strong class="text-teal-700">${esc(r.packer)}</strong>` : ""}</span><span>${pCnt > 0 ? `📷 ${pCnt} ` : ""}${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}</span></div></div>`;
+          return `<div onclick="openDetailModal('${r.id}')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 space-y-2"><div class="flex items-center justify-between gap-2"><span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(normalizeCategory(r.category))}</span><div class="flex items-center gap-1.5">${statusBadge(r.status)}${toNum(r.qtyStock) > 0 ? `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-extrabold border ${r.stockTransferred ? "bg-sky-100 text-sky-800 border-sky-300" : "bg-amber-50 text-amber-800 border-amber-300"}">${r.stockTransferred ? "☑ 이관완료" : "☐ 재고이관"}</button>` : ""}</div></div><div class="font-bold text-slate-900 text-sm leading-snug break-words">${esc(r.title)}</div>${hasTr ? `<div class="text-xs bg-slate-50 px-2.5 py-2 rounded-lg border border-slate-200/80 space-y-1">${(r.lotNo || r.client || r.vendor) ? `<div class="flex flex-wrap items-center justify-between gap-1">${r.lotNo ? `<span class="font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/80">관리번호: ${esc(r.lotNo)}</span>` : `<span></span>`}<div class="flex flex-wrap items-center gap-1">${r.client ? `<span class="font-bold text-slate-700">${esc(r.client)}</span>` : ""}${r.vendor ? `<span class="font-bold text-purple-800 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">외주: ${esc(r.vendor)}</span>` : ""}</div></div>` : ""}${(r.productName || r.partNo) ? `<div class="text-slate-600 break-words leading-relaxed">${r.productName ? `<span>품명: <strong class="text-slate-800">${esc(r.productName)}</strong></span>` : ""}${(r.productName && r.partNo) ? ` · ` : ""}${r.partNo ? `<span>품번: <strong class="text-slate-800">${esc(r.partNo)}</strong></span>` : ""}</div>` : ""}</div>` : ""}${ql ? `<div class="text-xs font-bold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200/70">📦 ${esc(ql)}</div>` : ""}${mActionBtns}${mSubList}<div>${renderDocAndPackingBadges(r)}</div>${r.packingNote ? `<div class="text-xs text-teal-900 bg-teal-50/80 px-2.5 py-1.5 rounded-lg border border-teal-200/80 break-all whitespace-pre-line">📦 포장비고: ${esc(r.packingNote)}</div>` : ""}${(r.result || r.description) ? `<p class="text-xs text-slate-500 line-clamp-2 break-all">${esc(r.result || r.description)}</p>` : ""}<div class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-100"><span>작업: ${esc(r.workDate)}${r.completedDate ? ` · <strong class="text-emerald-700">완료: ${esc(r.completedDate)}</strong>` : ""} · ${r.worker === "작업예정" ? `<strong class="text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">🗓️ 작업예정</strong>` : `검사: <strong class="text-slate-700">${esc(r.worker)}</strong>`}${r.packer ? ` · 포장: <strong class="text-teal-700">${esc(r.packer)}</strong>` : ""}</span><span>${pCnt > 0 ? `📷 ${pCnt} ` : ""}${(r.files?.length || 0) > 0 ? `📎 ${r.files.length}` : ""}</span></div></div>`;
         }).join("");
       }
       if (currentTab === "defect") renderDefectDashboard();
@@ -1467,9 +1470,9 @@
       if (stk <= 0) return "";
       const done = Boolean(r.stockTransferred);
       if (done) {
-        return `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" title="클릭 시 생기 이관완료 해제" class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-sky-800 border border-sky-300 hover:bg-sky-200 transition whitespace-nowrap"><span>☑</span><span>생기 이관완료</span></button>`;
+        return `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" title="클릭 시 재고 이관완료 해제" class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-sky-800 border border-sky-300 hover:bg-sky-200 transition whitespace-nowrap"><span>☑</span><span>재고 이관완료</span></button>`;
       }
-      return `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" title="생산관리부서로 재고 ${stk}ea 이관 완료 체크" class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition whitespace-nowrap"><span>☐</span><span>생기 이관</span></button>`;
+      return `<button type="button" onclick="event.stopPropagation(); toggleStockTransfer('${r.id}')" title="생산관리부서로 재고 ${stk}ea 이관 완료 체크" class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition whitespace-nowrap"><span>☐</span><span>재고 이관</span></button>`;
     }
 
     window.toggleStockTransfer = async function (recordId) {
@@ -1479,8 +1482,8 @@
       const stk = toNum(cur.qtyStock);
       const nextState = !cur.stockTransferred;
       const msg = nextState
-        ? `[${cur.title}] 잔여 재고 ${stk > 0 ? stk + "ea " : ""}생산관리부서 이관 완료로 체크할까요?`
-        : `[${cur.title}] '생기 이관완료' 체크를 해제할까요?`;
+        ? `[${cur.title}] 잔여 재고 ${stk > 0 ? stk + "ea " : ""}재고 이관 완료로 체크할까요?`
+        : `[${cur.title}] '재고 이관완료' 체크를 해제할까요?`;
       if (!confirm(msg)) return;
 
       const updated = {
@@ -1494,7 +1497,7 @@
       try {
         if (db) await setDoc(doc(db, "zenops_quality_records", recordId), updated);
         else localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-        showToast(nextState ? "생산관리부서 재고 이관 완료 처리되었습니다." : "생기 이관 체크가 해제되었습니다.");
+        showToast(nextState ? "재고 이관 완료 처리되었습니다." : "재고 이관 체크가 해제되었습니다.");
       } catch (err) {
         alert("이관 상태 저장 오류: " + err.message);
       }
@@ -1538,8 +1541,9 @@
 
     window.renderDefectDashboard = function () {
       const list = getDefectPeriodRecords();
-      let totalWD = 0, totalInc = 0, totalDel = 0, totalStk = 0, totalDef = 0, totalBase = 0;
-      list.forEach(r => { totalWD += toNum(getWorkDoneVal(r)); totalInc += toNum(r.qtyIncoming); totalDel += toNum(r.qtyDelivered); totalStk += toNum(r.qtyStock); totalDef += toNum(r.qtyDefect); const info = calcRecordDefectInfo(r); if (info) totalBase += info.base; });
+      let totalWQ = 0, totalWD = 0, totalInc = 0, totalDel = 0, totalStk = 0, totalDef = 0, totalBase = 0;
+      list.forEach(r => { totalWQ += toNum(r.qtyWork); totalWD += toNum(getWorkDoneVal(r)); totalInc += toNum(r.qtyIncoming); totalDel += toNum(r.qtyDelivered); totalStk += toNum(r.qtyStock); totalDef += toNum(r.qtyDefect); const info = calcRecordDefectInfo(r); if (info) totalBase += info.base; });
+      document.getElementById("sumWorkQty").textContent = `${totalWQ.toLocaleString()} ea`;
       document.getElementById("sumWorkDone").textContent = `${totalWD.toLocaleString()} ea`;
       document.getElementById("sumIncoming").textContent = `${totalInc.toLocaleString()} ea`;
       document.getElementById("sumDelivered").textContent = `${totalDel.toLocaleString()} ea`;
@@ -1551,8 +1555,8 @@
       const vendorMap = {};
       list.forEach(r => {
         if (vendorScopeMode === "INCOMING" && !isIncomingInspectionTitle(r)) return;
-        const inc = toNum(r.qtyIncoming), wd = toNum(getWorkDoneVal(r)), def = toNum(r.qtyDefect);
-        const baseQty = vendorScopeMode === "INCOMING" ? (inc > 0 ? inc : wd) : (inc > 0 ? inc : (wd > 0 ? wd : toNum(r.qtyDelivered)));
+        const inc = toNum(r.qtyIncoming), wk = toNum(r.qtyWork), wd = toNum(getWorkDoneVal(r)), def = toNum(r.qtyDefect);
+        const baseQty = vendorScopeMode === "INCOMING" ? (inc > 0 ? inc : (wk > 0 ? wk : wd)) : (inc > 0 ? inc : (wk > 0 ? wk : (wd > 0 ? wd : toNum(r.qtyDelivered))));
         if (baseQty <= 0 && def <= 0) return;
 
         let vn = (r.vendor || "").trim();
@@ -1572,12 +1576,12 @@
       const catMap = {};
       list.forEach(r => {
         const cat = normalizeCategory(r.category) || "기타";
-        if (!catMap[cat]) catMap[cat] = { cat, count: 0, wd: 0, inc: 0, del: 0, stk: 0, def: 0, base: 0 };
-        catMap[cat].count += 1; catMap[cat].wd += toNum(getWorkDoneVal(r)); catMap[cat].inc += toNum(r.qtyIncoming); catMap[cat].del += toNum(r.qtyDelivered); catMap[cat].stk += toNum(r.qtyStock); catMap[cat].def += toNum(r.qtyDefect);
+        if (!catMap[cat]) catMap[cat] = { cat, count: 0, wq: 0, wd: 0, inc: 0, del: 0, stk: 0, def: 0, base: 0 };
+        catMap[cat].count += 1; catMap[cat].wq += toNum(r.qtyWork); catMap[cat].wd += toNum(getWorkDoneVal(r)); catMap[cat].inc += toNum(r.qtyIncoming); catMap[cat].del += toNum(r.qtyDelivered); catMap[cat].stk += toNum(r.qtyStock); catMap[cat].def += toNum(r.qtyDefect);
         const info = calcRecordDefectInfo(r); if (info) catMap[cat].base += info.base;
       });
       const cRows = Object.values(catMap).map(c => ({ ...c, rate: c.base > 0 ? (c.def / c.base) * 100 : 0 })).sort((a, b) => b.count - a.count);
-      document.getElementById("categoryDefectTableBody").innerHTML = cRows.length === 0 ? `<tr><td colspan="8" class="py-8 text-center text-xs text-slate-400">해당 기간에 등록된 업무 데이터가 없습니다.</td></tr>` : cRows.map(c => `<tr class="hover:bg-slate-50"><td class="py-3 px-4 font-bold text-slate-800 whitespace-nowrap">${esc(c.cat)}</td><td class="py-3 px-4 text-right text-slate-600">${c.count}건</td><td class="py-3 px-4 text-right font-bold text-slate-900">${c.wd.toLocaleString()} ea</td><td class="py-3 px-4 text-right font-semibold text-blue-700">${c.inc.toLocaleString()} ea</td><td class="py-3 px-4 text-right font-semibold text-emerald-700">${c.del.toLocaleString()} ea</td><td class="py-3 px-4 text-right font-semibold text-indigo-700">${c.stk.toLocaleString()} ea</td><td class="py-3 px-4 text-right font-extrabold ${c.def > 0 ? "text-rose-600" : "text-slate-500"}">${c.def.toLocaleString()} ea</td><td class="py-3 px-4">${rateBarHtml(c.rate)}</td></tr>`).join("");
+      document.getElementById("categoryDefectTableBody").innerHTML = cRows.length === 0 ? `<tr><td colspan="9" class="py-8 text-center text-xs text-slate-400">해당 기간에 등록된 업무 데이터가 없습니다.</td></tr>` : cRows.map(c => `<tr class="hover:bg-slate-50"><td class="py-3 px-4 font-bold text-slate-800 whitespace-nowrap">${esc(c.cat)}</td><td class="py-3 px-4 text-right text-slate-600">${c.count}건</td><td class="py-3 px-4 text-right font-bold text-purple-900">${c.wq.toLocaleString()} ea</td><td class="py-3 px-4 text-right font-bold text-slate-900">${c.wd.toLocaleString()} ea</td><td class="py-3 px-4 text-right font-semibold text-blue-700">${c.inc.toLocaleString()} ea</td><td class="py-3 px-4 text-right font-semibold text-emerald-700">${c.del.toLocaleString()} ea</td><td class="py-3 px-4 text-right font-semibold text-indigo-700">${c.stk.toLocaleString()} ea</td><td class="py-3 px-4 text-right font-extrabold ${c.def > 0 ? "text-rose-600" : "text-slate-500"}">${c.def.toLocaleString()} ea</td><td class="py-3 px-4">${rateBarHtml(c.rate)}</td></tr>`).join("");
     };
 
     window.filterByVendor = function (vn) { if (!vn) return; document.getElementById("filterKeyword").value = vn; switchTab("list"); renderAll(); showToast(`'${vn}' 업체 이력으로 필터링되었습니다.`); };
@@ -1698,7 +1702,7 @@
           document.getElementById("reworkBannerText").textContent = "🔄 재연마·재가공 재입고 추가등록 이력을 수정 중입니다.";
         }
         document.getElementById("editRecordId").value = record.id; document.getElementById("fWorkDate").value = record.workDate; document.getElementById("fCompletedDate").value = record.completedDate || ""; document.getElementById("fWorkNo").value = record.workNo; document.getElementById("fStatus").value = record.status; document.getElementById("fCategory").value = normalizeCategory(record.category); document.getElementById("fWorker").value = record.worker; document.getElementById("fTitle").value = record.title; document.getElementById("fLotNo").value = record.lotNo || ""; document.getElementById("fClient").value = record.client || ""; document.getElementById("fVendor").value = record.vendor || ""; document.getElementById("fProductName").value = record.productName || ""; document.getElementById("fPartNo").value = record.partNo || "";
-        document.getElementById("fQtyWorkDone").value = getWorkDoneVal(record); document.getElementById("fQtyIncoming").value = record.qtyIncoming ?? ""; document.getElementById("fQtyDelivered").value = record.qtyDelivered ?? ""; document.getElementById("fQtyStock").value = record.qtyStock ?? ""; document.getElementById("fQtyDefect").value = record.qtyDefect ?? "";
+        document.getElementById("fQtyWork").value = record.qtyWork ?? ""; document.getElementById("fQtyWorkDone").value = getWorkDoneVal(record); document.getElementById("fQtyIncoming").value = record.qtyIncoming ?? ""; document.getElementById("fQtyDelivered").value = record.qtyDelivered ?? ""; document.getElementById("fQtyStock").value = record.qtyStock ?? ""; document.getElementById("fQtyDefect").value = record.qtyDefect ?? "";
         const subs = Array.isArray(record.subItems) ? record.subItems : []; buildSubItemsRows(subs); toggleSubItemsSection(subs.length > 0);
         document.getElementById("fReportStatus").value = (!record.reportStatus || record.reportStatus === "해당없음") ? "" : record.reportStatus;
         document.getElementById("fCoatingDataStatus").value = (!record.coatingDataStatus || record.coatingDataStatus === "해당없음") ? "" : record.coatingDataStatus;
@@ -1707,7 +1711,7 @@
         document.getElementById("fPhotoUpdateStatus").value = record.photoUpdateStatus || (tempPhotos.length > 0 ? "사진 업데이트 완료" : "");
       } else {
         const today = new Date().toISOString().slice(0, 10), seq = String(records.filter(r => r.workDate === today).length + 1).padStart(3, "0");
-        document.getElementById("formModalTitle").textContent = "새 품질 업무 등록"; document.getElementById("editRecordId").value = ""; document.getElementById("fWorkDate").value = today; document.getElementById("fCompletedDate").value = ""; document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`; document.getElementById("fStatus").value = "진행 중"; document.getElementById("fReportStatus").value = ""; document.getElementById("fCoatingDataStatus").value = ""; document.getElementById("fPackingStatus").value = ""; document.getElementById("fPacker").value = ""; document.getElementById("fPackingNote").value = ""; document.getElementById("fPhotoUpdateStatus").value = ""; document.getElementById("fVendor").value = "";
+        document.getElementById("formModalTitle").textContent = "새 품질 업무 등록"; document.getElementById("editRecordId").value = ""; document.getElementById("fWorkDate").value = today; document.getElementById("fCompletedDate").value = ""; document.getElementById("fWorkNo").value = `Q-${today.replace(/-/g, "")}-${seq}`; document.getElementById("fStatus").value = "진행 중"; document.getElementById("fReportStatus").value = ""; document.getElementById("fCoatingDataStatus").value = ""; document.getElementById("fPackingStatus").value = ""; document.getElementById("fPacker").value = ""; document.getElementById("fPackingNote").value = ""; document.getElementById("fPhotoUpdateStatus").value = ""; document.getElementById("fVendor").value = ""; document.getElementById("fQtyWork").value = "";
         buildSubItemsRows([]); toggleSubItemsSection(false);
       }
       checkDuplicateLotNoLive(); syncWorkerPlannedBtn(); syncTitleQuickButtons(); updateLiveDefectPreview(); updateDocCheckButtons("reportBtnGroup", document.getElementById("fReportStatus").value); updateDocCheckButtons("coatingBtnGroup", document.getElementById("fCoatingDataStatus").value); updatePackingButtons(document.getElementById("fPackingStatus").value); updatePhotoStatusButtons(document.getElementById("fPhotoUpdateStatus").value); renderAttachmentsPreview();
@@ -1749,13 +1753,13 @@
       e.preventDefault();
       const pq = id => { const raw = document.getElementById(id).value.trim(); return raw === "" ? "" : Number(raw); };
       const subItems = collectSubItemsFromForm();
-      let qtyWorkDone = pq("fQtyWorkDone"), qtyIncoming = pq("fQtyIncoming"), qtyDelivered = pq("fQtyDelivered"), qtyStock = pq("fQtyStock"), qtyDefect = pq("fQtyDefect");
-      if (![qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect].some(v => v !== "") && subItems.length > 0) {
+      let qtyWork = pq("fQtyWork"), qtyWorkDone = pq("fQtyWorkDone"), qtyIncoming = pq("fQtyIncoming"), qtyDelivered = pq("fQtyDelivered"), qtyStock = pq("fQtyStock"), qtyDefect = pq("fQtyDefect");
+      if (![qtyWork, qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect].some(v => v !== "") && subItems.length > 0) {
         const { sumW, sumS, sumD, sumDl } = recalcSubItemsSummary();
         if (isIncomingInspectionTitle({ title: document.getElementById("fTitle").value }) || document.getElementById("fCategory").value === "입고/출고/공정검사") qtyIncoming = sumW; else qtyWorkDone = sumW;
         qtyStock = sumS; qtyDefect = sumD; qtyDelivered = sumDl;
       }
-      if (![qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect].some(v => v !== "")) { alert("필수 항목 안내: [수량 현황] 항목 중 최소 1개 이상 숫자를 입력해 주세요."); document.getElementById("qtySection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      if (![qtyWork, qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect].some(v => v !== "")) { alert("필수 항목 안내: [수량 현황] 항목 중 최소 1개 이상 숫자를 입력해 주세요."); document.getElementById("qtySection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
       const reportStatus = document.getElementById("fReportStatus").value.trim(), coatingDataStatus = document.getElementById("fCoatingDataStatus").value.trim();
       if (!reportStatus) { alert("필수 항목 안내: [성적서 유무] 버튼을 선택해 주세요."); document.getElementById("docCheckSection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
       if (!coatingDataStatus) { alert("필수 항목 안내: [코팅데이터 유무] 버튼을 선택해 주세요."); document.getElementById("docCheckSection").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
@@ -1784,7 +1788,7 @@
       const existingParentId = editId ? (records.find(x => x.id === editId)?.parentRecordId || "") : "";
       const parentRecordId = activeParentIdForRework || existingParentId || "";
 
-      const payload = { id, parentRecordId, workDate: document.getElementById("fWorkDate").value, completedDate: completedDateVal, workNo: document.getElementById("fWorkNo").value, status: statusVal, category: document.getElementById("fCategory").value, worker: document.getElementById("fWorker").value.trim(), title: document.getElementById("fTitle").value.trim(), lotNo: document.getElementById("fLotNo").value.trim(), client: document.getElementById("fClient").value.trim(), vendor: document.getElementById("fVendor").value.trim(), productName: document.getElementById("fProductName").value.trim(), partNo: document.getElementById("fPartNo").value.trim(), qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect, subItems, reportStatus, coatingDataStatus, description: document.getElementById("fDescription").value.trim(), judgment: document.getElementById("fJudgment").value, result: document.getElementById("fResult").value.trim(), remarks: document.getElementById("fRemarks").value.trim(), stockTransferred: editId ? Boolean(records.find(x => x.id === editId)?.stockTransferred) : false, stockTransferredAt: editId ? (records.find(x => x.id === editId)?.stockTransferredAt || "") : "", packingStatus, packer: document.getElementById("fPacker").value.trim(), packingNote: document.getElementById("fPackingNote").value.trim(), photoUpdateStatus, photos: [], photoCount: tempPhotos.length, photoBytes: tempPhotos.reduce((a, s) => a + getByteLength(s), 0), files: tempDocs, updatedAt: Date.now() };
+      const payload = { id, parentRecordId, workDate: document.getElementById("fWorkDate").value, completedDate: completedDateVal, workNo: document.getElementById("fWorkNo").value, status: statusVal, category: document.getElementById("fCategory").value, worker: document.getElementById("fWorker").value.trim(), title: document.getElementById("fTitle").value.trim(), lotNo: document.getElementById("fLotNo").value.trim(), client: document.getElementById("fClient").value.trim(), vendor: document.getElementById("fVendor").value.trim(), productName: document.getElementById("fProductName").value.trim(), partNo: document.getElementById("fPartNo").value.trim(), qtyWork, qtyWorkDone, qtyIncoming, qtyDelivered, qtyStock, qtyDefect, subItems, reportStatus, coatingDataStatus, description: document.getElementById("fDescription").value.trim(), judgment: document.getElementById("fJudgment").value, result: document.getElementById("fResult").value.trim(), remarks: document.getElementById("fRemarks").value.trim(), stockTransferred: editId ? Boolean(records.find(x => x.id === editId)?.stockTransferred) : false, stockTransferredAt: editId ? (records.find(x => x.id === editId)?.stockTransferredAt || "") : "", packingStatus, packer: document.getElementById("fPacker").value.trim(), packingNote: document.getElementById("fPackingNote").value.trim(), photoUpdateStatus, photos: [], photoCount: tempPhotos.length, photoBytes: tempPhotos.reduce((a, s) => a + getByteLength(s), 0), files: tempDocs, updatedAt: Date.now() };
       try {
         if (db) { await savePhotosToSubcollection(id, tempPhotos); await setDoc(doc(db, "zenops_quality_records", id), payload); }
         else { const lp = { ...payload, photos: [...tempPhotos] }, idx = records.findIndex(r => r.id === id); if (idx >= 0) records[idx] = lp; else records.unshift(lp); localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); renderAll(); }
@@ -1864,13 +1868,13 @@
     window.openSettingsModal = () => { updateStorageUI(); document.getElementById("settingsModal").classList.remove("hidden"); pushModalHistory("settingsModal"); };
 
     window.exportCSV = function () {
-      const headers = ["작업일자", "작업완료날짜", "차수구분", "고유번호", "관리번호", "고객사", "외주업체", "제품명", "품번", "업무분류", "진행상태", "검사담당자", "포장여부", "포장담당자", "포장비고", "생기이관여부", "사진업데이트여부", "업무제목", "작업완료(ea)", "입고수량(ea)", "납품수량(ea)", "재고수량(ea)", "불량수량(ea)", "불량률(%)", "세부품목내역", "성적서유무", "코팅데이터유무", "작업내용", "판정", "검사결과", "특이사항"];
+      const headers = ["작업일자", "작업완료날짜", "차수구분", "고유번호", "관리번호", "고객사", "외주업체", "제품명", "품번", "업무분류", "진행상태", "검사담당자", "포장여부", "포장담당자", "포장비고", "재고이관여부", "사진업데이트여부", "업무제목", "작업수량(ea)", "작업완료(ea)", "입고수량(ea)", "납품수량(ea)", "재고수량(ea)", "불량수량(ea)", "불량률(%)", "세부품목내역", "성적서유무", "코팅데이터유무", "작업내용", "판정", "검사결과", "특이사항"];
       const allSorted = [...records].sort((a, b) => (b.workDate || "").localeCompare(a.workDate || "") || (b.updatedAt || 0) - (a.updatedAt || 0));
       const rows = allSorted.map(r => {
         const d = calcRecordDefectInfo(r), rs = (d && d.base > 0) ? d.rate.toFixed(1) + "%" : "0.0%";
         const roundLabel = r.parentRecordId ? "재입고 추가건" : "원본(1차)";
         const st = Array.isArray(r.subItems) && r.subItems.length > 0 ? r.subItems.map(s => `${s.no}.${s.name}(작업/입고:${s.workQty || 0}, 재고:${s.stockQty || 0}, 불량:${s.defectQty || 0}, 납품:${s.deliveredQty || 0})`).join(" / ") : "";
-        return [r.workDate, r.completedDate || "", roundLabel, r.workNo, r.lotNo || "", r.client || "", r.vendor || "", (r.productName || "").replace(/\n/g, " "), r.partNo || "", r.category, r.status, r.worker, r.packingStatus || "해당없음", r.packer || "", (r.packingNote || "").replace(/\n/g, " "), toNum(r.qtyStock) > 0 ? (r.stockTransferred ? "생기 이관완료" : "생기 이관대기") : "재고없음", r.photoUpdateStatus || "해당없음", r.title, getWorkDoneVal(r), r.qtyIncoming ?? "", r.qtyDelivered ?? "", r.qtyStock ?? "", r.qtyDefect ?? "", rs, st, r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음", (r.description || "").replace(/\n/g, " "), r.judgment || "", (r.result || "").replace(/\n/g, " "), (r.remarks || "").replace(/\n/g, " ")].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
+        return [r.workDate, r.completedDate || "", roundLabel, r.workNo, r.lotNo || "", r.client || "", r.vendor || "", (r.productName || "").replace(/\n/g, " "), r.partNo || "", r.category, r.status, r.worker, r.packingStatus || "해당없음", r.packer || "", (r.packingNote || "").replace(/\n/g, " "), toNum(r.qtyStock) > 0 ? (r.stockTransferred ? "재고 이관완료" : "재고 이관대기") : "재고없음", r.photoUpdateStatus || "해당없음", r.title, r.qtyWork ?? "", getWorkDoneVal(r), r.qtyIncoming ?? "", r.qtyDelivered ?? "", r.qtyStock ?? "", r.qtyDefect ?? "", rs, st, r.reportStatus || "해당없음", r.coatingDataStatus || "해당없음", (r.description || "").replace(/\n/g, " "), r.judgment || "", (r.result || "").replace(/\n/g, " "), (r.remarks || "").replace(/\n/g, " ")].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
       });
       const blob = new Blob(["\uFEFF" + [headers.join(","), ...rows].join("\n")], { type: "text/csv;charset=utf-8;" }), a = document.createElement("a");
       a.href = URL.createObjectURL(blob); a.download = `ZENOPS_품질팀_업무이력_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
@@ -1902,3 +1906,4 @@
   </script>
 </body>
 </html>
+Diagnosing the code truncation error
