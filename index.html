@@ -12,31 +12,47 @@
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-    body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f1f5f9; color: #0f172a; -webkit-tap-highlight-color: transparent; overscroll-behavior-x: none; transition: background-color 0.2s, color 0.2s; }
+    body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; color: #0f172a; -webkit-tap-highlight-color: transparent; overscroll-behavior-x: none; transition: background-color 0.2s, color 0.2s; }
+    header { background: linear-gradient(90deg, #1e293b 0%, #243347 100%); border-bottom: 1px solid #334155; }
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    .modal-backdrop { background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(2px); }
+    .modal-backdrop { background-color: rgba(15, 23, 42, 0.58); backdrop-filter: blur(2px); }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .animate-fade { animation: fadeIn 0.2s ease-out forwards; }
-    body.theme-blue { background-color: #eef2f7; }
-    body.theme-blue header { background: linear-gradient(90deg, #071326 0%, #0d2244 100%) !important; border-bottom: 1px solid #1e3a6e; }
-    body.theme-blue .bg-purple-700, body.theme-blue .bg-purple-800 { background-color: #0284c7 !important; }
-    body.theme-blue .hover\:bg-purple-600:hover, body.theme-blue .hover\:bg-purple-800:hover { background-color: #0369a1 !important; }
-    body.theme-blue .text-purple-800, body.theme-blue .text-purple-700, body.theme-blue .text-purple-900, body.theme-blue .text-purple-950 { color: #0369a1 !important; }
-    body.theme-blue .border-purple-700, body.theme-blue .border-purple-200, body.theme-blue .border-purple-300 { border-color: #0284c7 !important; }
-    body.theme-blue .bg-purple-50, body.theme-blue .bg-purple-50\/70, body.theme-blue .bg-purple-50\/60 { background-color: #f0f9ff !important; }
-    body.theme-dark { background-color: #070b14; color: #e2e8f0; }
-    body.theme-dark header { background: linear-gradient(90deg, #050811 0%, #0b1326 100%) !important; border-bottom: 1px solid #1e293b; }
+
+    /* Option B 기본 톤: 절제된 블루·네이비 포인트 */
+    .bg-purple-700, .bg-purple-800 { background-color: #2563eb !important; }
+    .hover\:bg-purple-600:hover, .hover\:bg-purple-800:hover { background-color: #1d4ed8 !important; }
+    .text-purple-800, .text-purple-700, .text-purple-900, .text-purple-950 { color: #1e3a5f !important; }
+    .text-purple-600, .text-purple-300, .text-purple-200 { color: #93c5fd !important; }
+    .border-purple-700, .border-purple-400, .border-purple-300, .border-purple-200 { border-color: #cbd5e1 !important; }
+    .bg-purple-50, .bg-purple-50\/70, .bg-purple-50\/60, .bg-purple-100 { background-color: #f8fafc !important; }
+    .hover\:bg-purple-50:hover, .hover\:bg-purple-50\/50:hover, .hover\:bg-purple-50\/40:hover, .hover\:bg-purple-50\/60:hover, .hover\:bg-purple-100:hover { background-color: #f1f5f9 !important; }
+    .focus\:ring-purple-700:focus, .focus\:ring-purple-600:focus { --tw-ring-color: #2563eb !important; }
+    .focus\:border-purple-700:focus, .focus\:border-purple-600:focus { border-color: #2563eb !important; }
+
+    /* 서브 테마 1: 제놉스 그룹웨어 스틸 블루 */
+    body.theme-blue { background-color: #f4f7fa; }
+    body.theme-blue header { background: linear-gradient(90deg, #1e4e79 0%, #2b5f8f 100%) !important; border-bottom: 1px solid #3b6e9c; }
+    body.theme-blue .bg-purple-700, body.theme-blue .bg-purple-800 { background-color: #2b5f8f !important; }
+    body.theme-blue .hover\:bg-purple-600:hover, body.theme-blue .hover\:bg-purple-800:hover { background-color: #1e4e79 !important; }
+    body.theme-blue .text-purple-800, body.theme-blue .text-purple-700, body.theme-blue .text-purple-900, body.theme-blue .text-purple-950 { color: #1e4e79 !important; }
+    body.theme-blue .border-purple-700, body.theme-blue .border-purple-300, body.theme-blue .border-purple-200 { border-color: #bfdbfe !important; }
+    body.theme-blue .bg-purple-50, body.theme-blue .bg-purple-50\/70, body.theme-blue .bg-purple-50\/60 { background-color: #f0f7ff !important; }
+
+    /* 서브 테마 2: 제놉스 다크 */
+    body.theme-dark { background-color: #0b1120; color: #e2e8f0; }
+    body.theme-dark header { background: linear-gradient(90deg, #070c17 0%, #111b2e 100%) !important; border-bottom: 1px solid #1e293b; }
     body.theme-dark .bg-white { background-color: #0f172a !important; color: #e2e8f0 !important; border-color: #1e293b !important; }
     body.theme-dark .bg-slate-50, body.theme-dark .bg-slate-50\/70, body.theme-dark .bg-slate-100 { background-color: #162033 !important; color: #cbd5e1 !important; border-color: #26354d !important; }
     body.theme-dark .text-slate-900, body.theme-dark .text-slate-800, body.theme-dark .text-slate-700 { color: #f1f5f9 !important; }
     body.theme-dark .text-slate-600, body.theme-dark .text-slate-500 { color: #94a3b8 !important; }
     body.theme-dark input, body.theme-dark select, body.theme-dark textarea { background-color: #0b1221 !important; color: #f8fafc !important; border-color: #334155 !important; }
-    body.theme-dark .bg-purple-700, body.theme-dark .bg-purple-800 { background-color: #0891b2 !important; }
-    body.theme-dark .hover\:bg-purple-600:hover, body.theme-dark .hover\:bg-purple-800:hover { background-color: #06b6d4 !important; }
-    body.theme-dark .text-purple-800, body.theme-dark .text-purple-700, body.theme-dark .text-purple-900, body.theme-dark .text-purple-950 { color: #22d3ee !important; }
-    body.theme-dark .border-purple-700, body.theme-dark .border-purple-200, body.theme-dark .border-purple-300 { border-color: #06b6d4 !important; }
-    body.theme-dark .bg-purple-50, body.theme-dark .bg-purple-50\/70, body.theme-dark .bg-purple-50\/60 { background-color: #0c1d33 !important; }
+    body.theme-dark .bg-purple-700, body.theme-dark .bg-purple-800 { background-color: #2563eb !important; }
+    body.theme-dark .hover\:bg-purple-600:hover, body.theme-dark .hover\:bg-purple-800:hover { background-color: #3b82f6 !important; }
+    body.theme-dark .text-purple-800, body.theme-dark .text-purple-700, body.theme-dark .text-purple-900, body.theme-dark .text-purple-950 { color: #60a5fa !important; }
+    body.theme-dark .border-purple-700, body.theme-dark .border-purple-200, body.theme-dark .border-purple-300 { border-color: #334155 !important; }
+    body.theme-dark .bg-purple-50, body.theme-dark .bg-purple-50\/70, body.theme-dark .bg-purple-50\/60 { background-color: #131e32 !important; }
     body.theme-dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b !important; }
     body.theme-dark tr:hover { background-color: #17253d !important; }
   </style>
@@ -218,7 +234,7 @@
         </div>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
-        <div class="bg-white p-3.5 rounded-xl border border-purple-200 shadow-sm"><span class="text-[11px] font-bold text-purple-800 block">총 작업수량</span><strong id="sumWorkQty" class="text-xl font-extrabold text-purple-900 mt-1 block">0 ea</strong></div>
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm"><span class="text-[11px] font-bold text-slate-600 block">총 작업수량</span><strong id="sumWorkQty" class="text-xl font-extrabold text-slate-900 mt-1 block">0 ea</strong></div>
         <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm"><span class="text-[11px] font-bold text-slate-500 block">총 작업완료</span><strong id="sumWorkDone" class="text-xl font-extrabold text-slate-900 mt-1 block">0 ea</strong></div>
         <div class="bg-white p-3.5 rounded-xl border border-blue-200 shadow-sm"><span class="text-[11px] font-bold text-blue-700 block">총 입고수량</span><strong id="sumIncoming" class="text-xl font-extrabold text-blue-700 mt-1 block">0 ea</strong></div>
         <div class="bg-white p-3.5 rounded-xl border border-emerald-200 shadow-sm"><span class="text-[11px] font-bold text-emerald-700 block">총 납품수량</span><strong id="sumDelivered" class="text-xl font-extrabold text-emerald-700 mt-1 block">0 ea</strong></div>
@@ -249,7 +265,7 @@
 
     <section id="view-stats" class="hidden space-y-4 animate-fade">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div class="bg-teal-50/80 p-4 rounded-xl border border-teal-200 shadow-sm flex items-center justify-between"><div><span class="text-xs font-bold text-teal-800 block">📦 누적 포장 완료 (출하 준비/완료)</span><span class="text-[11px] text-teal-600 mt-0.5 block">포장 완료 체크된 출하 관련 건수</span></div><strong id="statsPackDoneTotal" class="text-2xl font-extrabold text-teal-800">0건</strong></div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between"><div><span class="text-xs font-bold text-slate-700 block">📦 누적 포장 완료 (출하 준비/완료)</span><span class="text-[11px] text-teal-600 mt-0.5 block">포장 완료 체크된 출하 관련 건수</span></div><strong id="statsPackDoneTotal" class="text-2xl font-extrabold text-blue-700">0건</strong></div>
         <div class="bg-amber-50/80 p-4 rounded-xl border border-amber-200 shadow-sm flex items-center justify-between"><div><span class="text-xs font-bold text-amber-800 block">⏳ 포장 미완료 (출하 대기)</span><span class="text-[11px] text-amber-600 mt-0.5 block">검사 후 포장 대기 중인 건수</span></div><strong id="statsPackPendingTotal" class="text-2xl font-extrabold text-amber-700">0건</strong></div>
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between"><div><span class="text-xs font-bold text-slate-700 block">🚚 전체 업무 대비 출하(포장완료) 비중</span><span id="statsPackMonthInfo" class="text-[11px] text-slate-500 mt-0.5 block">이번 달 포장완료: 0건</span></div><strong id="statsPackRatio" class="text-2xl font-extrabold text-purple-800">0%</strong></div>
       </div>
@@ -342,7 +358,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div><label class="block text-[11px] font-bold text-indigo-700 mb-1">1. 관리번호 / Lot No.</label><input type="text" id="fLotNo" oninput="checkDuplicateLotNoLive()" placeholder="예: 5553NO04LA 261456" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" /><p id="lotDuplicateHint" class="hidden text-[11px] font-bold text-amber-700 mt-1"></p></div>
             <div><label class="block text-[11px] font-bold text-slate-600 mb-1">2. 고객사 (납품처)</label><input type="text" id="fClient" placeholder="예: 인레이저, 인엘씨테크놀러지" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" /></div>
-            <div><label class="block text-[11px] font-bold text-purple-800 mb-1">3. 외주(협력)업체명 <span class="font-normal text-purple-600">· 불량률 집계</span></label><input type="text" id="fVendor" placeholder="예: 프라임광학, 프리시젼" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-700 focus:outline-none" /></div>
+            <div><label class="block text-[11px] font-bold text-slate-700 mb-1">3. 외주(협력)업체명 <span class="font-normal text-purple-600">· 불량률 집계</span></label><input type="text" id="fVendor" placeholder="예: 프라임광학, 프리시젼" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none" /></div>
             <div class="sm:col-span-2">
               <label class="block text-[11px] font-bold text-slate-600 mb-1">4. 제품명 (품명) <span class="font-normal text-slate-400">· 긴 광학 스펙 자동 줄바꿈</span></label>
               <textarea id="fProductName" rows="2" placeholder="예: 22.4mmØ x 4.0mmThk, UVFS, λ=1030-1080nm, Window glass with guide" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm leading-snug focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea>
@@ -351,18 +367,18 @@
           </div>
         </div>
 
-        <div id="qtySection" class="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200 space-y-2.5">
+        <div id="qtySection" class="bg-slate-50/90 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-purple-950">📦 수량 현황 <span class="text-rose-600 font-extrabold">*</span> <span class="text-[11px] font-normal text-purple-800">(최소 1개 이상 입력 필수)</span></span>
             <span id="liveDefectPreview" class="text-[11px] font-bold text-rose-600"></span>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
-            <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-purple-800 mb-1">작업수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyWork" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-purple-900 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
-            <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-slate-700 mb-1">작업완료</label><div class="flex items-center gap-1"><input type="number" id="fQtyWorkDone" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-slate-900 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
-            <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-blue-700 mb-1">입고수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyIncoming" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-blue-700 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
-            <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-emerald-700 mb-1">납품수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyDelivered" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-emerald-700 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
-            <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-indigo-700 mb-1">재고수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyStock" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-indigo-700 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
-            <div class="bg-white p-2.5 rounded-lg border border-purple-200/80"><label class="block text-[11px] font-bold text-rose-600 mb-1">불량수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyDefect" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-rose-600 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200"><label class="block text-[11px] font-bold text-slate-700 mb-1">작업수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyWork" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-slate-900 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200"><label class="block text-[11px] font-bold text-slate-700 mb-1">작업완료</label><div class="flex items-center gap-1"><input type="number" id="fQtyWorkDone" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-slate-900 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200"><label class="block text-[11px] font-bold text-slate-700 mb-1">입고수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyIncoming" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-slate-900 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200"><label class="block text-[11px] font-bold text-slate-700 mb-1">납품수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyDelivered" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-slate-900 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200"><label class="block text-[11px] font-bold text-slate-700 mb-1">재고수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyStock" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-slate-900 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200"><label class="block text-[11px] font-bold text-rose-600 mb-1">불량수량</label><div class="flex items-center gap-1"><input type="number" id="fQtyDefect" min="0" inputmode="numeric" placeholder="0" oninput="updateLiveDefectPreview()" class="w-full text-right font-extrabold text-rose-600 border-b border-slate-300 focus:border-purple-700 focus:outline-none py-0.5 text-sm" /><span class="text-xs font-semibold text-slate-400">ea</span></div></div>
           </div>
 
           <div class="pt-2 border-t border-purple-200/70">
@@ -430,7 +446,7 @@
 
         <div><label class="block text-xs font-bold text-slate-700 mb-1">특이사항 / 공유 메모 <span class="text-[11px] font-normal text-slate-400">(줄바꿈 가능)</span></label><textarea id="fRemarks" rows="2" placeholder="예: Doe 코팅제품 외경 사이즈만 확인 면세정" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-700 focus:outline-none"></textarea></div>
 
-        <div id="packingSection" class="bg-teal-50/70 p-3.5 rounded-xl border border-teal-200 space-y-3">
+        <div id="packingSection" class="bg-slate-50/90 p-3.5 rounded-xl border border-slate-200 space-y-3">
           <div class="flex items-center justify-between"><span class="text-xs font-bold text-teal-950">📦 출하 · 포장 완료 및 담당자 확인</span><span class="text-[11px] text-teal-700">포장 완료 시 출하 통계에 자동 반영</span></div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -449,7 +465,7 @@
           <div><label class="block text-[11px] font-bold text-teal-900 mb-1">포장 / 출하 비고 (작업자 코멘트 · 자동 줄내림)</label><textarea id="fPackingNote" rows="2" placeholder="포장 상태, 실리카겔 동봉 여부, 박스 수량, 출하 특이사항 등을 입력하세요." class="w-full bg-white border border-teal-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-600 focus:outline-none"></textarea></div>
         </div>
 
-        <div id="photoStatusSection" class="bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 space-y-3">
+        <div id="photoStatusSection" class="bg-slate-50/90 p-3.5 rounded-xl border border-slate-200 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-1">
             <span class="text-xs font-bold text-purple-900">현장 사진 및 성적서/데이터 첨부</span>
             <span id="formPhotoCountBadge" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">✨ 사진 개별 분할 저장 적용 (1MB 제한 해제)</span>
@@ -776,17 +792,17 @@
     let calDisplayMode = "MONTH", calViewYear = new Date().getFullYear(), calViewMonth = new Date().getMonth(), calSelectedDate = new Date().toISOString().slice(0, 10);
     let expandedReworkParents = new Set(), activeParentIdForRework = "", statsBreakdownMode = "TITLE";
 
-    const THEMES = [{ id: "purple", label: "퍼플 기본", className: "" }, { id: "blue", label: "제놉스 블루", className: "theme-blue" }, { id: "dark", label: "제놉스 다크", className: "theme-dark" }];
+    const THEMES = [{ id: "slate", label: "슬레이트 기본", className: "" }, { id: "blue", label: "스틸 블루", className: "theme-blue" }, { id: "dark", label: "다크 모드", className: "theme-dark" }];
 
     function applySavedTheme() {
-      const savedId = localStorage.getItem(THEME_CFG_KEY) || "purple", found = THEMES.find(t => t.id === savedId) || THEMES[0];
+      const savedId = localStorage.getItem(THEME_CFG_KEY) || "slate", found = THEMES.find(t => t.id === savedId) || THEMES[0];
       document.body.classList.remove("theme-blue", "theme-dark");
       if (found.className) document.body.classList.add(found.className);
       document.getElementById("themeLabel").textContent = found.label;
     }
 
     window.cycleTheme = function () {
-      const currentId = localStorage.getItem(THEME_CFG_KEY) || "purple", next = THEMES[(THEMES.findIndex(t => t.id === currentId) + 1) % THEMES.length];
+      const currentId = localStorage.getItem(THEME_CFG_KEY) || "slate", next = THEMES[(THEMES.findIndex(t => t.id === currentId) + 1) % THEMES.length];
       localStorage.setItem(THEME_CFG_KEY, next.id); applySavedTheme(); showToast(`화면 테마 변경: ${next.label}`);
     };
 
@@ -1264,7 +1280,7 @@
       const val = document.getElementById("fTitle").value.trim(), tokens = val ? val.split(/\s*\+\s*/).map(s => s.trim()) : [];
       document.querySelectorAll("#titleQuickBtnGroup .title-quick-btn").forEach(btn => {
         const t = btn.getAttribute("data-title"), active = tokens.includes(t) || val.includes(t);
-        btn.className = active ? "title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-purple-700 bg-purple-700 text-white shadow-sm transition" : "title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-purple-50 transition";
+        btn.className = active ? "title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-blue-600 bg-blue-600 text-white shadow-xs transition" : "title-quick-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition";
       });
     };
 
@@ -1276,7 +1292,7 @@
     function updatePackingButtons(activeVal) {
       document.querySelectorAll("#packingBtnGroup .pack-check-btn").forEach(btn => {
         const v = btn.getAttribute("data-val");
-        if (v === activeVal) btn.className = `pack-check-btn py-2 px-2 rounded-lg text-xs font-bold border text-white shadow-sm transition ${v === "포장 완료" ? "border-teal-600 bg-teal-600" : v === "포장 미완료" ? "border-amber-500 bg-amber-500" : "border-slate-700 bg-slate-700"}`;
+        if (v === activeVal) btn.className = `pack-check-btn py-2 px-2 rounded-lg text-xs font-bold border shadow-xs transition ${v === "포장 완료" ? "border-sky-300 bg-sky-50 text-blue-700" : v === "포장 미완료" ? "border-slate-400 bg-slate-100 text-slate-800" : "border-slate-300 bg-white text-slate-600"}`;
         else btn.className = "pack-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 transition";
       });
     }
@@ -1289,7 +1305,7 @@
     function updatePhotoStatusButtons(activeVal) {
       document.querySelectorAll("#photoStatusBtnGroup .photo-check-btn").forEach(btn => {
         const v = btn.getAttribute("data-val");
-        if (v === activeVal) btn.className = `photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border text-white shadow-sm transition ${v === "사진 업데이트 완료" ? "border-emerald-600 bg-emerald-600" : v === "사진 미완료" ? "border-amber-500 bg-amber-500" : "border-slate-700 bg-slate-700"}`;
+        if (v === activeVal) btn.className = `photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border shadow-xs transition ${v === "사진 업데이트 완료" ? "border-sky-300 bg-sky-50 text-blue-700" : v === "사진 미완료" ? "border-slate-400 bg-slate-100 text-slate-800" : "border-slate-300 bg-white text-slate-600"}`;
         else btn.className = "photo-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 transition";
       });
     }
@@ -1352,7 +1368,7 @@
       const vt = v => (v !== undefined && v !== null && String(v) !== "") ? `${v}ea` : "-";
       const d = calcRecordDefectInfo(r);
       const rb = (d && d.base > 0) ? `<span class="text-xs font-extrabold px-2 py-0.5 rounded-full ${d.defect > 0 ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}">불량률 ${d.rate.toFixed(1)}%</span>` : "";
-      return `<div><div class="flex items-center justify-between mb-1.5"><span class="text-xs font-bold text-slate-700">📦 수량 현황</span>${rb}</div><div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center"><div class="bg-purple-50/70 p-2.5 rounded-xl border border-purple-200"><span class="block text-[11px] text-purple-800 font-semibold">작업수량</span><strong class="text-sm font-extrabold text-purple-900 mt-0.5 block">${esc(vt(r.qtyWork))}</strong></div><div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200"><span class="block text-[11px] text-slate-600 font-semibold">작업완료</span><strong class="text-sm font-extrabold text-slate-900 mt-0.5 block">${esc(vt(getWorkDoneVal(r)))}</strong></div><div class="bg-blue-50/70 p-2.5 rounded-xl border border-blue-200"><span class="block text-[11px] text-blue-700 font-semibold">입고수량</span><strong class="text-sm font-extrabold text-blue-800 mt-0.5 block">${esc(vt(r.qtyIncoming))}</strong></div><div class="bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-200"><span class="block text-[11px] text-emerald-700 font-semibold">납품수량</span><strong class="text-sm font-extrabold text-emerald-800 mt-0.5 block">${esc(vt(r.qtyDelivered))}</strong></div><div class="bg-indigo-50/70 p-2.5 rounded-xl border border-indigo-200"><span class="block text-[11px] text-indigo-700 font-semibold">재고수량</span><strong class="text-sm font-extrabold text-indigo-800 mt-0.5 block">${esc(vt(r.qtyStock))}</strong></div><div class="bg-rose-50/70 p-2.5 rounded-xl border border-rose-200"><span class="block text-[11px] text-rose-600 font-semibold">불량수량</span><strong class="text-sm font-extrabold text-rose-700 mt-0.5 block">${esc(vt(r.qtyDefect))}</strong></div></div></div>`;
+      return `<div><div class="flex items-center justify-between mb-1.5"><span class="text-xs font-bold text-slate-700">📦 수량 현황</span>${rb}</div><div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center"><div class="bg-purple-50/70 p-2.5 rounded-xl border border-purple-200"><span class="block text-[11px] text-purple-800 font-semibold">작업수량</span><strong class="text-sm font-extrabold text-purple-900 mt-0.5 block">${esc(vt(r.qtyWork))}</strong></div><div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200"><span class="block text-[11px] text-slate-600 font-semibold">작업완료</span><strong class="text-sm font-extrabold text-slate-900 mt-0.5 block">${esc(vt(getWorkDoneVal(r)))}</strong></div><div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200"><span class="block text-[11px] text-slate-600 font-semibold">입고수량</span><strong class="text-sm font-extrabold text-slate-900 mt-0.5 block">${esc(vt(r.qtyIncoming))}</strong></div><div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200"><span class="block text-[11px] text-slate-600 font-semibold">납품수량</span><strong class="text-sm font-extrabold text-slate-900 mt-0.5 block">${esc(vt(r.qtyDelivered))}</strong></div><div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200"><span class="block text-[11px] text-slate-600 font-semibold">재고수량</span><strong class="text-sm font-extrabold text-slate-900 mt-0.5 block">${esc(vt(r.qtyStock))}</strong></div><div class="bg-rose-50/70 p-2.5 rounded-xl border border-rose-200"><span class="block text-[11px] text-rose-600 font-semibold">불량수량</span><strong class="text-sm font-extrabold text-rose-700 mt-0.5 block">${esc(vt(r.qtyDefect))}</strong></div></div></div>`;
     }
 
     window.selectDocCheck = function (type, val) {
@@ -1363,19 +1379,34 @@
     function updateDocCheckButtons(gid, active) {
       document.querySelectorAll(`#${gid} .doc-check-btn`).forEach(btn => {
         const v = btn.getAttribute("data-val");
-        if (v === active) btn.className = `doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border text-white shadow-sm transition ${(v.includes("완료") || v.includes("있음")) ? "border-blue-600 bg-blue-600" : (v.includes("미완료") || v.includes("대기")) ? "border-amber-500 bg-amber-500" : "border-slate-700 bg-slate-700"}`;
+        if (v === active) btn.className = `doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border shadow-xs transition ${(v.includes("완료") || v.includes("있음")) ? "border-sky-300 bg-sky-50 text-blue-700" : (v.includes("미완료") || v.includes("대기")) ? "border-slate-400 bg-slate-100 text-slate-800" : "border-slate-300 bg-white text-slate-600"}`;
         else btn.className = "doc-check-btn py-2 px-2 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 transition";
       });
     }
 
     function renderDocAndPackingBadges(r) {
       const b = [];
-      if (r.packingStatus === "포장 완료") b.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-teal-600 text-white">📦 포장 완료</span>`);
-      else if (r.packingStatus === "포장 미완료") b.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">⏳ 포장 미완료</span>`);
-      if (r.photoUpdateStatus === "사진 업데이트 완료") b.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-600 text-white">📷 사진 업데이트 완료</span>`);
-      else if (r.photoUpdateStatus === "사진 미완료") b.push(`<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">📷 사진 미완료</span>`);
-      if (r.reportStatus && r.reportStatus !== "해당없음") b.push(r.reportStatus === "성적서 완료" ? `<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-blue-600 text-white">성적서 완료</span>` : r.reportStatus === "성적서 미완료" ? `<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">성적서 미완료</span>` : `<span class="inline-block text-[11px] font-semibold px-2 py-0.5 rounded bg-white text-slate-500 border border-slate-300">성적서 없음</span>`);
-      if (r.coatingDataStatus && r.coatingDataStatus !== "해당없음") b.push(r.coatingDataStatus === "코팅데이터 있음" ? `<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-purple-700 text-white">코팅데이터 있음</span>` : r.coatingDataStatus === "코팅데이터 대기" ? `<span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">코팅데이터 대기</span>` : `<span class="inline-block text-[11px] font-semibold px-2 py-0.5 rounded bg-white text-slate-500 border border-slate-300">코팅데이터 없음</span>`);
+      const doneCls = "inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded bg-sky-50 text-blue-700 border border-sky-200";
+      const idleCls = "inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded bg-white text-slate-500 border border-slate-200";
+
+      if (r.packingStatus === "포장 완료") b.push(`<span class="${doneCls}">✓ 포장 완료</span>`);
+      else if (r.packingStatus === "포장 미완료") b.push(`<span class="${idleCls}">포장 미완료</span>`);
+
+      if (r.photoUpdateStatus === "사진 업데이트 완료") b.push(`<span class="${doneCls}">✓ 사진 완료</span>`);
+      else if (r.photoUpdateStatus === "사진 미완료") b.push(`<span class="${idleCls}">사진 미완료</span>`);
+
+      if (r.reportStatus && r.reportStatus !== "해당없음") {
+        if (r.reportStatus === "성적서 완료") b.push(`<span class="${doneCls}">✓ 성적서 완료</span>`);
+        else if (r.reportStatus === "성적서 미완료") b.push(`<span class="${idleCls}">성적서 미완료</span>`);
+        else b.push(`<span class="${idleCls}">성적서 없음</span>`);
+      }
+
+      if (r.coatingDataStatus && r.coatingDataStatus !== "해당없음") {
+        if (r.coatingDataStatus === "코팅데이터 있음") b.push(`<span class="${doneCls}">✓ 코팅데이터 있음</span>`);
+        else if (r.coatingDataStatus === "코팅데이터 대기") b.push(`<span class="${idleCls}">코팅데이터 대기</span>`);
+        else b.push(`<span class="${idleCls}">코팅데이터 없음</span>`);
+      }
+
       return b.length > 0 ? `<div class="flex flex-wrap gap-1">${b.join("")}</div>` : `<span class="text-slate-400 text-xs">-</span>`;
     }
 
@@ -2670,4 +2701,4 @@
   </script>
 </body>
 </html>
-Adding certificate deletion buttons
+코드에서 처리 및 분석됨
